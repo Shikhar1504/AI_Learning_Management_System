@@ -1,0 +1,48 @@
+{
+  "name": "coursecraft-ai",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@clerk/nextjs": "^6.10.1",
+    "@google/generative-ai": "^0.8.0",
+    "@neondatabase/serverless": "^0.10.4",
+    "@radix-ui/react-progress": "^1.1.2",
+    "@radix-ui/react-select": "^2.1.6",
+    "@radix-ui/react-slot": "^1.1.2",
+    "@radix-ui/react-toast": "^1.2.6",
+    "axios": "^1.7.9",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "dotenv": "^16.4.7",
+    "drizzle-orm": "^0.38.4",
+    "embla-carousel-react": "^8.5.2",
+    "framer-motion": "^12.4.10",
+    "inngest": "^3.30.0",
+    "lucide-react": "^0.474.0",
+    "next": "15.1.6",
+    "next-themes": "^0.4.4",
+    "react": "^19.0.0",
+    "react-card-flip": "^1.2.3",
+    "react-dom": "^19.0.0",
+    "react-flip-toolkit": "^7.2.4",
+    "react-icons": "^5.5.0",
+    "react-syntax-highlighter": "^15.6.1",
+    "sonner": "^1.7.4",
+    "stripe": "^17.7.0",
+    "tailwind-merge": "^2.6.0",
+    "tailwindcss-animate": "^1.0.7",
+    "uuidv4": "^6.2.13"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.30.2",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1"
+  }
+}
