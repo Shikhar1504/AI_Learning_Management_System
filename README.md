@@ -42,12 +42,14 @@ Follow these instructions to get a copy of the project up and running on your lo
 ### Installation
 
 1.  **Clone the repository:**
+
     ```bash
-    git clone https://github.com/your-username/coursecraft-ai.git
+    git clone https://github.com/Shikhar1504/AI_Learning_Management_System.git
     cd coursecraft-ai
     ```
 
 2.  **Install dependencies:**
+
     ```bash
     npm install
     ```
@@ -78,7 +80,7 @@ Follow these instructions to get a copy of the project up and running on your lo
     HOST_URL="..."
     ```
 
-4. **Run database migrations:**
+4.  **Run database migrations:**
     ```bash
     npx drizzle-kit push:pg
     ```
@@ -86,6 +88,7 @@ Follow these instructions to get a copy of the project up and running on your lo
 ### Running the Application
 
 1.  **Start the development server:**
+
     ```bash
     npm run dev
     ```
@@ -124,17 +127,17 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 The following are the main API endpoints:
 
--   `POST /api/generate-course-outline`: Triggers the AI to generate a course outline based on the user's prompt.
--   `POST /api/stripe/checkout-sessions`: Creates a Stripe checkout session for course upgrades.
--   `POST /api/inngest`: The endpoint for Inngest to handle background job events.
+- `POST /api/generate-course-outline`: Triggers the AI to generate a course outline based on the user's prompt.
+- `POST /api/stripe/checkout-sessions`: Creates a Stripe checkout session for course upgrades.
+- `POST /api/inngest`: The endpoint for Inngest to handle background job events.
 
-##  Roadmap
+## Roadmap
 
--   [ ] User profiles with course history
--   [ ] Gamification (badges, points)
--   [ ] Community features (forums, discussions)
--   [ ] More content types (videos, interactive exercises)
--   [ ] Admin dashboard for managing users and content
+- [ ] User profiles with course history
+- [ ] Gamification (badges, points)
+- [ ] Community features (forums, discussions)
+- [ ] More content types (videos, interactive exercises)
+- [ ] Admin dashboard for managing users and content
 
 ## 🤝 Contributing
 
