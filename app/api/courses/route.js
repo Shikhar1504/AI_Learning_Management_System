@@ -3,16 +3,51 @@ import { STUDY_MATERIAL_TABLE } from "@/configs/schema";
 import { desc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
+// Helper function to retry database operations
+async function retryDbOperation(operation, maxRetries = 3, delay = 1000) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      console.warn(`Database operation attempt ${attempt}/${maxRetries} failed:`, error.message);
+      
+      if (attempt === maxRetries) {
+        throw error;
+      }
+      
+      // Wait before retrying (exponential backoff)
+      await new Promise(resolve => setTimeout(resolve, delay * attempt));
+    }
+  }
+}
+
 export async function POST(req) {
-  const { createdBy } = await req.json();
-  //req.json() parses the incoming JSON request body.
-  //{ createdBy } extracts the createdBy field (email).
-  const result = await db
-    .select()
-    .from(STUDY_MATERIAL_TABLE)
-    .where(eq(STUDY_MATERIAL_TABLE.createdBy, createdBy))
-    .orderBy(desc(STUDY_MATERIAL_TABLE.id));
-  return NextResponse.json({ result: result });
+  try {
+    const { createdBy } = await req.json();
+    
+    if (!createdBy) {
+      return NextResponse.json({ error: "createdBy is required" }, { status: 400 });
+    }
+    
+    const result = await retryDbOperation(async () => {
+      return await db
+        .select()
+        .from(STUDY_MATERIAL_TABLE)
+        .where(eq(STUDY_MATERIAL_TABLE.createdBy, createdBy))
+        .orderBy(desc(STUDY_MATERIAL_TABLE.id));
+    });
+    
+    return NextResponse.json({ result: result });
+  } catch (error) {
+    console.error("Error fetching user courses:", error);
+    
+    // Return empty result on database error
+    return NextResponse.json({ 
+      result: [],
+      error: "Database temporarily unavailable",
+      fallback: true
+    }, { status: 200 }); // Return 200 to not break the UI
+  }
 }
 
 {
@@ -33,12 +68,65 @@ export async function GET(req) {
   const { searchParams } = new URL(reqUrl);
   const courseId = searchParams?.get("courseId");
 
-  const course = await db
-    .select()
-    .from(STUDY_MATERIAL_TABLE)
-    .where(eq(STUDY_MATERIAL_TABLE?.courseId, courseId));
+  try {
+    if (!courseId) {
+      return NextResponse.json({ error: "courseId is required" }, { status: 400 });
+    }
 
-  return NextResponse.json({ result: course[0] });
+    const course = await retryDbOperation(async () => {
+      return await db
+        .select()
+        .from(STUDY_MATERIAL_TABLE)
+        .where(eq(STUDY_MATERIAL_TABLE?.courseId, courseId));
+    });
+
+    if (!course || course.length === 0) {
+      return NextResponse.json({ error: "Course not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ result: course[0] });
+  } catch (error) {
+    console.error("Error fetching course:", error);
+    
+    // Return fallback course data
+    const fallbackCourse = {
+      courseId: courseId,
+      courseType: "Course",
+      topic: "Advanced Learning Course",
+      difficultyLevel: "Intermediate",
+      courseLayout: {
+        courseTitle: "Course Content Loading",
+        summary: "This course is temporarily unavailable due to database connectivity issues. Please try refreshing the page or check back in a few minutes.",
+        chapters: [
+          {
+            title: "Introduction",
+            summary: "Getting started with the course basics",
+            topics: ["Course Overview", "Learning Objectives"]
+          },
+          {
+            title: "Core Concepts",
+            summary: "Understanding fundamental principles",
+            topics: ["Key Principles", "Best Practices"]
+          },
+          {
+            title: "Advanced Topics",
+            summary: "Deep dive into complex subjects",
+            topics: ["Advanced Techniques", "Case Studies"]
+          }
+        ]
+      },
+      status: "Ready",
+      createdBy: "system",
+      createdAt: new Date().toISOString(),
+      fallback: true
+    };
+    
+    return NextResponse.json({ 
+      result: fallbackCourse,
+      error: "Database temporarily unavailable",
+      fallback: true
+    }, { status: 200 });
+  }
 }
 
 {

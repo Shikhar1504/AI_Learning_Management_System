@@ -1,7 +1,7 @@
 import Image from "next/image";
 import React, { useState } from "react";
 
-function SelectOption({ selectedStudyType }) {
+function SelectOption({ handleUserInput }) {
   const Options = [
     {
       name: "Exam",
@@ -39,7 +39,7 @@ function SelectOption({ selectedStudyType }) {
                 ${option?.name == selectedOption && "border-primary"}`} //${condition && 'class-name'}
             onClick={() => {
               setSelectedOption(option.name);
-              selectedStudyType(option.name);
+              handleUserInput("courseType", option.name);
             }}
           >
             <Image src={option.icon} alt={option.name} width={50} height={50} />

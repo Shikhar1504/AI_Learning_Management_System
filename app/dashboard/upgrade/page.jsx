@@ -57,117 +57,157 @@ function Upgrade() {
   };
 
   return (
-    <div>
-      <header className="font-medium text-3xl">Plans</header>
-      <p>Update your plan to generate unlimted courses for your exam</p>
+    <div className="min-h-screen flex flex-col">
+      <div className="flex-grow">
+        <div className="bg-gradient-to-r from-purple-900 to-fuchsia-800 text-white py-12 px-4 mb-8">
+          <div className="container mx-auto max-w-4xl text-center">
+            <h1 className="font-bold text-4xl md:text-5xl mb-4 font-poppins">Plans</h1>
+            <p className="text-lg md:text-xl font-inter text-purple-100">
+              Update your plan to generate unlimited courses for your learning journey
+            </p>
+          </div>
+        </div>
 
-      <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-        <div className="grid md:grid-cols-2 md:gap-7 sm:grid-cols-1 sm:items-center sm:gap-4">
-          <div className="rounded-2xl border border-gray-200 p-6 shadow-sm sm:px-8 lg:p-12">
-            <div className="text-center">
-              <h2 className="text-lg font-medium text-gray-900">
-                Free
-                <span className="sr-only">Plan</span>
-              </h2>
+        <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Free Plan */}
+            <div className="rounded-3xl border border-purple-200 bg-white p-8 shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden">
+              <div className="absolute top-0 right-0 bg-purple-100 text-purple-800 text-xs font-bold px-3 py-1 rounded-bl-lg">
+                CURRENT PLAN
+              </div>
+              
+              <div className="text-center mb-6">
+                <h2 className="text-xl font-bold text-gray-900 font-poppins">
+                  Free Plan
+                </h2>
 
-              <p className="mt-2 sm:mt-4">
-                <strong className="text-3xl font-bold text-gray-900 sm:text-4xl">
-                  {" "}
-                  0${" "}
-                </strong>
+                <p className="mt-4 flex items-center justify-center">
+                  <strong className="text-4xl font-bold text-purple-800 font-poppins">$0</strong>
+                  <span className="text-sm font-medium text-gray-500 ml-2">/month</span>
+                </p>
+              </div>
 
-                <span className="text-sm font-medium text-gray-700">
-                  /month
-                </span>
-              </p>
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-2xl mb-6">
+                <p className="text-center text-sm text-purple-700">Perfect for casual learners</p>
+              </div>
+
+              <ul className="mt-6 space-y-4 mb-8">
+                <li className="flex items-center gap-3">
+                  <div className="bg-purple-100 p-1 rounded-full">
+                    <CheckIcon className="text-purple-700" />
+                  </div>
+                  <span className="text-gray-700 font-inter">10 Course Generate Per Day</span>
+                </li>
+
+                <li className="flex items-center gap-3">
+                  <div className="bg-purple-100 p-1 rounded-full">
+                    <CheckIcon className="text-purple-700" />
+                  </div>
+                  <span className="text-gray-700 font-inter">Limited Support</span>
+                </li>
+
+                <li className="flex items-center gap-3">
+                  <div className="bg-purple-100 p-1 rounded-full">
+                    <CheckIcon className="text-purple-700" />
+                  </div>
+                  <span className="text-gray-700 font-inter">Email support</span>
+                </li>
+
+                <li className="flex items-center gap-3">
+                  <div className="bg-purple-100 p-1 rounded-full">
+                    <CheckIcon className="text-purple-700" />
+                  </div>
+                  <span className="text-gray-700 font-inter">Help center access</span>
+                </li>
+              </ul>
+
+              <div className="text-center">
+                <p className="text-sm text-gray-500 mb-4 font-inter">Current Plan</p>
+              </div>
             </div>
 
-            <ul className="mt-6 space-y-2">
-              <li className="flex items-center gap-1">
-                <CheckIcon />
-                <span className="text-gray-700">
-                  {" "}
-                  10 Course Generate Per Day{" "}
-                </span>
-              </li>
+            {/* Premium Plan */}
+            <div className="rounded-3xl border border-purple-300 bg-gradient-to-b from-white to-purple-50 p-8 shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden">
+              <div className="absolute top-0 right-0 theme-gradient text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
+                RECOMMENDED
+              </div>
+              
+              <div className="text-center mb-6">
+                <h2 className="text-xl font-bold text-gray-900 font-poppins">
+                  Premium Plan
+                </h2>
 
-              <li className="flex items-center gap-1">
-                <CheckIcon />
-                <span className="text-gray-700"> Limited Support </span>
-              </li>
+                <p className="mt-4 flex items-center justify-center">
+                  <strong className="text-4xl font-bold text-purple-800 font-poppins">$5</strong>
+                  <span className="text-sm font-medium text-gray-500 ml-2">/Monthly</span>
+                </p>
+              </div>
 
-              <li className="flex items-center gap-1">
-                <CheckIcon />
-                <span className="text-gray-700"> Email support </span>
-              </li>
+              <div className="bg-gradient-to-r from-purple-100 to-pink-100 p-4 rounded-2xl mb-6">
+                <p className="text-center text-sm text-purple-800">Unlimited access to all features</p>
+              </div>
 
-              <li className="flex items-center gap-1">
-                <CheckIcon />
-                <span className="text-gray-700"> Help center access </span>
-              </li>
-            </ul>
+              <ul className="mt-6 space-y-4 mb-8">
+                <li className="flex items-center gap-3">
+                  <div className="theme-gradient p-1 rounded-full">
+                    <CheckIcon className="text-white" />
+                  </div>
+                  <span className="text-gray-700 font-inter font-medium">Unlimited Course Generate</span>
+                </li>
 
-            <Button variant="ghost" className="w-full mt-5 text-primary">
-              Current Plan
-            </Button>
-          </div>
-          <div className="rounded-2xl border border-gray-200 p-6 shadow-sm sm:px-8 lg:p-12">
-            <div className="text-center">
-              <h2 className="text-lg font-medium text-gray-900">
-                Montly
-                <span className="sr-only">Plan</span>
-              </h2>
+                <li className="flex items-center gap-3">
+                  <div className="theme-gradient p-1 rounded-full">
+                    <CheckIcon className="text-white" />
+                  </div>
+                  <span className="text-gray-700 font-inter font-medium">Unlimited Flashcard, Quiz</span>
+                </li>
 
-              <p className="mt-2 sm:mt-4">
-                <strong className="text-3xl font-bold text-gray-900 sm:text-4xl">
-                  {" "}
-                  5${" "}
-                </strong>
+                <li className="flex items-center gap-3">
+                  <div className="theme-gradient p-1 rounded-full">
+                    <CheckIcon className="text-white" />
+                  </div>
+                  <span className="text-gray-700 font-inter font-medium">Email support</span>
+                </li>
 
-                <span className="text-sm font-medium text-gray-700">
-                  /Montly
-                </span>
-              </p>
+                <li className="flex items-center gap-3">
+                  <div className="theme-gradient p-1 rounded-full">
+                    <CheckIcon className="text-white" />
+                  </div>
+                  <span className="text-gray-700 font-inter font-medium">Help center access</span>
+                </li>
+              </ul>
+
+              <div className="text-center">
+                <Button 
+                  onClick={OnCheckoutClick}
+                  className="w-full py-3 theme-button-primary rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  Get Started
+                </Button>
+              </div>
             </div>
-
-            <ul className="mt-6 space-y-2">
-              <li className="flex items-center gap-1">
-                <CheckIcon />
-                <span className="text-gray-700">
-                  {" "}
-                  Unlimted Course Generate{" "}
-                </span>
-              </li>
-
-              <li className="flex items-center gap-1">
-                <CheckIcon />
-                <span className="text-gray-700">
-                  {" "}
-                  Unlimted Flashcard, Quiz{" "}
-                </span>
-              </li>
-
-              <li className="flex items-center gap-1">
-                <CheckIcon />
-                <span className="text-gray-700"> Email support </span>
-              </li>
-
-              <li className="flex items-center gap-1">
-                <CheckIcon />
-                <span className="text-gray-700"> Help center access </span>
-              </li>
-            </ul>
-
-            {userDetail?.isMember == false ? (
-              <Button onClick={OnCheckoutClick} className="w-full mt-5">
-                Get Started
-              </Button>
-            ) : (
-              <Button onClick={onPaymentMange} className="w-full mt-5">
-                Manage Payment
-              </Button>
-            )}
           </div>
+          
+          {userDetail?.customerId && (
+            <div className="mt-8 text-center">
+              <Button 
+                onClick={onPaymentMange}
+                variant="outline" 
+                className="border-purple-300 text-purple-700 hover:bg-purple-50"
+              >
+                Manage Your Subscription
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+      
+      {/* Simple Footer Alternative */}
+      <div className="mt-auto border-t border-white/10 bg-white/5 backdrop-blur-sm">
+        <div className="container mx-auto max-w-4xl text-center py-6">
+          <p className="text-sm text-muted-foreground">
+            © 2025 LearnForge. All rights reserved.
+          </p>
         </div>
       </div>
     </div>

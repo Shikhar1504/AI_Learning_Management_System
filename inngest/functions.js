@@ -13,6 +13,69 @@ import {
 } from "@/configs/schema";
 import { eq } from "drizzle-orm";
 
+// Helper function to generate fallback content when AI API fails
+function generateFallbackContent(chapter, courseType) {
+  const { title, topics, summary } = chapter;
+  
+  // Create basic HTML content based on chapter information
+  let content = `
+    <div class="chapter-content">
+      <h1>${title}</h1>
+      <p class="summary"><strong>Summary:</strong> ${summary}</p>
+      <div class="topics">
+  `;
+  
+  // Add content for each topic
+  topics.forEach(topic => {
+    content += `
+      <div class="topic">
+        <h2>${topic}</h2>
+        <p>This section covers key concepts related to ${topic} in the context of ${title}.</p>
+        <div class="key-points">
+          <h3>Key Points:</h3>
+          <ul>
+            <li>Understanding the fundamentals of ${topic}</li>
+            <li>How ${topic} relates to ${title}</li>
+            <li>Practical applications of ${topic}</li>
+          </ul>
+        </div>
+    `;
+    
+    // Add example code if it might be a technical topic
+    if (title.toLowerCase().includes("programming") || 
+        title.toLowerCase().includes("code") || 
+        title.toLowerCase().includes("development") ||
+        title.toLowerCase().includes("machine learning") ||
+        topic.toLowerCase().includes("code") ||
+        topic.toLowerCase().includes("algorithm")) {
+      content += `
+        <div class="code-example">
+          <h3>Example:</h3>
+          <precode>
+          // Example code for ${topic}
+          function example${topic.replace(/\s+/g, '')}() {
+            console.log("This is a placeholder for ${topic} code example");
+            // Implementation would go here
+            return "Example result";
+          }
+          </precode>
+        </div>
+      `;
+    }
+    
+    content += `
+      </div>
+    `;
+  });
+  
+  content += `
+      </div>
+    </div>
+  `;
+  
+  return content;
+}
+
 /* 
 🚀 How This Works (Inngest Flow) 🚀
 
@@ -33,23 +96,33 @@ export const CreateNewUser = inngest.createFunction(
   { event: "user.create" },
   async ({ event, step }) => {
     const { user } = event.data;
+    console.log("Received user data:", JSON.stringify(user, null, 2)); // Add logging to see what data we receive
     // Get Event Data
     const result = await step.run(
       "Checking if the user exists in the database...",
       async () => {
         // Check Is User Already Exist
+        const email = user?.primaryEmailAddress?.emailAddress;
+        console.log("Checking for email:", email); // Add logging to see what email we're checking
+        
+        if (!email) {
+          console.error("Email not found in user data");
+          return [];
+        }
+        
         const result = await db
           .select()
           .from(USER_TABLE)
-          .where(eq(USER_TABLE.email, user?.primaryEmailAddress?.emailAddress));
+          .where(eq(USER_TABLE.email, email));
 
         if (result?.length == 0) {
           //If Not, Then add to DB
+          console.log("Creating new user with email:", email); // Add logging for user creation
           const userResp = await db
             .insert(USER_TABLE)
             .values({
               name: user?.fullName,
-              email: user?.primaryEmailAddress?.emailAddress,
+              email: email,
             })
             .returning({ USER_TABLE });
           return userResp;
@@ -88,11 +161,53 @@ export const GenerateNotes = inngest.createFunction(
           "The chapter content is: " +
           JSON.stringify(chapter);
 
-        // Call the AI model to generate notes
-        const result = await generateNotesAiModel.sendMessage(PROMPT);
-        const aiResp = result.response.text(); // Extract AI-generated text response
-
         console.log(PROMPT); // Log the prompt for debugging
+        
+        // Add retry logic with exponential backoff
+        let retries = 0;
+        const maxRetries = 3;
+        let aiResp = "";
+        
+        while (retries <= maxRetries) {
+          try {
+            // Call the AI model to generate notes
+            const result = await generateNotesAiModel.sendMessage(PROMPT);
+            aiResp = result.response.text(); // Extract AI-generated text response
+            break; // Success, exit the retry loop
+          } catch (error) {
+            console.error(`AI API Error (attempt ${retries + 1}/${maxRetries + 1}):`, error.message);
+            
+            if (retries === maxRetries) {
+              // Generate fallback content on final retry
+              console.log("Generating fallback content for chapter:", chapter.title);
+              aiResp = generateFallbackContent(chapter, course?.courseType);
+              break;
+            }
+            
+            // Check if it's a rate limit error (429)
+            if (error.message.includes("429") || error.message.includes("Too Many Requests")) {
+              const delaySeconds = Math.pow(2, retries) * 30; // Exponential backoff: 30s, 60s, 120s
+              console.log(`Rate limit hit. Waiting ${delaySeconds} seconds before retry...`);
+              await new Promise(resolve => setTimeout(resolve, delaySeconds * 1000));
+            } else if (error.message.includes("503") || error.message.includes("500")) {
+              // For server errors, wait a bit less
+              const delaySeconds = Math.pow(1.5, retries) * 20; 
+              console.log(`Server error. Waiting ${delaySeconds} seconds before retry...`);
+              await new Promise(resolve => setTimeout(resolve, delaySeconds * 1000));
+            } else {
+              // For other errors, use fallback content
+              console.log("Unrecoverable error, using fallback content");
+              aiResp = generateFallbackContent(chapter, course?.courseType);
+              break;
+            }
+          }
+          retries++;
+          
+          // Add delay between chapters to avoid rate limits
+          if (retries <= maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, 5000)); // 5 second pause between retries
+          }
+        }
 
         // Store the generated notes in the database
         await db.insert(CHAPTER_NOTES_TABLE).values({
@@ -100,6 +215,12 @@ export const GenerateNotes = inngest.createFunction(
           courseId: course?.courseId, // Link notes to the corresponding course
           notes: aiResp, // Store the AI-generated notes
         });
+
+        // Add delay between chapters to avoid rate limits
+        if (index < Chapters.length - 1) {
+          console.log("Waiting 10 seconds before processing next chapter to avoid rate limits...");
+          await new Promise(resolve => setTimeout(resolve, 10000)); // 10 second pause between chapters
+        }
 
         index = index + 1; // Increment index for the next chapter
       }
@@ -177,5 +298,14 @@ export const GenerateStudyTypeContent = inngest.createFunction(
         })
         .where(eq(STUDY_TYPE_CONTENT_TABLE.id, recordId));
     });
+  }
+);
+
+export const HandleRiseAppEvent = inngest.createFunction(
+  { id: "handle-rise-app-event" },
+  { event: "rise-app" },
+  async ({ event, step }) => {
+    console.log("Received rise-app event:", event.data);
+    return "Rise-app event handled successfully.";
   }
 );

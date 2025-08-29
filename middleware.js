@@ -2,11 +2,11 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
 const isProtectedRoute = createRouteMatcher(['/dashboard(.*)','/create','/course(.*)'])
 
-export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) await auth.protect()
+export default clerkMiddleware((auth, req) => {
+  if (isProtectedRoute(req)) {
+    auth.protect()
+  }
 })
-//The clerkMiddleware is used to check if the incoming request matches one of these protected routes. 
-//If the route matches, the auth.protect() function is called, which will trigger a sign-in check.
 
 export const config = {
   matcher: [

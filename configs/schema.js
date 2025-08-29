@@ -6,18 +6,35 @@ import {
   serial,
   text,
   varchar,
+  timestamp,
 } from "drizzle-orm/pg-core";
 
 export const USER_TABLE = pgTable("users", {
-  id: serial().primaryKey(),
+  id: varchar("id", { length: 256 }).primaryKey(),
   name: varchar().notNull(),
   email: varchar().notNull(),
   isMember: boolean().default(false),
   customerId: varchar(),
+  // User stats fields
+  streak: integer().default(0),
+  studyTime: integer().default(0), // in hours
+  completedCourses: integer().default(0),
+  progress: integer().default(0), // overall progress percentage
+  lastStudyDate: timestamp(),
+  currentGoal: json(), // { title: string, progress: number }
+  preferences: json(), // user learning preferences
+  // Daily course limit tracking
+  dailyCoursesCreated: integer().default(0), // courses created today
+  lastCourseDate: timestamp(), // last course creation date
+  // Learner level system fields (deprecated but kept for compatibility)
+  experiencePoints: integer().default(0), // total XP earned
+  learnerLevel: integer().default(1), // 1 = New, 2 = Intermediate, 3 = Advanced
+  levelProgress: integer().default(0), // progress towards next level (0-100)
+  lastLevelUpdate: timestamp(), // when level was last calculated
 });
 
 export const STUDY_MATERIAL_TABLE = pgTable("studyMaterial", {
-  id: serial().primaryKey(),
+  id: varchar("id", { length: 256 }).primaryKey(),
   courseId: varchar().notNull(),
   courseType: varchar().notNull(),
   topic: varchar().notNull(),
@@ -28,14 +45,14 @@ export const STUDY_MATERIAL_TABLE = pgTable("studyMaterial", {
 });
 
 export const CHAPTER_NOTES_TABLE = pgTable("chapterNotes", {
-  id: serial().primaryKey(),
+  id: varchar("id", { length: 256 }).primaryKey(),
   courseId: varchar().notNull(),
   chapterId: integer().notNull(),
   notes: text(),
 });
 
 export const STUDY_TYPE_CONTENT_TABLE = pgTable("studyTypeContent", {
-  id: serial().primaryKey(),
+  id: varchar("id", { length: 256 }).primaryKey(),
   courseId: varchar().notNull(),
   content: json(),
   type: varchar().notNull(),
@@ -43,7 +60,7 @@ export const STUDY_TYPE_CONTENT_TABLE = pgTable("studyTypeContent", {
 });
 
 export const PAYMENT_RECORD_TABLE = pgTable("paymentRecord", {
-  id: serial().primaryKey(),
+  id: varchar("id", { length: 256 }).primaryKey(),
   customerId: varchar(),
   sessionId: varchar(),
 });

@@ -13,8 +13,11 @@ import { NextResponse } from "next/server";
 export async function POST(req) {
   const { chapters, courseId, type } = await req.json(); // get the data from the request
 
+  // Normalize the type to match Inngest function expectations
+  const normalizedType = type === "flashcard" ? "Flashcard" : type === "quiz" ? "Quiz" : type;
+
   const PROMPT = // AI Prompt for flashcard and quiz generation
-    type == "Flashcard"
+    normalizedType == "Flashcard"
       ? "Generate the flashcard on topic : " +
         chapters +
         " in JSON format with front back content, Maximum 15"
@@ -27,7 +30,7 @@ export async function POST(req) {
     .insert(STUDY_TYPE_CONTENT_TABLE)
     .values({
       courseId: courseId,
-      type: type,
+      type: normalizedType, // Use normalized type
     })
     .returning({ id: STUDY_TYPE_CONTENT_TABLE.id });
 
@@ -35,7 +38,7 @@ export async function POST(req) {
   const result_ = await inngest.send({
     name: "studyType.content",
     data: {
-      studyType: type,
+      studyType: normalizedType, // Use normalized type
       prompt: PROMPT,
       courseId: courseId,
       recordId: result[0].id,

@@ -36,6 +36,7 @@
     "react-syntax-highlighter": "^15.6.1",
     "sonner": "^1.7.4",
     "stripe": "^17.7.0",
+    "svix": "^1.75.0",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
     "uuidv4": "^6.2.13"

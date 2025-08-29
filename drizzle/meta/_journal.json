@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1756296034940,
+      "tag": "0000_overrated_loners",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1756489192776,
+      "tag": "0001_legal_korg",
+      "breakpoints": true
+    }
+  ]
+}

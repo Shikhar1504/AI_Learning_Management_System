@@ -1,25 +1,66 @@
-import React from "react";
 import ReactCardFlip from "react-card-flip";
+import { RotateCcw } from "lucide-react";
 
 function FlashcardItem({ handleClick, isFlipped, flashcard }) {
+  // Handle cases where flashcard data might be missing
+  const frontText = flashcard?.front || flashcard?.question || "Question missing";
+  const backText = flashcard?.back || flashcard?.answer || "Answer missing";
+
   return (
-    <div className="flex items-center justify-center mb-10">
+    <div className="flex items-center justify-center w-full">
       <ReactCardFlip isFlipped={isFlipped} flipDirection="vertical">
-        {/*when isFlipped is False, the front side of the card is shown*/}
+        {/* Front side of the card */}
         <div
-          className="p-4 bg-primary text-white flex items-center justify-center rounded-lg cursor-pointer shadow-lg h-[350px] w-[300px] md:h-[450px] md:w-[500px]"
-          onClick={handleClick} // Call handleClick when the front side of the card is clicked
-        >
-          <h2 className="text-2xl font-medium text-center">
-            {flashcard?.front}
-          </h2>
-        </div>
-        {/* When isFlipped is true, the back side of the card is shown */}
-        <div
-          className="p-4 bg-white shadow-lg text-primary flex items-center justify-center rounded-lg cursor-pointer h-[350px] w-[300px] md:h-[450px] md:w-[500px] text-center"
+          className="relative p-8 bg-gradient-to-br from-purple-500 via-purple-600 to-blue-600 text-white flex flex-col items-center justify-center rounded-3xl cursor-pointer shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 h-[400px] w-[320px] md:h-[480px] md:w-[600px] border border-white/10"
           onClick={handleClick}
         >
-          <h2 className="text-xl">{flashcard?.back}</h2>
+          {/* Front indicator */}
+          <div className="absolute top-4 left-4 px-3 py-1 bg-white/20 rounded-full text-xs font-medium backdrop-blur-sm">
+            Question
+          </div>
+          
+          {/* Flip hint */}
+          <div className="absolute top-4 right-4 p-2 bg-white/20 rounded-full backdrop-blur-sm">
+            <RotateCcw className="h-4 w-4" />
+          </div>
+          
+          {/* Content */}
+          <div className="text-center space-y-4">
+            <h2 className="text-xl md:text-2xl lg:text-3xl font-bold leading-tight">
+              {frontText}
+            </h2>
+            
+            <p className="text-white/80 text-sm md:text-base">
+              Click to reveal answer
+            </p>
+          </div>
+        </div>
+        
+        {/* Back side of the card */}
+        <div
+          className="relative p-8 bg-gradient-to-br from-slate-50 to-white text-gray-900 flex flex-col items-center justify-center rounded-3xl cursor-pointer shadow-2xl hover:shadow-slate-200 transition-all duration-300 h-[400px] w-[320px] md:h-[480px] md:w-[600px] border border-gray-200"
+          onClick={handleClick}
+        >
+          {/* Back indicator */}
+          <div className="absolute top-4 left-4 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+            Answer
+          </div>
+          
+          {/* Flip hint */}
+          <div className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full">
+            <RotateCcw className="h-4 w-4 text-gray-600" />
+          </div>
+          
+          {/* Content */}
+          <div className="text-center space-y-4">
+            <h2 className="text-lg md:text-xl lg:text-2xl font-semibold leading-tight text-gray-800">
+              {backText}
+            </h2>
+            
+            <p className="text-gray-500 text-sm md:text-base">
+              Click to see question again
+            </p>
+          </div>
         </div>
       </ReactCardFlip>
     </div>

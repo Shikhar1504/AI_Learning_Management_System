@@ -4,7 +4,6 @@ import {
   Select,
   SelectContent,
   SelectItem,
-  SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
 
@@ -22,10 +21,8 @@ function TopicInput({ setTopic, setDifficultyLevel }) {
       />
 
       <h2 className="mt-5 mb-3">Select the difficulty Level</h2>
-      <Select onValueChange={(value) => setDifficultyLevel(value)}>
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder="Difficulty Level" />
-        </SelectTrigger>
+      <Select onValueChange={(value) => setDifficultyLevel(value)} defaultValue="">
+        <SelectValue placeholder="Difficulty Level" />
         <SelectContent>
           <SelectItem value="Easy">Easy</SelectItem>
           <SelectItem value="Moderate">Moderate</SelectItem>

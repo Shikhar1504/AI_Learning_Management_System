@@ -31,8 +31,12 @@ export async function POST(req) {
 
     const result = {
       notes: notes,
-      flashcard: contentList?.filter((item) => item.type == "Flashcard"),
-      quiz: contentList?.filter((item) => item.type == "Quiz"),
+      flashcard: contentList
+        ?.filter((item) => item.type == "Flashcard" && item.status == "Ready")
+        ?.flatMap(item => item.content || []) || [],
+      quiz: contentList
+        ?.filter((item) => item.type == "Quiz" && item.status == "Ready")
+        ?.flatMap(item => item.content || []) || [],
       qa: [],
     };
 
@@ -50,9 +54,13 @@ export async function POST(req) {
       .where(
         and(
           eq(STUDY_TYPE_CONTENT_TABLE?.courseId, courseId),
-          eq(STUDY_TYPE_CONTENT_TABLE.type, studyType)
+          eq(STUDY_TYPE_CONTENT_TABLE.type, studyType),
+          eq(STUDY_TYPE_CONTENT_TABLE.status, "Ready")
         )
       );
-    return NextResponse.json(result[0] ?? []);
+    
+    // Return the actual content array instead of database records
+    const content = result.length > 0 && result[0].content ? result[0].content : [];
+    return NextResponse.json(content);
   }
 }

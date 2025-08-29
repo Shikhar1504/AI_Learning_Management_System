@@ -9,31 +9,27 @@ export async function POST(req) {
 
   let data;
   let eventType;
-  // Check if webhook signing is configured.
   const webhookSecret = process.env.STRIPE_WEB_HOOK_KEY;
-  if (webhookSecret) {
-    // Retrieve the event by verifying the signature using the raw body and secret.
-    let event;
-    let signature = req.headers["stripe-signature"];
 
+  if (webhookSecret) {
+    const signature = req.headers.get("stripe-signature");
+    const rawBody = await req.text();
     try {
-      event = stripe.webhooks.constructEvent(
-        req.body,
+      const event = stripe.webhooks.constructEvent(
+        rawBody,
         signature,
         webhookSecret
       );
+      data = event.data;
+      eventType = event.type;
     } catch (err) {
-      console.log(`⚠️  Webhook signature verification failed.`);
-      return res.sendStatus(400);
+      console.error("Webhook signature verification failed.", err);
+      return new NextResponse("Bad Request", { status: 400 });
     }
-    // Extract the object from the event.
-    data = event.data;
-    eventType = event.type;
   } else {
-    // Webhook signing is recommended, but if the secret is not configured in `config.js`,
-    // retrieve the event data directly from the request body.
-    data = req.body.data;
-    eventType = req.body.type;
+    const body = await req.json();
+    data = body.data;
+    eventType = body.type;
   }
 
   switch (eventType) {
