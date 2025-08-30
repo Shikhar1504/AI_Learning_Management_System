@@ -153,16 +153,19 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 ### Course Generation Process
 
 1. **User Initiates Course Generation**
+
    - User enters a topic and selects options on the create page
    - Application generates a unique course ID
    - API request sent to `/api/generate-course-outline`
 
 2. **AI Generates Course Structure**
+
    - Google Gemini AI creates a structured course outline
    - Course details saved to the database
    - Inngest event triggered for background processing
 
 3. **Background Processing (via Inngest)**
+
    - Notes generation for each chapter occurs asynchronously
    - Flashcards and quizzes are generated on-demand
    - Course status updated to "Ready" when complete
@@ -175,6 +178,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 ### User Authentication Flow
 
 1. **New User Registration**
+
    - User signs up through Clerk authentication
    - Clerk webhook triggers user creation in the database
    - User redirected to dashboard after successful registration
@@ -189,22 +193,26 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 The following are the main API endpoints:
 
 - **Course Management**
+
   - `POST /api/generate-course-outline`: Creates a new course outline
   - `GET /api/courses`: Retrieves user's courses
   - `POST /api/course-analytics`: Gets course progress data
 
 - **Study Materials**
+
   - `POST /api/study-type`: Retrieves or initiates generation of study materials
   - `POST /api/study-type-content`: Stores and retrieves study content
   - `POST /api/generate-chapters`: Generates chapter content
 
 - **User Management**
+
   - `POST /api/create-user`: Processes Clerk webhooks for user creation
   - `POST /api/ensure-user-exists`: Verifies and creates users if needed
   - `POST /api/validate-user`: Validates user existence
   - `GET|PUT /api/users/[userId]/stats`: Manages user statistics
 
 - **Payment Processing**
+
   - `POST /api/payment/checkout`: Creates Stripe checkout sessions
   - `POST /api/payment/manage-payment`: Manages payment settings
   - `POST /api/payment/webhook`: Processes Stripe webhooks
