@@ -72,6 +72,7 @@ Follow these instructions to get a copy of the project up and running on your lo
 
     # Google Gemini AI
     NEXT_PUBLIC_GEMINI_API_KEY="..."
+    GEMINI_FALLBACK_API_KEY="..."
 
     # Stripe
     STRIPE_SECRET_KEY="..."

@@ -7,12 +7,12 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { useUser } from "@clerk/nextjs";
 import axios from "axios";
+import { AlertCircle, ArrowLeft, RefreshCcw } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import FlashcardItem from "./_components/FlashcardItem";
-import { ArrowLeft, RefreshCcw, AlertCircle } from "lucide-react";
-import { useUser } from "@clerk/nextjs";
 
 function Flashcards() {
   const { courseId } = useParams();
@@ -26,6 +26,7 @@ function Flashcards() {
   const [currentCard, setCurrentCard] = useState(0);
   const [sessionStarted, setSessionStarted] = useState(false);
   const [studySessionTracked, setStudySessionTracked] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
     GetFlashCards();
@@ -34,17 +35,17 @@ function Flashcards() {
   // Listen for carousel "select" event to know when the user navigates to a new flashcard
   useEffect(() => {
     if (!api) return;
-    
+
     const handleSelect = () => {
       setIsFlipped(false); // Reset flip state on new card
       setCurrentCard(api.selectedScrollSnap());
     };
-    
+
     api.on("select", handleSelect);
-    
+
     // Set initial card
     setCurrentCard(api.selectedScrollSnap());
-    
+
     return () => {
       api.off("select", handleSelect);
     };
@@ -58,16 +59,18 @@ function Flashcards() {
         courseId: courseId,
         studyType: "Flashcard",
       });
-      
+
       console.log("Flashcard API Response:", result?.data);
-      
+
       // The API returns content directly for specific study types, not wrapped in 'content'
       const flashcardData = result?.data || [];
-      
+
       if (Array.isArray(flashcardData) && flashcardData.length > 0) {
         setFlashCards(flashcardData);
       } else {
-        setError("No flashcards found for this course. Please generate flashcards first.");
+        setError(
+          "No flashcards found for this course. Please generate flashcards first."
+        );
       }
     } catch (error) {
       console.error("Error fetching flashcards:", error);
@@ -78,40 +81,50 @@ function Flashcards() {
   };
 
   const handleClick = () => {
+    // Prevent clicks during animation to avoid double flips
+    if (isAnimating) return;
+
+    setIsAnimating(true);
     setIsFlipped((prev) => !prev);
-    
+
     // Track session start and study activity
     if (!sessionStarted) {
       setSessionStarted(true);
       trackStudyActivity();
     }
+
+    // Reset animation flag after animation completes
+    setTimeout(() => setIsAnimating(false), 650); // Slightly longer than animation duration
   };
 
   // Track study activity for streak
   const trackStudyActivity = async () => {
     if (!user?.primaryEmailAddress?.emailAddress || studySessionTracked) return;
-    
+
     try {
       // First, ensure user exists in the database using the proper endpoint
-      await axios.post('/api/ensure-user-exists', {
+      await axios.post("/api/ensure-user-exists", {
         user: {
           id: user.id,
-          name: user.fullName || user.firstName || 'User',
-          email: user.primaryEmailAddress.emailAddress
-        }
+          name: user.fullName || user.firstName || "User",
+          email: user.primaryEmailAddress.emailAddress,
+        },
       });
-      
+
       // Then track the study activity using the correct endpoint
       // The user ID should be the email address based on the API route
-      await axios.put(`/api/users/${user.primaryEmailAddress.emailAddress}/stats`, {
-        dailyActivity: true,
-        studyTimeHours: 0.25, // 15 minutes of flashcard study
-        flashcardSessions: 1
-      });
+      await axios.put(
+        `/api/users/${user.primaryEmailAddress.emailAddress}/stats`,
+        {
+          dailyActivity: true,
+          studyTimeHours: 0.25, // 15 minutes of flashcard study
+          flashcardSessions: 1,
+        }
+      );
       setStudySessionTracked(true);
-      console.log('✅ Study activity tracked for streak');
+      console.log("✅ Study activity tracked for streak");
     } catch (error) {
-      console.error('❌ Failed to track study activity:', error);
+      console.error("❌ Failed to track study activity:", error);
       // Don't break the UI if tracking fails
     }
   };
@@ -131,8 +144,12 @@ function Flashcards() {
         <div className="text-center space-y-4">
           <RefreshCcw className="h-8 w-8 animate-spin text-purple-500 mx-auto" />
           <div>
-            <h2 className="text-xl font-semibold text-foreground mb-2">Loading Flashcards</h2>
-            <p className="text-muted-foreground">Fetching your study materials...</p>
+            <h2 className="text-xl font-semibold text-foreground mb-2">
+              Loading Flashcards
+            </h2>
+            <p className="text-muted-foreground">
+              Fetching your study materials...
+            </p>
           </div>
         </div>
       </div>
@@ -148,7 +165,9 @@ function Flashcards() {
             <AlertCircle className="h-8 w-8 text-red-400" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-foreground mb-2">Unable to Load Flashcards</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-2">
+              Unable to Load Flashcards
+            </h2>
             <p className="text-muted-foreground">{error}</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -178,9 +197,9 @@ function Flashcards() {
                 Master concepts with interactive flashcards
               </p>
             </div>
-            <Button 
-              onClick={handleGoBack} 
-              variant="outline" 
+            <Button
+              onClick={handleGoBack}
+              variant="outline"
               className="border-white/20"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -215,19 +234,27 @@ function Flashcards() {
                 <CarouselNext className="-right-12" />
               </Carousel>
             </div>
-            
+
             {/* Progress Indicator */}
             <div className="text-center mb-6">
               <p className="text-sm text-muted-foreground">
-                Card <span className="font-medium text-foreground">{currentCard + 1}</span> of{" "}
-                <span className="font-medium text-foreground">{flashCards.length}</span>
+                Card{" "}
+                <span className="font-medium text-foreground">
+                  {currentCard + 1}
+                </span>{" "}
+                of{" "}
+                <span className="font-medium text-foreground">
+                  {flashCards.length}
+                </span>
               </p>
-              
+
               {/* Progress bar */}
               <div className="w-full max-w-xs mx-auto mt-2 bg-white/10 rounded-full h-2">
-                <div 
+                <div
                   className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${((currentCard + 1) / flashCards.length) * 100}%` }}
+                  style={{
+                    width: `${((currentCard + 1) / flashCards.length) * 100}%`,
+                  }}
                 />
               </div>
             </div>
@@ -257,8 +284,12 @@ function Flashcards() {
               <AlertCircle className="h-8 w-8 text-purple-400" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-foreground mb-2">No Flashcards Available</h2>
-              <p className="text-muted-foreground">There are no flashcards for this course yet.</p>
+              <h2 className="text-xl font-semibold text-foreground mb-2">
+                No Flashcards Available
+              </h2>
+              <p className="text-muted-foreground">
+                There are no flashcards for this course yet.
+              </p>
             </div>
             <Button onClick={handleGoBack} className="btn-primary">
               <ArrowLeft className="h-4 w-4 mr-2" />

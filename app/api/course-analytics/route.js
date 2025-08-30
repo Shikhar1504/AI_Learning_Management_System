@@ -1,11 +1,10 @@
 import { db } from "@/configs/db";
-import { 
-  STUDY_MATERIAL_TABLE, 
-  CHAPTER_NOTES_TABLE, 
+import {
+  CHAPTER_NOTES_TABLE,
+  STUDY_MATERIAL_TABLE,
   STUDY_TYPE_CONTENT_TABLE,
-  USER_TABLE 
 } from "@/configs/schema";
-import { eq, and, count } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 // Enhanced in-memory cache with better TTL management
@@ -16,7 +15,11 @@ const SHORT_CACHE_TTL = 30 * 1000; // 30 seconds for fallback data
 // Cache helper functions
 function getCachedAnalytics(courseId) {
   const cached = analyticsCache.get(courseId);
-  if (cached && Date.now() - cached.timestamp < (cached.isFallback ? SHORT_CACHE_TTL : CACHE_TTL)) {
+  if (
+    cached &&
+    Date.now() - cached.timestamp <
+      (cached.isFallback ? SHORT_CACHE_TTL : CACHE_TTL)
+  ) {
     return cached.data;
   }
   return null;
@@ -26,9 +29,9 @@ function setCachedAnalytics(courseId, data, isFallback = false) {
   analyticsCache.set(courseId, {
     data,
     timestamp: Date.now(),
-    isFallback
+    isFallback,
   });
-  
+
   // Clean up old entries more aggressively
   if (analyticsCache.size > 50) {
     const now = Date.now();
@@ -47,13 +50,20 @@ async function retryDbOperation(operation, maxRetries = 0, delay = 100) {
     try {
       return await operation();
     } catch (error) {
-      console.warn(`Analytics DB operation attempt ${attempt + 1}/${maxRetries + 1} failed:`, error.message);
-      
+      console.warn(
+        `Analytics DB operation attempt ${attempt + 1}/${
+          maxRetries + 1
+        } failed:`,
+        error.message
+      );
+
       if (attempt === maxRetries) {
         throw error;
       }
-      
-      await new Promise(resolve => setTimeout(resolve, delay * (attempt + 1)));
+
+      await new Promise((resolve) =>
+        setTimeout(resolve, delay * (attempt + 1))
+      );
     }
   }
 }
@@ -61,7 +71,7 @@ async function retryDbOperation(operation, maxRetries = 0, delay = 100) {
 // Ultra-fast fallback analytics with minimal processing
 function getUltraFastFallbackAnalytics(courseId, course = null) {
   const totalChapters = course?.courseLayout?.chapters?.length || 3;
-  
+
   return {
     courseId,
     totalChapters,
@@ -73,7 +83,7 @@ function getUltraFastFallbackAnalytics(courseId, course = null) {
     materialCounts: {
       flashcard: 0,
       quiz: 0,
-      notes: 0
+      notes: 0,
     },
     courseStatus: course?.status || "Loading",
     createdAt: course?.createdAt || new Date().toISOString(),
@@ -82,15 +92,15 @@ function getUltraFastFallbackAnalytics(courseId, course = null) {
     hasQuiz: false,
     hasNotes: false,
     fallback: true,
-    ultraFast: true
+    ultraFast: true,
   };
 }
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const courseId = searchParams.get('courseId');
-    
+    const courseId = searchParams.get("courseId");
+
     if (!courseId) {
       return NextResponse.json(
         { error: "Course ID is required" },
@@ -101,47 +111,57 @@ export async function GET(request) {
     // Check cache first
     const cachedResult = getCachedAnalytics(courseId);
     if (cachedResult) {
-      console.log('📊 Serving cached analytics for course:', courseId);
+      console.log("📊 Serving cached analytics for course:", courseId);
       return NextResponse.json(cachedResult);
     }
 
-    // Ultra-fast timeout for better user experience (2.5 seconds)
+    // Ultra-fast timeout for better user experience (reduced to 5 seconds)
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Analytics timeout - using ultra-fast fallback')), 10000);
+      setTimeout(
+        () =>
+          reject(new Error("Analytics timeout - using ultra-fast fallback")),
+        5000
+      );
     });
 
     try {
       const analyticsPromise = generateAnalytics(courseId);
       const analytics = await Promise.race([analyticsPromise, timeoutPromise]);
-      
+
       // Cache the successful result
       setCachedAnalytics(courseId, analytics, false);
-      
+
       return NextResponse.json(analytics);
-      
     } catch (error) {
-      console.warn(`Analytics generation timed out: ${error.message}, using ultra-fast fallback`);
-      
+      console.warn(
+        `Analytics generation timed out: ${error.message}, using ultra-fast fallback`
+      );
+
       // Try to get basic course info for fallback with ultra-fast timeout
       let course = null;
       try {
         const quickCourseQuery = await Promise.race([
-          db.select().from(STUDY_MATERIAL_TABLE).where(eq(STUDY_MATERIAL_TABLE.courseId, courseId)).limit(1),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Quick query timeout')), 500))
+          db
+            .select()
+            .from(STUDY_MATERIAL_TABLE)
+            .where(eq(STUDY_MATERIAL_TABLE.courseId, courseId))
+            .limit(1),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("Quick query timeout")), 200)
+          ),
         ]);
         course = quickCourseQuery[0] || null;
       } catch (quickError) {
-        console.warn('Ultra-fast course query failed, using minimal fallback');
+        console.warn("Ultra-fast course query failed, using minimal fallback");
       }
-      
+
       const fallbackData = getUltraFastFallbackAnalytics(courseId, course);
-      
+
       // Cache fallback data for a very short time
       setCachedAnalytics(courseId, fallbackData, true);
-      
+
       return NextResponse.json(fallbackData);
     }
-
   } catch (error) {
     console.error("Error in course analytics:", error);
     return NextResponse.json(
@@ -153,20 +173,24 @@ export async function GET(request) {
 
 // Optimized function for generating analytics with minimal database calls
 async function generateAnalytics(courseId) {
-  console.log('🔍 Generating fresh analytics for course:', courseId);
+  console.log("🔍 Generating fresh analytics for course:", courseId);
   const startTime = Date.now();
-  
+
   // Single optimized query to get all necessary data
-  const courseResult = await retryDbOperation(async () => {
-    return await db
-      .select()
-      .from(STUDY_MATERIAL_TABLE)
-      .where(eq(STUDY_MATERIAL_TABLE.courseId, courseId))
-      .limit(1);
-  }, 0, 100); // No retries for faster failure
+  const courseResult = await retryDbOperation(
+    async () => {
+      return await db
+        .select()
+        .from(STUDY_MATERIAL_TABLE)
+        .where(eq(STUDY_MATERIAL_TABLE.courseId, courseId))
+        .limit(1);
+    },
+    0,
+    100
+  ); // No retries for faster failure
 
   if (courseResult.length === 0) {
-    throw new Error('Course not found');
+    throw new Error("Course not found");
   }
 
   const course = courseResult[0];
@@ -175,54 +199,71 @@ async function generateAnalytics(courseId) {
 
   // Single optimized query for all study materials with minimal timeout
   const studyDataPromise = Promise.race([
-    retryDbOperation(async () => {
-      const [completedChaptersResult, materialCountsResult] = await Promise.all([
-        db.select({ count: count() })
-          .from(CHAPTER_NOTES_TABLE)
-          .where(eq(CHAPTER_NOTES_TABLE.courseId, courseId)),
-        db.select({
-          type: STUDY_TYPE_CONTENT_TABLE.type,
-          count: count()
-        })
-        .from(STUDY_TYPE_CONTENT_TABLE)
-        .where(and(
-          eq(STUDY_TYPE_CONTENT_TABLE.courseId, courseId),
-          eq(STUDY_TYPE_CONTENT_TABLE.status, "Ready")
-        ))
-        .groupBy(STUDY_TYPE_CONTENT_TABLE.type)
-      ]);
-      
-      return {
-        completedChapters: completedChaptersResult[0]?.count || 0,
-        materialCounts: materialCountsResult
-      };
-    }, 0, 100), // No retries for faster failure
-    new Promise((_, reject) => setTimeout(() => reject(new Error('Study data query timeout')), 5000)) // Ultra-fast timeout
+    retryDbOperation(
+      async () => {
+        const [completedChaptersResult, materialCountsResult] =
+          await Promise.all([
+            db
+              .select({ count: count() })
+              .from(CHAPTER_NOTES_TABLE)
+              .where(eq(CHAPTER_NOTES_TABLE.courseId, courseId)),
+            db
+              .select({
+                type: STUDY_TYPE_CONTENT_TABLE.type,
+                count: count(),
+              })
+              .from(STUDY_TYPE_CONTENT_TABLE)
+              .where(
+                and(
+                  eq(STUDY_TYPE_CONTENT_TABLE.courseId, courseId),
+                  eq(STUDY_TYPE_CONTENT_TABLE.status, "Ready")
+                )
+              )
+              .groupBy(STUDY_TYPE_CONTENT_TABLE.type),
+          ]);
+
+        return {
+          completedChapters: completedChaptersResult[0]?.count || 0,
+          materialCounts: materialCountsResult,
+        };
+      },
+      0,
+      100
+    ), // No retries for faster failure
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Study data query timeout")), 5000)
+    ), // Ultra-fast timeout
   ]);
 
   let completedChapters = 0;
   let materialCountsRaw = [];
-  
+
   try {
     const studyData = await studyDataPromise;
     completedChapters = studyData.completedChapters;
     materialCountsRaw = studyData.materialCounts;
   } catch (studyError) {
-    console.warn('Study data query failed, using zero values:', studyError.message);
+    console.warn(
+      "Study data query failed, using zero values:",
+      studyError.message
+    );
     // Continue with zero values
   }
 
   // Calculate progress percentage
-  const progressPercentage = totalChapters > 0 ? Math.round((completedChapters / totalChapters) * 100) : 0;
+  const progressPercentage =
+    totalChapters > 0
+      ? Math.round((completedChapters / totalChapters) * 100)
+      : 0;
 
   // Process study material counts
   const materialCounts = {
     flashcard: 0,
     quiz: 0,
-    notes: completedChapters
+    notes: completedChapters,
   };
 
-  materialCountsRaw.forEach(item => {
+  materialCountsRaw.forEach((item) => {
     const type = item.type?.toLowerCase();
     if (type && materialCounts.hasOwnProperty(type)) {
       materialCounts[type] = item.count || 0;
@@ -232,13 +273,13 @@ async function generateAnalytics(courseId) {
   // Ultra-fast estimated duration calculation
   const estimateContentDuration = () => {
     if (totalChapters === 0) return "N/A";
-    
+
     let totalMinutes = totalChapters * 20; // Reduced estimate
     totalMinutes += materialCounts.flashcard * 0.5; // Reduced time per flashcard
     totalMinutes += materialCounts.quiz * 1; // Reduced time per quiz question
-    
+
     const hours = totalMinutes / 60;
-    
+
     if (hours < 0.5) {
       return `${Math.round(totalMinutes)} min`;
     } else if (hours < 1) {
@@ -280,11 +321,16 @@ async function generateAnalytics(courseId) {
     hasFlashcards: materialCounts.flashcard > 0,
     hasQuiz: materialCounts.quiz > 0,
     hasNotes: materialCounts.notes > 0,
-    fallback: false
+    fallback: false,
   };
-  
+
   const endTime = Date.now();
-  console.log(`✅ Analytics generated successfully in ${endTime - startTime}ms for course:`, courseId);
-  
+  console.log(
+    `✅ Analytics generated successfully in ${
+      endTime - startTime
+    }ms for course:`,
+    courseId
+  );
+
   return result;
 }

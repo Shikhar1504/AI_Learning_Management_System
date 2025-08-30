@@ -21,7 +21,7 @@ export async function POST(req) {
   }
 
   {
-  /*It extracts the request body fields:
+    /*It extracts the request body fields:
   courseId → Unique ID for the course
   topic → The topic of the study material (e.g., "React Development")
   courseType → Type of course (e.g., "Programming")
@@ -37,19 +37,23 @@ export async function POST(req) {
     " and level of difficulty  will be " +
     difficultyLevel +
     " with summary of course, List of Chapters (EXACTLY 3 chapters, no more, no less) along with summary and Emoji icon for each chapter, Topic list in each chapter, and all result in JSON format. IMPORTANT: Generate exactly 3 chapters only.";
-  
+
   // Generate Course Layout using AI with error handling
   let aiResult;
   try {
     const aiResp = await courseOutlineAIModel.sendMessage(PROMPT);
     aiResult = JSON.parse(aiResp.response.text());
-    
+
     // Validate and fix chapter count
     if (aiResult.chapters && aiResult.chapters.length > 3) {
-      console.log(`⚠️ AI generated ${aiResult.chapters.length} chapters, trimming to 3`);
+      console.log(
+        `⚠️ AI generated ${aiResult.chapters.length} chapters, trimming to 3`
+      );
       aiResult.chapters = aiResult.chapters.slice(0, 3);
     } else if (aiResult.chapters && aiResult.chapters.length < 3) {
-      console.log(`⚠️ AI generated ${aiResult.chapters.length} chapters, padding to 3`);
+      console.log(
+        `⚠️ AI generated ${aiResult.chapters.length} chapters, padding to 3`
+      );
       // Add generic chapters if needed
       while (aiResult.chapters.length < 3) {
         const chapterNum = aiResult.chapters.length + 1;
@@ -57,15 +61,21 @@ export async function POST(req) {
           title: `${topic} - Part ${chapterNum}`,
           emoji: "📖",
           summary: `Additional concepts and topics for ${topic}`,
-          topics: ["Advanced concepts", "Practical applications", "Best practices"]
+          topics: [
+            "Advanced concepts",
+            "Practical applications",
+            "Best practices",
+          ],
         });
       }
     }
-    
-    console.log(`✅ Course generated with ${aiResult.chapters.length} chapters`);
+
+    console.log(
+      `✅ Course generated with ${aiResult.chapters.length} chapters`
+    );
   } catch (error) {
     console.error("AI Model Error:", error.message);
-    
+
     // Fallback content when AI fails
     aiResult = {
       courseTitle: topic,
@@ -75,21 +85,25 @@ export async function POST(req) {
           title: "Introduction to " + topic,
           emoji: "📚",
           summary: "Basic concepts and fundamentals of " + topic,
-          topics: ["Overview", "Core concepts", "Getting started"]
+          topics: ["Overview", "Core concepts", "Getting started"],
         },
         {
           title: "Intermediate " + topic,
           emoji: "🔍",
           summary: "Deeper exploration of " + topic + " concepts",
-          topics: ["Advanced techniques", "Best practices", "Case studies"]
+          topics: ["Advanced techniques", "Best practices", "Case studies"],
         },
         {
           title: "Mastering " + topic,
           emoji: "🚀",
           summary: "Expert-level knowledge and applications",
-          topics: ["Professional applications", "Future trends", "Final project"]
-        }
-      ]
+          topics: [
+            "Professional applications",
+            "Future trends",
+            "Final project",
+          ],
+        },
+      ],
     };
   }
 
@@ -98,11 +112,14 @@ export async function POST(req) {
   const dbResult = await db
     .insert(STUDY_MATERIAL_TABLE)
     .values({
+      id: crypto.randomUUID(), // Generate unique ID
       courseId: courseId,
       courseType: courseType,
       createdBy: createdBy,
       topic: topic,
+      difficultyLevel: difficultyLevel, // Add missing difficulty level
       courseLayout: aiResult,
+      status: "Generating", // Add status field
     })
     .returning({ resp: STUDY_MATERIAL_TABLE });
   console.log("Database insertion successful:", dbResult);
@@ -111,11 +128,14 @@ export async function POST(req) {
   try {
     await UserStatsService.updateUserStats(createdBy, {
       dailyActivity: true, // This triggers streak update
-      courseCreated: true
+      courseCreated: true,
     });
     console.log("User stats updated for course creation activity");
   } catch (error) {
-    console.error("Failed to update user stats for course creation:", error.message);
+    console.error(
+      "Failed to update user stats for course creation:",
+      error.message
+    );
     // Continue execution even if stats update fails
   }
 
@@ -132,6 +152,6 @@ export async function POST(req) {
     console.error("Inngest API Error:", error.message);
     // Continue execution even if Inngest fails
   }
-  
+
   return NextResponse.json({ result: dbResult[0] });
 }

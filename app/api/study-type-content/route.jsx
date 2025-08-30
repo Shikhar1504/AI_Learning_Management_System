@@ -14,7 +14,8 @@ export async function POST(req) {
   const { chapters, courseId, type } = await req.json(); // get the data from the request
 
   // Normalize the type to match Inngest function expectations
-  const normalizedType = type === "flashcard" ? "Flashcard" : type === "quiz" ? "Quiz" : type;
+  const normalizedType =
+    type === "flashcard" ? "Flashcard" : type === "quiz" ? "Quiz" : type;
 
   const PROMPT = // AI Prompt for flashcard and quiz generation
     normalizedType == "Flashcard"
@@ -29,8 +30,10 @@ export async function POST(req) {
   const result = await db
     .insert(STUDY_TYPE_CONTENT_TABLE)
     .values({
+      id: crypto.randomUUID(), // Generate unique ID
       courseId: courseId,
       type: normalizedType, // Use normalized type
+      status: "Generating", // Explicitly set status
     })
     .returning({ id: STUDY_TYPE_CONTENT_TABLE.id });
 

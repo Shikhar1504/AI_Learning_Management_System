@@ -1,16 +1,13 @@
 import { generateNotesAiModel } from "@/configs/AiModel";
 import { db } from "@/configs/db";
-import {
-  CHAPTER_NOTES_TABLE,
-  STUDY_MATERIAL_TABLE,
-} from "@/configs/schema";
+import { CHAPTER_NOTES_TABLE, STUDY_MATERIAL_TABLE } from "@/configs/schema";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 // Helper function to generate fallback content when AI API fails
 function generateFallbackContent(chapter, courseType) {
   const { title, topics, summary } = chapter;
-  
+
   // Create basic HTML content based on chapter information
   let content = `
     <div class="chapter-content">
@@ -18,9 +15,9 @@ function generateFallbackContent(chapter, courseType) {
       <p class="summary"><strong>Summary:</strong> ${summary}</p>
       <div class="topics">
   `;
-  
+
   // Add content for each topic
-  topics.forEach(topic => {
+  topics.forEach((topic) => {
     content += `
       <div class="topic">
         <h2>${topic}</h2>
@@ -34,20 +31,22 @@ function generateFallbackContent(chapter, courseType) {
           </ul>
         </div>
     `;
-    
+
     // Add example code if it might be a technical topic
-    if (title.toLowerCase().includes("programming") || 
-        title.toLowerCase().includes("code") || 
-        title.toLowerCase().includes("development") ||
-        title.toLowerCase().includes("machine learning") ||
-        topic.toLowerCase().includes("code") ||
-        topic.toLowerCase().includes("algorithm")) {
+    if (
+      title.toLowerCase().includes("programming") ||
+      title.toLowerCase().includes("code") ||
+      title.toLowerCase().includes("development") ||
+      title.toLowerCase().includes("machine learning") ||
+      topic.toLowerCase().includes("code") ||
+      topic.toLowerCase().includes("algorithm")
+    ) {
       content += `
         <div class="code-example">
           <h3>Example:</h3>
           <pre><code>
 // Example code for ${topic}
-function example${topic.replace(/\s+/g, '')}() {
+function example${topic.replace(/\s+/g, "")}() {
   console.log("This is a placeholder for ${topic} code example");
   // Implementation would go here
   return "Example result";
@@ -56,26 +55,29 @@ function example${topic.replace(/\s+/g, '')}() {
         </div>
       `;
     }
-    
+
     content += `
       </div>
     `;
   });
-  
+
   content += `
       </div>
     </div>
   `;
-  
+
   return content;
 }
 
 export async function POST(req) {
   try {
     const { courseId } = await req.json();
-    
+
     if (!courseId) {
-      return NextResponse.json({ error: "Course ID is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Course ID is required" },
+        { status: 400 }
+      );
     }
 
     // Get course from database
@@ -103,23 +105,23 @@ export async function POST(req) {
         .update(STUDY_MATERIAL_TABLE)
         .set({ status: "Ready" })
         .where(eq(STUDY_MATERIAL_TABLE.courseId, courseId));
-      
-      return NextResponse.json({ 
+
+      return NextResponse.json({
         message: "Chapters already exist, status updated to Ready",
-        chapters: existingChapters.length
+        chapters: existingChapters.length,
       });
     }
 
     // Generate Notes for Each Chapter using AI
     const chapters = courseData?.courseLayout?.chapters || [];
     console.log(`Generating content for ${chapters.length} chapters...`);
-    
+
     let successCount = 0;
-    
+
     for (let index = 0; index < chapters.length; index++) {
       const chapter = chapters[index];
       console.log(`Processing chapter ${index + 1}: ${chapter.title}`);
-      
+
       // Construct the AI prompt
       const PROMPT =
         "Generate " +
@@ -136,34 +138,56 @@ export async function POST(req) {
       let retries = 0;
       const maxRetries = 3;
       let aiResp = "";
-      
+
       while (retries <= maxRetries) {
         try {
           // Call the AI model to generate notes
           const result = await generateNotesAiModel.sendMessage(PROMPT);
           aiResp = result.response.text();
-          console.log(`✅ Successfully generated content for chapter: ${chapter.title}`);
+          console.log(
+            `✅ Successfully generated content for chapter: ${chapter.title}`
+          );
           break;
         } catch (error) {
-          console.error(`AI API Error (attempt ${retries + 1}/${maxRetries + 1}):`, error.message);
-          
+          console.error(
+            `AI API Error (attempt ${retries + 1}/${maxRetries + 1}):`,
+            error.message
+          );
+
           if (retries === maxRetries) {
             // Generate fallback content on final retry
-            console.log("Generating fallback content for chapter:", chapter.title);
+            console.log(
+              "Generating fallback content for chapter:",
+              chapter.title
+            );
             aiResp = generateFallbackContent(chapter, courseData?.courseType);
             break;
           }
-          
+
           // Check if it's a rate limit error (429)
-          if (error.message.includes("429") || error.message.includes("Too Many Requests")) {
+          if (
+            error.message.includes("429") ||
+            error.message.includes("Too Many Requests")
+          ) {
             const delaySeconds = Math.pow(2, retries) * 5; // 5s, 10s, 20s
-            console.log(`Rate limit hit. Waiting ${delaySeconds} seconds before retry...`);
-            await new Promise(resolve => setTimeout(resolve, delaySeconds * 1000));
-          } else if (error.message.includes("503") || error.message.includes("500")) {
+            console.log(
+              `Rate limit hit. Waiting ${delaySeconds} seconds before retry...`
+            );
+            await new Promise((resolve) =>
+              setTimeout(resolve, delaySeconds * 1000)
+            );
+          } else if (
+            error.message.includes("503") ||
+            error.message.includes("500")
+          ) {
             // For server errors, wait a bit less
-            const delaySeconds = Math.pow(1.5, retries) * 3; 
-            console.log(`Server error. Waiting ${delaySeconds} seconds before retry...`);
-            await new Promise(resolve => setTimeout(resolve, delaySeconds * 1000));
+            const delaySeconds = Math.pow(1.5, retries) * 3;
+            console.log(
+              `Server error. Waiting ${delaySeconds} seconds before retry...`
+            );
+            await new Promise((resolve) =>
+              setTimeout(resolve, delaySeconds * 1000)
+            );
           } else {
             // For other errors, use fallback content
             console.log("Unrecoverable error, using fallback content");
@@ -172,16 +196,17 @@ export async function POST(req) {
           }
         }
         retries++;
-        
+
         // Add delay between retries
         if (retries <= maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          await new Promise((resolve) => setTimeout(resolve, 2000));
         }
       }
 
       // Store the generated notes in the database
       try {
         await db.insert(CHAPTER_NOTES_TABLE).values({
+          id: crypto.randomUUID(), // Generate unique ID
           chapterId: index,
           courseId: courseId,
           notes: aiResp,
@@ -195,7 +220,7 @@ export async function POST(req) {
       // Add delay between chapters to avoid rate limits (only if not the last chapter)
       if (index < chapters.length - 1) {
         console.log("Waiting 3 seconds before processing next chapter...");
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        await new Promise((resolve) => setTimeout(resolve, 3000));
       }
     }
 
@@ -205,16 +230,17 @@ export async function POST(req) {
       .set({ status: "Ready" })
       .where(eq(STUDY_MATERIAL_TABLE.courseId, courseId));
 
-    console.log(`✅ Course generation completed! Generated ${successCount}/${chapters.length} chapters`);
+    console.log(
+      `✅ Course generation completed! Generated ${successCount}/${chapters.length} chapters`
+    );
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
       message: `Successfully generated ${successCount}/${chapters.length} chapters`,
       courseId,
       chaptersGenerated: successCount,
-      totalChapters: chapters.length
+      totalChapters: chapters.length,
     });
-
   } catch (error) {
     console.error("Error generating chapters:", error);
     return NextResponse.json(

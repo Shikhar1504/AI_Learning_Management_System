@@ -1,5 +1,9 @@
 import { db } from "@/configs/db";
-import { STUDY_MATERIAL_TABLE } from "@/configs/schema";
+import {
+  CHAPTER_NOTES_TABLE,
+  STUDY_MATERIAL_TABLE,
+  STUDY_TYPE_CONTENT_TABLE,
+} from "@/configs/schema";
 import { desc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
@@ -9,14 +13,17 @@ async function retryDbOperation(operation, maxRetries = 3, delay = 1000) {
     try {
       return await operation();
     } catch (error) {
-      console.warn(`Database operation attempt ${attempt}/${maxRetries} failed:`, error.message);
-      
+      console.warn(
+        `Database operation attempt ${attempt}/${maxRetries} failed:`,
+        error.message
+      );
+
       if (attempt === maxRetries) {
         throw error;
       }
-      
+
       // Wait before retrying (exponential backoff)
-      await new Promise(resolve => setTimeout(resolve, delay * attempt));
+      await new Promise((resolve) => setTimeout(resolve, delay * attempt));
     }
   }
 }
@@ -24,11 +31,14 @@ async function retryDbOperation(operation, maxRetries = 3, delay = 1000) {
 export async function POST(req) {
   try {
     const { createdBy } = await req.json();
-    
+
     if (!createdBy) {
-      return NextResponse.json({ error: "createdBy is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "createdBy is required" },
+        { status: 400 }
+      );
     }
-    
+
     const result = await retryDbOperation(async () => {
       return await db
         .select()
@@ -36,17 +46,20 @@ export async function POST(req) {
         .where(eq(STUDY_MATERIAL_TABLE.createdBy, createdBy))
         .orderBy(desc(STUDY_MATERIAL_TABLE.id));
     });
-    
+
     return NextResponse.json({ result: result });
   } catch (error) {
     console.error("Error fetching user courses:", error);
-    
+
     // Return empty result on database error
-    return NextResponse.json({ 
-      result: [],
-      error: "Database temporarily unavailable",
-      fallback: true
-    }, { status: 200 }); // Return 200 to not break the UI
+    return NextResponse.json(
+      {
+        result: [],
+        error: "Database temporarily unavailable",
+        fallback: true,
+      },
+      { status: 200 }
+    ); // Return 200 to not break the UI
   }
 }
 
@@ -70,7 +83,10 @@ export async function GET(req) {
 
   try {
     if (!courseId) {
-      return NextResponse.json({ error: "courseId is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "courseId is required" },
+        { status: 400 }
+      );
     }
 
     const course = await retryDbOperation(async () => {
@@ -87,7 +103,7 @@ export async function GET(req) {
     return NextResponse.json({ result: course[0] });
   } catch (error) {
     console.error("Error fetching course:", error);
-    
+
     // Return fallback course data
     const fallbackCourse = {
       courseId: courseId,
@@ -96,36 +112,91 @@ export async function GET(req) {
       difficultyLevel: "Intermediate",
       courseLayout: {
         courseTitle: "Course Content Loading",
-        summary: "This course is temporarily unavailable due to database connectivity issues. Please try refreshing the page or check back in a few minutes.",
+        summary:
+          "This course is temporarily unavailable due to database connectivity issues. Please try refreshing the page or check back in a few minutes.",
         chapters: [
           {
             title: "Introduction",
             summary: "Getting started with the course basics",
-            topics: ["Course Overview", "Learning Objectives"]
+            topics: ["Course Overview", "Learning Objectives"],
           },
           {
             title: "Core Concepts",
             summary: "Understanding fundamental principles",
-            topics: ["Key Principles", "Best Practices"]
+            topics: ["Key Principles", "Best Practices"],
           },
           {
             title: "Advanced Topics",
             summary: "Deep dive into complex subjects",
-            topics: ["Advanced Techniques", "Case Studies"]
-          }
-        ]
+            topics: ["Advanced Techniques", "Case Studies"],
+          },
+        ],
       },
       status: "Ready",
       createdBy: "system",
       createdAt: new Date().toISOString(),
-      fallback: true
+      fallback: true,
     };
-    
-    return NextResponse.json({ 
-      result: fallbackCourse,
-      error: "Database temporarily unavailable",
-      fallback: true
-    }, { status: 200 });
+
+    return NextResponse.json(
+      {
+        result: fallbackCourse,
+        error: "Database temporarily unavailable",
+        fallback: true,
+      },
+      { status: 200 }
+    );
+  }
+}
+
+export async function DELETE(req) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const courseId = searchParams?.get("courseId");
+
+    if (!courseId) {
+      return NextResponse.json(
+        { error: "courseId is required" },
+        { status: 400 }
+      );
+    }
+
+    // First, delete related content from other tables
+    await retryDbOperation(async () => {
+      // Delete chapter notes
+      await db
+        .delete(CHAPTER_NOTES_TABLE)
+        .where(eq(CHAPTER_NOTES_TABLE.courseId, courseId));
+
+      // Delete study type content (flashcards, quizzes)
+      await db
+        .delete(STUDY_TYPE_CONTENT_TABLE)
+        .where(eq(STUDY_TYPE_CONTENT_TABLE.courseId, courseId));
+
+      // Finally, delete the main course
+      const result = await db
+        .delete(STUDY_MATERIAL_TABLE)
+        .where(eq(STUDY_MATERIAL_TABLE.courseId, courseId))
+        .returning();
+
+      return result;
+    });
+
+    console.log(
+      `✅ Course ${courseId} and all related content deleted successfully`
+    );
+
+    return NextResponse.json({
+      success: true,
+      message: "Course and all related content deleted successfully",
+      courseId,
+    });
+  } catch (error) {
+    console.error("Error deleting course:", error);
+    return NextResponse.json(
+      { error: "Failed to delete course", details: error.message },
+      { status: 500 }
+    );
   }
 }
 

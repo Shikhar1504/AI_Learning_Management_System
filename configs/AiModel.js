@@ -1,9 +1,70 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-const genAI = new GoogleGenerativeAI(apiKey);
+// Fallback mechanism for API key switching
+class GeminiWithFallback {
+  constructor() {
+    this.primaryApiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    this.fallbackApiKey = process.env.GEMINI_FALLBACK_API_KEY;
+    this.currentApiKey = this.primaryApiKey;
+    this.isUsingFallback = false;
 
-const model = genAI.getGenerativeModel({
+    if (!this.primaryApiKey) {
+      throw new Error(
+        "Primary Gemini API key (NEXT_PUBLIC_GEMINI_API_KEY) is required"
+      );
+    }
+
+    this.genAI = new GoogleGenerativeAI(this.currentApiKey);
+  }
+
+  // Switch to fallback API key
+  switchToFallback() {
+    if (this.fallbackApiKey && !this.isUsingFallback) {
+      console.log(
+        "🔄 Switching to fallback Gemini API key due to overload/rate limiting"
+      );
+      this.currentApiKey = this.fallbackApiKey;
+      this.isUsingFallback = true;
+      this.genAI = new GoogleGenerativeAI(this.currentApiKey);
+      return true;
+    }
+    return false;
+  }
+
+  // Reset to primary API key
+  resetToPrimary() {
+    if (this.isUsingFallback) {
+      console.log("🔄 Resetting to primary Gemini API key");
+      this.currentApiKey = this.primaryApiKey;
+      this.isUsingFallback = false;
+      this.genAI = new GoogleGenerativeAI(this.currentApiKey);
+    }
+  }
+
+  // Get the current model
+  getGenerativeModel(config) {
+    return this.genAI.getGenerativeModel(config);
+  }
+
+  // Check if fallback is available
+  hasFallback() {
+    return !!this.fallbackApiKey;
+  }
+
+  // Get current status
+  getStatus() {
+    return {
+      isUsingFallback: this.isUsingFallback,
+      hasFallback: this.hasFallback(),
+      currentKeyType: this.isUsingFallback ? "fallback" : "primary",
+    };
+  }
+}
+
+// Create singleton instance
+const geminiWithFallback = new GeminiWithFallback();
+
+const model = geminiWithFallback.getGenerativeModel({
   model: "gemini-2.5-flash",
 });
 
@@ -112,3 +173,6 @@ export const GenerateQuizAiModel = model.startChat({
     },
   ],
 });
+
+// Export the fallback instance for use in other parts of the application
+export { geminiWithFallback };

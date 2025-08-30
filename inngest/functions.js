@@ -1,9 +1,8 @@
 import {
+  GenerateFlashcardAiModel,
   generateNotesAiModel,
   GenerateQuizAiModel,
-  GenerateFlashcardAiModel,
 } from "@/configs/AiModel";
-import { inngest } from "./client";
 import { db } from "@/configs/db";
 import {
   CHAPTER_NOTES_TABLE,
@@ -12,11 +11,12 @@ import {
   USER_TABLE,
 } from "@/configs/schema";
 import { eq } from "drizzle-orm";
+import { inngest } from "./client";
 
 // Helper function to generate fallback content when AI API fails
 function generateFallbackContent(chapter, courseType) {
   const { title, topics, summary } = chapter;
-  
+
   // Create basic HTML content based on chapter information
   let content = `
     <div class="chapter-content">
@@ -24,9 +24,9 @@ function generateFallbackContent(chapter, courseType) {
       <p class="summary"><strong>Summary:</strong> ${summary}</p>
       <div class="topics">
   `;
-  
+
   // Add content for each topic
-  topics.forEach(topic => {
+  topics.forEach((topic) => {
     content += `
       <div class="topic">
         <h2>${topic}</h2>
@@ -40,20 +40,22 @@ function generateFallbackContent(chapter, courseType) {
           </ul>
         </div>
     `;
-    
+
     // Add example code if it might be a technical topic
-    if (title.toLowerCase().includes("programming") || 
-        title.toLowerCase().includes("code") || 
-        title.toLowerCase().includes("development") ||
-        title.toLowerCase().includes("machine learning") ||
-        topic.toLowerCase().includes("code") ||
-        topic.toLowerCase().includes("algorithm")) {
+    if (
+      title.toLowerCase().includes("programming") ||
+      title.toLowerCase().includes("code") ||
+      title.toLowerCase().includes("development") ||
+      title.toLowerCase().includes("machine learning") ||
+      topic.toLowerCase().includes("code") ||
+      topic.toLowerCase().includes("algorithm")
+    ) {
       content += `
         <div class="code-example">
           <h3>Example:</h3>
           <precode>
           // Example code for ${topic}
-          function example${topic.replace(/\s+/g, '')}() {
+          function example${topic.replace(/\s+/g, "")}() {
             console.log("This is a placeholder for ${topic} code example");
             // Implementation would go here
             return "Example result";
@@ -62,17 +64,17 @@ function generateFallbackContent(chapter, courseType) {
         </div>
       `;
     }
-    
+
     content += `
       </div>
     `;
   });
-  
+
   content += `
       </div>
     </div>
   `;
-  
+
   return content;
 }
 
@@ -104,12 +106,12 @@ export const CreateNewUser = inngest.createFunction(
         // Check Is User Already Exist
         const email = user?.primaryEmailAddress?.emailAddress;
         console.log("Checking for email:", email); // Add logging to see what email we're checking
-        
+
         if (!email) {
           console.error("Email not found in user data");
           return [];
         }
-        
+
         const result = await db
           .select()
           .from(USER_TABLE)
@@ -121,6 +123,7 @@ export const CreateNewUser = inngest.createFunction(
           const userResp = await db
             .insert(USER_TABLE)
             .values({
+              id: crypto.randomUUID(),
               name: user?.fullName,
               email: email,
             })
@@ -162,38 +165,126 @@ export const GenerateNotes = inngest.createFunction(
           JSON.stringify(chapter);
 
         console.log(PROMPT); // Log the prompt for debugging
-        
-        // Add retry logic with exponential backoff
+
+        // Enhanced retry logic with API key fallback
         let retries = 0;
         const maxRetries = 3;
         let aiResp = "";
-        
+        let usingFallback = false;
+
         while (retries <= maxRetries) {
           try {
             // Call the AI model to generate notes
             const result = await generateNotesAiModel.sendMessage(PROMPT);
             aiResp = result.response.text(); // Extract AI-generated text response
+
+            // Reset to primary API key if we were using fallback and it worked
+            if (usingFallback) {
+              geminiWithFallback.resetToPrimary();
+              console.log("✅ Fallback API key worked, resetting to primary");
+            }
+
             break; // Success, exit the retry loop
           } catch (error) {
-            console.error(`AI API Error (attempt ${retries + 1}/${maxRetries + 1}):`, error.message);
-            
+            console.error(
+              `AI API Error (attempt ${retries + 1}/${maxRetries + 1}):`,
+              error.message
+            );
+
+            // Check if we should try fallback API key
+            if (
+              !usingFallback &&
+              geminiWithFallback.hasFallback() &&
+              (error.message.includes("429") ||
+                error.message.includes("Too Many Requests") ||
+                error.message.includes("503") ||
+                error.message.includes("Resource has been exhausted"))
+            ) {
+              console.log("🔄 Primary API key overloaded, trying fallback...");
+              if (geminiWithFallback.switchToFallback()) {
+                usingFallback = true;
+                // Reinitialize the model with fallback key
+                const fallbackModel = geminiWithFallback.getGenerativeModel({
+                  model: "gemini-2.5-flash",
+                });
+                const fallbackChat = fallbackModel.startChat({
+                  generationConfig: {
+                    temperature: 1,
+                    topP: 0.95,
+                    topK: 40,
+                    maxOutputTokens: 8192,
+                    responseMimeType: "text/plain",
+                  },
+                  history: [
+                    {
+                      role: "user",
+                      parts: [
+                        {
+                          text: "Generate exam material detail content for each chapter. Make sure to include structured headings and explanations in HTML format.",
+                        },
+                      ],
+                    },
+                    {
+                      role: "model",
+                      parts: [
+                        {
+                          text: `<h2>Introduction to Atoms</h2><h3>What are atoms?</h3><p>Atoms are the basic building blocks of matter...</p>`,
+                        },
+                      ],
+                    },
+                  ],
+                });
+
+                // Retry with fallback model
+                try {
+                  const result = await fallbackChat.sendMessage(PROMPT);
+                  aiResp = result.response.text();
+                  console.log("✅ Successfully used fallback API key");
+                  break;
+                } catch (fallbackError) {
+                  console.error(
+                    "❌ Fallback API key also failed:",
+                    fallbackError.message
+                  );
+                  // Continue with normal retry logic
+                }
+              }
+            }
+
             if (retries === maxRetries) {
               // Generate fallback content on final retry
-              console.log("Generating fallback content for chapter:", chapter.title);
+              console.log(
+                "Generating fallback content for chapter:",
+                chapter.title
+              );
               aiResp = generateFallbackContent(chapter, course?.courseType);
               break;
             }
-            
+
             // Check if it's a rate limit error (429)
-            if (error.message.includes("429") || error.message.includes("Too Many Requests")) {
+            if (
+              error.message.includes("429") ||
+              error.message.includes("Too Many Requests")
+            ) {
               const delaySeconds = Math.pow(2, retries) * 30; // Exponential backoff: 30s, 60s, 120s
-              console.log(`Rate limit hit. Waiting ${delaySeconds} seconds before retry...`);
-              await new Promise(resolve => setTimeout(resolve, delaySeconds * 1000));
-            } else if (error.message.includes("503") || error.message.includes("500")) {
+              console.log(
+                `Rate limit hit. Waiting ${delaySeconds} seconds before retry...`
+              );
+              await new Promise((resolve) =>
+                setTimeout(resolve, delaySeconds * 1000)
+              );
+            } else if (
+              error.message.includes("503") ||
+              error.message.includes("500")
+            ) {
               // For server errors, wait a bit less
-              const delaySeconds = Math.pow(1.5, retries) * 20; 
-              console.log(`Server error. Waiting ${delaySeconds} seconds before retry...`);
-              await new Promise(resolve => setTimeout(resolve, delaySeconds * 1000));
+              const delaySeconds = Math.pow(1.5, retries) * 20;
+              console.log(
+                `Server error. Waiting ${delaySeconds} seconds before retry...`
+              );
+              await new Promise((resolve) =>
+                setTimeout(resolve, delaySeconds * 1000)
+              );
             } else {
               // For other errors, use fallback content
               console.log("Unrecoverable error, using fallback content");
@@ -202,15 +293,16 @@ export const GenerateNotes = inngest.createFunction(
             }
           }
           retries++;
-          
-          // Add delay between chapters to avoid rate limits
+
+          // Add delay between retries to avoid rate limits
           if (retries <= maxRetries) {
-            await new Promise(resolve => setTimeout(resolve, 5000)); // 5 second pause between retries
+            await new Promise((resolve) => setTimeout(resolve, 5000)); // 5 second pause between retries
           }
         }
 
         // Store the generated notes in the database
         await db.insert(CHAPTER_NOTES_TABLE).values({
+          id: crypto.randomUUID(), // Generate unique ID
           chapterId: index, // Assign an index to the chapter
           courseId: course?.courseId, // Link notes to the corresponding course
           notes: aiResp, // Store the AI-generated notes
@@ -218,8 +310,10 @@ export const GenerateNotes = inngest.createFunction(
 
         // Add delay between chapters to avoid rate limits
         if (index < Chapters.length - 1) {
-          console.log("Waiting 10 seconds before processing next chapter to avoid rate limits...");
-          await new Promise(resolve => setTimeout(resolve, 10000)); // 10 second pause between chapters
+          console.log(
+            "Waiting 10 seconds before processing next chapter to avoid rate limits..."
+          );
+          await new Promise((resolve) => setTimeout(resolve, 10000)); // 10 second pause between chapters
         }
 
         index = index + 1; // Increment index for the next chapter
@@ -251,26 +345,139 @@ export const GenerateStudyTypeContent = inngest.createFunction(
     const { studyType, prompt, courseId, recordId } = event.data;
     let AiResult = null; // Initialize AI result
 
-    // Generate Study Type Content safely
+    // Generate Study Type Content safely with fallback mechanism
+    let usingFallback = false;
+
     try {
       if (studyType === "Flashcard") {
         AiResult = await step.run(
-            "Generating Flashcards using AI",
-            async () => {
-            const result = await GenerateFlashcardAiModel.sendMessage(prompt);
-            return JSON.parse(result.response.text());
+          "Generating Flashcards using AI",
+          async () => {
+            try {
+              const result = await GenerateFlashcardAiModel.sendMessage(prompt);
+              return JSON.parse(result.response.text());
+            } catch (error) {
+              // Try fallback API key if available and error indicates overload
+              if (
+                !usingFallback &&
+                geminiWithFallback.hasFallback() &&
+                (error.message.includes("429") ||
+                  error.message.includes("Too Many Requests") ||
+                  error.message.includes("Resource has been exhausted"))
+              ) {
+                console.log(
+                  "🔄 Primary API key overloaded for flashcards, trying fallback..."
+                );
+                if (geminiWithFallback.switchToFallback()) {
+                  usingFallback = true;
+                  const fallbackModel = geminiWithFallback.getGenerativeModel({
+                    model: "gemini-2.5-flash",
+                  });
+                  const fallbackChat = fallbackModel.startChat({
+                    generationConfig: {
+                      temperature: 1,
+                      topP: 0.95,
+                      topK: 40,
+                      maxOutputTokens: 8192,
+                      responseMimeType: "application/json",
+                    },
+                    history: [
+                      {
+                        role: "user",
+                        parts: [
+                          {
+                            text: "Generate the flashcard on topic : Flutter Fundamentals,User Interface (UI) Development,Basic App Navigation in JSON format with front back content, Maximum 15",
+                          },
+                        ],
+                      },
+                      {
+                        role: "model",
+                        parts: [
+                          {
+                            text: '```json\n[\n  {\n    "front": "What is a Widget in Flutter?",\n    "back": "A Widget is the basic building block of a Flutter UI. Everything you see on the screen is a widget, including layout elements, text, images, and more.  They are immutable and describe the UI."\n  }\n]\n```',
+                          },
+                        ],
+                      },
+                    ],
+                  });
+
+                  const result = await fallbackChat.sendMessage(prompt);
+                  console.log(
+                    "✅ Successfully used fallback API key for flashcards"
+                  );
+                  return JSON.parse(result.response.text());
+                }
+              }
+              throw error; // Re-throw if fallback not available or didn't work
+            }
           }
         );
       } else if (studyType === "Quiz") {
-        AiResult = await step.run(
-            "Generating Quiz using AI", 
-            async () => {
+        AiResult = await step.run("Generating Quiz using AI", async () => {
+          try {
             const result = await GenerateQuizAiModel.sendMessage(prompt);
             return JSON.parse(result.response.text());
+          } catch (error) {
+            // Try fallback API key if available and error indicates overload
+            if (
+              !usingFallback &&
+              geminiWithFallback.hasFallback() &&
+              (error.message.includes("429") ||
+                error.message.includes("Too Many Requests") ||
+                error.message.includes("Resource has been exhausted"))
+            ) {
+              console.log(
+                "🔄 Primary API key overloaded for quiz, trying fallback..."
+              );
+              if (geminiWithFallback.switchToFallback()) {
+                usingFallback = true;
+                const fallbackModel = geminiWithFallback.getGenerativeModel({
+                  model: "gemini-2.5-flash",
+                });
+                const fallbackChat = fallbackModel.startChat({
+                  generationConfig: {
+                    temperature: 1,
+                    topP: 0.95,
+                    topK: 40,
+                    maxOutputTokens: 8192,
+                    responseMimeType: "application/json",
+                  },
+                  history: [
+                    {
+                      role: "user",
+                      parts: [
+                        {
+                          text: "Generate Quiz on topic : Flutter Fundamentals,User Interface (UI) Development,Basic App Navigation with Question and Options along with correct answer in JSON format",
+                        },
+                      ],
+                    },
+                    {
+                      role: "model",
+                      parts: [
+                        {
+                          text: '```json\n{\n  "quizTitle": "Flutter Fundamentals, UI Development & Basic Navigation",\n  "questions": [\n    {\n      "question": "What is the fundamental building block of a Flutter UI?",\n      "options": ["Widget", "Layout", "View", "Component"],\n      "answer": "Widget"\n    }\n  ]\n}\n```',
+                        },
+                      ],
+                    },
+                  ],
+                });
+
+                const result = await fallbackChat.sendMessage(prompt);
+                console.log("✅ Successfully used fallback API key for quiz");
+                return JSON.parse(result.response.text());
+              }
+            }
+            throw error; // Re-throw if fallback not available or didn't work
           }
-        );
+        });
       } else {
         throw new Error(`Unsupported studyType: ${studyType}`);
+      }
+
+      // Reset to primary API key if we were using fallback and it worked
+      if (usingFallback) {
+        geminiWithFallback.resetToPrimary();
+        console.log("✅ Fallback API key worked, resetting to primary");
       }
     } catch (error) {
       console.error(`AI generation failed for ${studyType}`, error);
