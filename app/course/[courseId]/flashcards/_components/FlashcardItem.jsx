@@ -1,4 +1,4 @@
-import ReactCardFlip from "react-card-flip";
+import { motion } from "framer-motion";
 import { RotateCcw } from "lucide-react";
 
 function FlashcardItem({ handleClick, isFlipped, flashcard }) {
@@ -6,13 +6,36 @@ function FlashcardItem({ handleClick, isFlipped, flashcard }) {
   const frontText = flashcard?.front || flashcard?.question || "Question missing";
   const backText = flashcard?.back || flashcard?.answer || "Answer missing";
 
+  const cardVariants = {
+    flipped: { rotateY: 180 },
+    unflipped: { rotateY: 0 },
+  };
+
+  const frontVariants = {
+    flipped: { rotateY: 180 },
+    unflipped: { rotateY: 0 },
+  };
+
+  const backVariants = {
+    flipped: { rotateY: 0 },
+    unflipped: { rotateY: -180 }, // Rotate back to show the back side
+  };
+
   return (
     <div className="flex items-center justify-center w-full">
-      <ReactCardFlip isFlipped={isFlipped} flipDirection="vertical">
+      <motion.div
+        className="relative h-[400px] w-[320px] md:h-[480px] md:w-[600px] transform-style-preserve-3d"
+        variants={cardVariants}
+        animate={isFlipped ? "flipped" : "unflipped"}
+        transition={{ duration: 0.6, ease: "easeInOut" }}
+        onClick={handleClick}
+      >
         {/* Front side of the card */}
-        <div
-          className="relative p-8 bg-gradient-to-br from-purple-500 via-purple-600 to-blue-600 text-white flex flex-col items-center justify-center rounded-3xl cursor-pointer shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 h-[400px] w-[320px] md:h-[480px] md:w-[600px] border border-white/10"
-          onClick={handleClick}
+        <motion.div
+          className="absolute inset-0 p-8 bg-gradient-to-br from-purple-500 via-purple-600 to-blue-600 text-white flex flex-col items-center justify-center rounded-3xl cursor-pointer shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 backface-hidden border border-white/10"
+          variants={frontVariants}
+          animate={isFlipped ? "flipped" : "unflipped"}
+          transition={{ duration: 0.6, ease: "easeInOut" }}
         >
           {/* Front indicator */}
           <div className="absolute top-4 left-4 px-3 py-1 bg-white/20 rounded-full text-xs font-medium backdrop-blur-sm">
@@ -34,12 +57,14 @@ function FlashcardItem({ handleClick, isFlipped, flashcard }) {
               Click to reveal answer
             </p>
           </div>
-        </div>
+        </motion.div>
         
         {/* Back side of the card */}
-        <div
-          className="relative p-8 bg-gradient-to-br from-slate-50 to-white text-gray-900 flex flex-col items-center justify-center rounded-3xl cursor-pointer shadow-2xl hover:shadow-slate-200 transition-all duration-300 h-[400px] w-[320px] md:h-[480px] md:w-[600px] border border-gray-200"
-          onClick={handleClick}
+        <motion.div
+          className="absolute inset-0 p-8 bg-gradient-to-br from-slate-50 to-white text-gray-900 flex flex-col items-center justify-center rounded-3xl cursor-pointer shadow-2xl hover:shadow-slate-200 transition-all duration-300 backface-hidden border border-gray-200"
+          variants={backVariants}
+          animate={isFlipped ? "flipped" : "unflipped"}
+          transition={{ duration: 0.6, ease: "easeInOut" }}
         >
           {/* Back indicator */}
           <div className="absolute top-4 left-4 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
@@ -61,8 +86,8 @@ function FlashcardItem({ handleClick, isFlipped, flashcard }) {
               Click to see question again
             </p>
           </div>
-        </div>
-      </ReactCardFlip>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }
