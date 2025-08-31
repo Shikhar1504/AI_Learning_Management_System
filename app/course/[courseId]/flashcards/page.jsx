@@ -230,8 +230,8 @@ function Flashcards() {
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious className="-left-12" />
-                <CarouselNext className="-right-12" />
+                <CarouselPrevious className="-left-8 sm:-left-12" />
+                <CarouselNext className="-right-8 sm:-right-12" />
               </Carousel>
             </div>
 
