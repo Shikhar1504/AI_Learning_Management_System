@@ -81,9 +81,9 @@ function ViewNotes() {
             <Button
               onClick={() => route.push(`/course/${courseId}`)}
               variant="outline"
-              className="border-white/20"
+              className="border-white/20 text-white"
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className="h-4 w-4 mr-2 text-white" />
               Back to Course
             </Button>
           </div>
@@ -135,6 +135,7 @@ function ViewNotes() {
                     variant="ghost"
                     size="sm"
                     onClick={() => setStepCount(stepCount - 1)}
+                    className="text-white"
                   >
                     Previous
                   </Button>
