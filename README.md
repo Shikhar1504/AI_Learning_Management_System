@@ -1,239 +1,199 @@
-# LearnForge - AI-Powered Learning Management System
+# 🧠 LearnForge - AI-Powered Learning Management System
+
+LearnForge - AI-Powered Learning Management System
+
+Next-Generation Education Platform 🚀
 
 LearnForge is a comprehensive, AI-powered Learning Management System (LMS) that revolutionizes education by allowing users to generate complete courses on any topic instantly. It leverages Google's Gemini AI to create personalized course outlines, detailed notes, interactive flashcards, and quizzes, providing an engaging and adaptive learning experience.
+
+🧠 Explore Features • 🚀 Quick Start • 🛠️ Tech Stack • 📂 Documentation
 
 ## ✨ Features
 
 ### 🤖 AI-Powered Course Generation
 
-- **Instant Course Creation:** Generate comprehensive course structures from a single user prompt
-- **Personalized Learning Paths:** AI analyzes user preferences and difficulty levels
-- **Multi-Subject Support:** Create courses on any topic from programming to humanities
-- **Adaptive Content:** Courses adjust based on user progress and learning style
+Advanced course creation powered by Google Gemini AI with intelligent content structuring and personalized learning paths
 
 ### 📚 Interactive Study Materials
 
-- **Detailed Chapter Notes:** AI-generated notes with explanations, key points, and code examples
-- **Interactive Flashcards:** Smart flashcards that adapt to your knowledge level
-- **Practice Quizzes:** Test your understanding with AI-generated questions
-- **Progress Tracking:** Monitor your learning journey with detailed analytics
+Comprehensive study tools including detailed notes, interactive flashcards, practice quizzes, and progress tracking
 
-### 🎯 Advanced Learning Features
+### 🎯 Gamification & Analytics
 
-- **Gamification:** Experience points, streaks, and achievement system
-- **Daily Course Limits:** Free plan with 10 courses per day, unlimited with premium
-- **Study Analytics:** Track study time, completion rates, and learning patterns
-- **Community Features:** Connect with other learners (coming soon)
+Experience points, streaks, and achievement system with detailed learning analytics and performance insights
 
 ### 💳 Monetization & Premium Features
 
-- **Flexible Pricing:** Free plan with premium upgrade option
-- **Stripe Integration:** Secure payment processing with subscription management
-- **Premium Benefits:** Unlimited course generation, priority support, advanced analytics
-- **Subscription Management:** Easy upgrade/downgrade through Stripe dashboard
+Flexible pricing with free plan (10 courses/day) and premium unlimited access with advanced analytics
 
-### 🔐 Security & User Management
+### 🔐 Enterprise Authentication
 
-- **Clerk Authentication:** Secure user authentication with social login options
-- **User Profiles:** Personalized dashboards with learning history
-- **Data Privacy:** Secure handling of user data and learning progress
-- **Webhook Integration:** Automated user creation and management
+Secure authentication and authorization using Clerk with role-based access control
 
-### 🚀 Performance & Scalability
+### 📊 Comprehensive Dashboard
 
-- **Background Processing:** Asynchronous content generation using Inngest
-- **Fallback AI Keys:** Automatic switching between primary and fallback API keys
-- **Rate Limiting:** Smart handling of API limits with exponential backoff
-- **Database Optimization:** Efficient data storage with Drizzle ORM
+Personalized dashboards with course progress, analytics, and learning insights
 
-### 🎨 Modern User Interface
+### 🚀 Background Processing
 
-- **Responsive Design:** Beautiful interface that works on all devices
-- **Dark Theme:** Modern dark theme with smooth animations
-- **Interactive Elements:** Engaging UI with hover effects and transitions
-- **Accessibility:** WCAG compliant design for inclusive learning
+Asynchronous content generation using Inngest for non-blocking AI content creation
+
+### 🎨 Modern Responsive UI
+
+Beautiful, accessible interface built with Tailwind CSS and Radix UI components
+
+### 🔍 Smart Learning Features
+
+Adaptive content based on user progress and learning style preferences
+
+### 📱 Cross-Platform Accessibility
+
+Fully responsive design optimized for desktop, tablet, and mobile devices
 
 ## 🛠️ Tech Stack
 
-### Core Framework & Runtime
+### Core Technologies
 
-- **Framework:** [Next.js](https://nextjs.org/) v15.1.6 (App Router)
-- **Runtime:** [Node.js](https://nodejs.org/) v18.x or later
-- **React:** v19.0.0
-
-### Frontend & Styling
-
-- **Styling:** [Tailwind CSS](https://tailwindcss.com/) v3.4.1
-- **UI Components:** [Shadcn/ui](https://ui.shadcn.com/), [Radix UI](https://www.radix-ui.com/)
-- **Animations:** [Framer Motion](https://www.framer.com/motion/) v12.4.10
-- **Icons:** [Lucide React](https://lucide.dev/) v0.474.0
-- **Theme Management:** [next-themes](https://github.com/pacocoursey/next-themes) v0.4.4
-
-### Backend & Database
-
-- **ORM:** [Drizzle ORM](https://orm.drizzle.team/) v0.38.4
-- **Database:** [Neon](https://neon.tech/) (PostgreSQL) with [@neondatabase/serverless](https://github.com/neondatabase/serverless) v0.10.4
-- **Migration Tool:** [Drizzle Kit](https://orm.drizzle.team/kit) v0.30.2
+- **Frontend Framework:** Next.js 15.1.6 with App Router
+- **Runtime:** Node.js 18+
+- **Language:** JavaScript/JSX
+- **Package Manager:** npm/yarn
 
 ### AI & Machine Learning
 
-- **AI Provider:** [Google Gemini](https://ai.google.dev/) v0.8.0
-- **Fallback System:** Custom API key rotation for reliability
-- **Content Generation:** Specialized AI models for courses, notes, flashcards, and quizzes
+- **AI Assistant:** Google Gemini AI for course content generation
+- **AI Models:** Gemini-2.5-Flash for educational content creation
+- **Fallback System:** Automatic API key rotation for reliability
 
 ### Authentication & Security
 
-- **Authentication:** [Clerk](https://clerk.com/) v6.10.1
-- **Webhook Processing:** [Svix](https://svix.com/) v1.75.0
+- **Authentication:** Clerk with role-based access control
+- **Authorization:** Server-side middleware and route protection
 - **Security:** Secure API key management and user data protection
 
-### Payments & Monetization
+### Database & ORM
 
-- **Payment Processor:** [Stripe](https://stripe.com/) v17.7.0
+- **Database:** PostgreSQL (Neon)
+- **ORM:** Drizzle ORM with advanced schema management
+- **Database Operations:** Server actions with transaction support
+
+### Frontend & UI
+
+- **Styling:** Tailwind CSS 3.4.1 with custom educational themes
+- **UI Components:** Radix UI primitives with custom implementations
+- **Icons:** Lucide React for consistent iconography
+- **Notifications:** Sonner for toast notifications
+- **Theme:** Custom dark/light theme support
+
+### Payment & Monetization
+
+- **Payment Processor:** Stripe for secure transactions
 - **Subscription Management:** Automated billing and plan management
 - **Webhook Handling:** Real-time payment status updates
 
 ### Background Processing
 
-- **Job Queue:** [Inngest](https://www.inngest.com/) v3.30.0
-- **Event-Driven:** Asynchronous content generation and user management
+- **Job Queue:** Inngest for asynchronous content generation
+- **Event-Driven:** Background job processing and user management
 - **Reliability:** Built-in retries and error handling
 
-### Additional Libraries
+### Development & Deployment
 
-- **HTTP Client:** [Axios](https://axios-http.com/) v1.7.9
-- **Date Handling:** [date-fns](https://date-fns.org/) v4.1.0
-- **HTML Sanitization:** [DOMPurify](https://github.com/cure53/DOMPurify) v3.2.6
-- **Syntax Highlighting:** [react-syntax-highlighter](https://github.com/react-syntax-highlighter/react-syntax-highlighter) v15.6.1
-- **Toast Notifications:** [Sonner](https://sonner.emilkowal.ski/) v1.7.4
-- **Carousel:** [Embla Carousel](https://www.embla-carousel.com/) v8.5.2
-- **State Management:** React hooks with Context API
+- **Build Tool:** Next.js built-in build system
+- **Linting:** ESLint with Next.js configuration
+- **Deployment:** Vercel with automatic CI/CD
+- **Monitoring:** Built-in error tracking and performance monitoring
 
 ## 🚀 Getting Started
 
-Follow these instructions to get a copy of the project up and running on your local machine for development and testing purposes.
-
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (v18.x or later)
-- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
-- A [Neon](https://neon.tech/) account for the PostgreSQL database
-- A [Clerk](https://clerk.com/) account for authentication
-- A [Google AI](https://ai.google.dev/) API key
-- An [Inngest](https://www.inngest.com/) account for background jobs
-- A [Stripe](https://stripe.com/) account for payments
+Before you begin, ensure you have installed:
+
+- Node.js (v18 or higher)
+- npm or yarn package manager
+- PostgreSQL database (Neon recommended)
 
 ### Installation
 
-1.  **Clone the repository:**
+Clone the repository:
 
-    ```bash
-    git clone https://github.com/Shikhar1504/AI_Learning_Management_System.git
-    cd LearnForge
-    ```
+```bash
+git clone https://github.com/Shikhar1504/AI_Learning_Management_System.git
+cd LearnForge
+```
 
-2.  **Install dependencies:**
+Install dependencies:
 
-    ```bash
-    npm install
-    ```
+```bash
+npm install
+```
 
-3.  **Set up environment variables:**
-    Create a `.env.local` file in the root of the project and add the following environment variables:
+Set up environment variables:
 
-    ```env
-    # Database Configuration
-    NEXT_PUBLIC_DATABASE_CONNECTION_STRING="postgresql://username:password@hostname:port/database"
+Create a `.env.local` file in the root directory and add the following variables:
 
-    # Clerk Authentication
-    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_..."
-    CLERK_SECRET_KEY="sk_test_..."
-    NEXT_PUBLIC_CLERK_SIGN_IN_URL="/sign-in"
-    NEXT_PUBLIC_CLERK_SIGN_UP_URL="/sign-up"
-    NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL="/dashboard"
-    NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL="/dashboard"
-    CLERK_WEBHOOK_SECRET="whsec_..."
+```env
+# Database Configuration
+NEXT_PUBLIC_DATABASE_CONNECTION_STRING="postgresql://username:password@hostname:port/database"
 
-    # Google Gemini AI (Primary and Fallback for reliability)
-    NEXT_PUBLIC_GEMINI_API_KEY="AIza..."
-    GEMINI_FALLBACK_API_KEY="AIza..."
+# Clerk Authentication
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_..."
+CLERK_SECRET_KEY="sk_test_..."
+NEXT_PUBLIC_CLERK_SIGN_IN_URL="/sign-in"
+NEXT_PUBLIC_CLERK_SIGN_UP_URL="/sign-up"
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL="/dashboard"
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL="/dashboard"
+CLERK_WEBHOOK_SECRET="whsec_..."
 
-    # Stripe Payment Processing
-    STRIPE_SECRET_KEY="sk_test_..."
-    NEXT_PUBLIC_STRIPE_PRICE_ID="price_..."
-    STRIPE_WEBHOOK_SECRET="whsec_..."
+# Google Gemini AI (Primary and Fallback for reliability)
+NEXT_PUBLIC_GEMINI_API_KEY="AIza..."
+GEMINI_FALLBACK_API_KEY="AIza..."
 
-    # Inngest Background Processing
-    INNGEST_SIGNING_KEY="sign_..."
-    INNGEST_EVENT_KEY="event_..."
+# Stripe Payment Processing
+STRIPE_SECRET_KEY="sk_test_..."
+NEXT_PUBLIC_STRIPE_PRICE_ID="price_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
 
-    # Application Configuration
-    NEXT_PUBLIC_APP_URL="http://localhost:3000"
-    NEXTAUTH_URL="http://localhost:3000"
-    NEXTAUTH_SECRET="your-secret-key"
-    ```
+# Inngest Background Processing
+INNGEST_SIGNING_KEY="sign_..."
+INNGEST_EVENT_KEY="event_..."
 
-4.  **Run database migrations:**
-    ```bash
-    npx drizzle-kit push:pg
-    ```
+# Application Configuration
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-secret-key"
+```
+
+Run database migrations:
+
+```bash
+npx drizzle-kit push:pg
+```
 
 ### Running the Application
 
-1.  **Start the development server:**
+Start the development server:
 
-    ```bash
-    npm run dev
-    ```
+```bash
+npm run dev
+```
 
-2.  **Run Inngest Dev Server:**
-    In a separate terminal, run:
-    ```bash
-    npx inngest-cli dev
-    ```
+Run Inngest Dev Server:
+In a separate terminal, run:
+
+```bash
+npx inngest-cli dev
+```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## 🌟 Recent Features
-
-### Landing Page with Pricing Integration
-
-- **Modern Hero Section**: Engaging landing page with animated elements
-- **Feature Showcase**: Interactive feature cards with hover effects
-- **Integrated Pricing**: Pricing section embedded directly on landing page
-- **Smooth Scrolling**: Navigation links scroll to sections instead of page redirects
-- **Responsive Design**: Optimized for all device sizes
-
-### Enhanced User Experience
-
-- **Theme Consistency**: Fixed text color issues across all pages
-- **Improved Navigation**: Consistent headers and back buttons
-- **Better Onboarding**: Clear upgrade paths and feature explanations
-- **Performance Optimizations**: Lazy loading and efficient rendering
-
-### Payment & Monetization
-
-- **Stripe Integration**: Secure payment processing with webhook handling
-- **Subscription Management**: Automated billing and plan management
-- **Usage Tracking**: Daily course limits with premium unlimited access
-- **Customer Portal**: Easy subscription management through Stripe
-
-### AI Reliability Features
-
-- **Fallback API Keys**: Automatic switching between primary and backup Gemini keys
-- **Rate Limiting**: Smart handling of API limits with exponential backoff
-- **Error Recovery**: Comprehensive fallback content generation
-- **Background Processing**: Non-blocking content generation with progress tracking
-
-## 📁 Project Structure
+## 📂 Project Structure
 
 ```
-.
-├── app/                          # Next.js App Router directory
-│   ├── (auth)/                   # Authentication pages (Clerk)
-│   │   ├── sign-in/[[...sign-in]]/ # Sign-in page with catch-all route
-│   │   └── sign-up/[[...sign-up]]/ # Sign-up page with catch-all route
-│   ├── api/                      # API routes for backend functionality
+LearnForge/
+├── app/                          # Next.js App Router
+│   ├── api/                      # API routes
 │   │   ├── course-analytics/     # Course progress tracking
 │   │   ├── courses/              # Course management
 │   │   ├── create-user/          # User creation (Clerk webhooks)
@@ -242,366 +202,197 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 │   │   ├── generate-course-outline/ # Course outline generation
 │   │   ├── inngest/              # Inngest background processing
 │   │   ├── payment/              # Stripe payment integration
-│   │   │   ├── checkout/         # Stripe checkout session creation
-│   │   │   ├── manage-payment/   # Payment management
-│   │   │   └── webhook/          # Stripe webhook handling
 │   │   ├── study-type/           # Study material type management
 │   │   ├── study-type-content/   # Study material content
 │   │   ├── users/                # User stats and management
 │   │   └── validate-user/        # User validation
 │   ├── course/                   # Course viewing pages
-│   │   ├── layout.jsx            # Course layout with header
-│   │   └── [courseId]/           # Dynamic course routes
-│   │       ├── _components/      # Course components
-│   │       │   ├── ChapterList.jsx
-│   │       │   ├── CourseIntroCard.jsx
-│   │       │   ├── EndScreen.jsx
-│   │       │   ├── MaterialCardItem.jsx
-│   │       │   ├── StepProgress.jsx
-│   │       │   └── StudyMaterialSection.jsx
-│   │       ├── flashcards/        # Flashcard study interface
-│   │       │   ├── page.jsx
-│   │       │   └── _components/
-│   │       │       └── FlashcardItem.jsx
-│   │       ├── notes/            # Course notes interface
-│   │       │   └── page.jsx
-│   │       ├── quiz/             # Quiz interface
-│   │       │   ├── page.jsx
-│   │       │   └── _components/
-│   │       │       └── QuizCardItem.jsx
-│   │       └── page.jsx          # Course overview page
+│   │   ├── [courseId]/           # Dynamic course routes
+│   │   │   ├── flashcards/       # Flashcard study interface
+│   │   │   ├── notes/            # Course notes interface
+│   │   │   ├── quiz/             # Quiz interface
+│   │   │   └── page.jsx          # Course overview page
 │   ├── create/                   # Course creation page
-│   │   ├── page.jsx
-│   │   ├── _components/
-│   │   │   ├── SelectOption.jsx
-│   │   │   └── TopicInput.jsx
-│   │   └── workflow.txt          # Course creation workflow
 │   ├── dashboard/                # User dashboard
-│   │   ├── layout.jsx            # Dashboard layout
-│   │   ├── page.client.js        # Dashboard client component
-│   │   ├── page.jsx              # Dashboard main page
 │   │   ├── _components/          # Dashboard components
-│   │   │   ├── CourseCardItem.jsx
-│   │   │   ├── CourseList.jsx
-│   │   │   ├── DashboardHeader.jsx
-│   │   │   ├── SideBar.jsx
-│   │   │   └── WelcomeBanner.jsx
 │   │   ├── profile/              # User profile management
-│   │   │   └── page.jsx
-│   │   └── upgrade/              # Premium subscription upgrade
-│   │       ├── page.jsx
-│   │       └── _components/
-│   │           └── CheckIcon.jsx
+│   │   ├── upgrade/              # Premium subscription upgrade
+│   │   └── page.jsx              # Dashboard main page
+│   ├── (auth)/                   # Authentication pages
+│   │   ├── sign-in/              # Sign-in page
+│   │   └── sign-up/              # Sign-up page
 │   ├── globals.css               # Global styles and Tailwind imports
 │   ├── layout.js                 # Root layout with providers
 │   ├── page.js                   # Landing page with pricing section
-│   ├── provider.js               # Context providers
-│   └── _context/                 # React contexts
-│       └── CourseCountContext.jsx
-├── components/                   # Shared UI components
-│   └── ui/                       # Shadcn/ui components
-│       ├── badge.jsx
-│       ├── button.jsx
-│       ├── card.jsx
-│       ├── carousel.jsx
-│       ├── progress-dashboard.jsx
-│       ├── progress.jsx
-│       ├── select.jsx
-│       ├── textarea.jsx
-│       ├── toast.jsx
-│       ├── toaster.jsx
-│       └── toast.jsx
+│   └── provider.js               # Context providers
+├── components/                   # Reusable UI components
+│   ├── ui/                       # Shadcn/ui components
+│   │   ├── badge.jsx
+│   │   ├── button.jsx
+│   │   ├── card.jsx
+│   │   ├── carousel.jsx
+│   │   ├── progress-dashboard.jsx
+│   │   ├── progress.jsx
+│   │   ├── select.jsx
+│   │   ├── textarea.jsx
+│   │   ├── toast.jsx
+│   │   ├── toaster.jsx
+│   │   └── toast.jsx
 ├── configs/                      # Configuration files
 │   ├── AiModel.js                # Gemini AI configuration with fallback
 │   ├── db.js                     # Database connection
 │   └── schema.js                 # Database schema with all tables
 ├── inngest/                      # Background processing
 │   ├── client.js                 # Inngest client setup
-│   └── functions.js              # Background job functions
+│   ├── functions.js              # Background job functions
 ├── lib/                          # Utility functions
-│   └── userStatsService.js       # User statistics and gamification
-├── public/                       # Static assets
-│   ├── code.png
-│   ├── content.png
-│   ├── exam_1.png
-│   ├── exam.png
-│   ├── file.svg
-│   ├── fitness.png
-│   ├── flashcard.png
-│   ├── globe.svg
-│   ├── job.png
-│   ├── knowledge.png
-│   ├── laptop.png
-│   ├── notes.png
-│   ├── practice.png
-│   ├── psyduck.png
-│   ├── qa.png
-│   ├── quiz.png
-│   └── RiseLogo.svg
+│   ├── userStatsService.js       # User statistics and gamification
+│   └── utils.js                  # General utilities
+├── hooks/                        # Custom React hooks
 ├── utils/                        # Utility functions
-│   └── getUserEmail.js           # Email utility
+├── public/                       # Static assets
+│   ├── RisePic/                  # Project screenshots
+│   └── assets/                   # Images and icons
+├── drizzle/                      # Database migrations
 ├── .env.local                    # Environment variables (create this)
-├── drizzle.config.js             # Drizzle ORM configuration
-├── jsconfig.json                 # JavaScript configuration
 ├── middleware.js                 # Next.js middleware
 ├── next.config.mjs               # Next.js configuration
 ├── package.json                  # Project dependencies and scripts
-├── postcss.config.mjs            # PostCSS configuration
-├── README.md                     # Project documentation
 ├── tailwind.config.mjs           # Tailwind CSS configuration
 └── .gitignore                    # Git ignore rules
 ```
 
-## 🗄️ Database Schema
+## 🧠 How LearnForge Works
 
-### Users Table
+### 🤖 AI Course Generation Engine
 
-```sql
-CREATE TABLE users (
-  id VARCHAR(256) PRIMARY KEY,
-  name VARCHAR NOT NULL,
-  email VARCHAR NOT NULL,
-  isMember BOOLEAN DEFAULT false,
-  customerId VARCHAR,
-  -- Statistics & Gamification
-  streak INTEGER DEFAULT 0,
-  studyTime INTEGER DEFAULT 0,
-  completedCourses INTEGER DEFAULT 0,
-  progress INTEGER DEFAULT 0,
-  lastStudyDate TIMESTAMP,
-  currentGoal JSON,
-  preferences JSON,
-  -- Daily limits
-  dailyCoursesCreated INTEGER DEFAULT 0,
-  lastCourseDate TIMESTAMP,
-  -- Experience system
-  experiencePoints INTEGER DEFAULT 0,
-  learnerLevel INTEGER DEFAULT 1,
-  levelProgress INTEGER DEFAULT 0,
-  lastLevelUpdate TIMESTAMP
-);
-```
+Intelligent course creation with advanced AI content structuring:
 
-### Study Materials Table
+- **Smart Topic Analysis:** AI analyzes user input to understand learning objectives
+- **Structured Course Outline:** Generates exactly 3 chapters with logical progression
+- **Content Personalization:** Adapts difficulty level based on user preferences
+- **Fallback Content Generation:** Automatic fallback when AI services are unavailable
+- **Background Processing:** Non-blocking content generation with progress tracking
 
-```sql
-CREATE TABLE studyMaterial (
-  id VARCHAR(256) PRIMARY KEY,
-  courseId VARCHAR NOT NULL,
-  courseType VARCHAR NOT NULL,
-  topic VARCHAR NOT NULL,
-  difficultyLevel VARCHAR DEFAULT 'Easy',
-  courseLayout JSON,
-  createdBy VARCHAR NOT NULL,
-  status VARCHAR DEFAULT 'Generating'
-);
-```
+### 📚 Interactive Learning Experience
 
-### Chapter Notes Table
+Comprehensive study tools designed for effective learning:
 
-```sql
-CREATE TABLE chapterNotes (
-  id VARCHAR(256) PRIMARY KEY,
-  courseId VARCHAR NOT NULL,
-  chapterId INTEGER NOT NULL,
-  notes TEXT
-);
-```
+- **Detailed Chapter Notes:** AI-generated explanations with key concepts and examples
+- **Interactive Flashcards:** Smart flashcards that adapt to learning progress
+- **Practice Quizzes:** Multiple-choice questions with immediate feedback
+- **Progress Analytics:** Real-time tracking of learning achievements and streaks
+- **Gamification Elements:** Experience points, levels, and achievement badges
 
-### Study Type Content Table
+### 🎯 Personalized Learning Paths
 
-```sql
-CREATE TABLE studyTypeContent (
-  id VARCHAR(256) PRIMARY KEY,
-  courseId VARCHAR NOT NULL,
-  content JSON,
-  type VARCHAR NOT NULL,
-  status VARCHAR DEFAULT 'Generating'
-);
-```
+Adaptive learning system that responds to user progress:
 
-### Payment Records Table
+- **Difficulty Adjustment:** Courses adapt based on user performance
+- **Learning Style Detection:** Content presentation optimized for individual preferences
+- **Progress-Based Recommendations:** AI suggests next steps based on current achievements
+- **Study Session Tracking:** Comprehensive analytics of study time and patterns
 
-```sql
-CREATE TABLE paymentRecord (
-  id VARCHAR(256) PRIMARY KEY,
-  customerId VARCHAR,
-  sessionId VARCHAR
-);
-```
+### 💳 Flexible Monetization System
 
-## 🔄 Key Workflows
+Subscription-based model with transparent pricing:
 
-### Course Generation Process
+- **Free Tier:** 10 courses per day with basic features
+- **Premium Access:** Unlimited course generation with advanced analytics
+- **Credit-Based System:** Pay-per-course with subscription discounts
+- **Transparent Billing:** Clear pricing with Stripe-powered secure payments
 
-1. **User Initiates Course Generation**
+### 🔐 Secure User Management
 
-   - User enters topic and selects difficulty on create page
-   - Daily course limit validation (10 for free, unlimited for premium)
-   - Unique course ID generated
-   - API request to `/api/generate-course-outline`
+Enterprise-grade authentication and data protection:
 
-2. **AI Course Structure Generation**
+- **Clerk Integration:** Secure authentication with social login options
+- **Role-Based Access:** Multi-level permissions for different user types
+- **Data Privacy:** Secure handling of user data and learning progress
+- **Webhook Security:** Automated user management with secure webhooks
 
-   - Google Gemini AI creates course outline with exactly 3 chapters
-   - Fallback content generation if AI fails
-   - Course saved to database with "Generating" status
-   - Inngest event triggered for background processing
+### 📊 Comprehensive Analytics Dashboard
 
-3. **Background Content Generation (Inngest)**
+Real-time insights into learning progress and performance:
 
-   - Chapter notes generated asynchronously with rate limiting
-   - API key fallback system for reliability
-   - Progress updates and error handling
-   - Course status updated to "Ready" when complete
+- **Course Progress Tracking:** Visual progress bars and completion metrics
+- **Study Session Analytics:** Time spent, streaks, and learning patterns
+- **Performance Insights:** Quiz scores, flashcard mastery, and improvement trends
+- **Gamification Metrics:** Experience points, levels, and achievement tracking
 
-4. **Interactive Study Experience**
-   - User accesses course from dashboard
-   - Study materials: notes, flashcards, quizzes
-   - Progress tracking and analytics
-   - Gamification features (streaks, XP, levels)
+### 🚀 Background Content Generation
 
-### User Authentication & Onboarding
+Asynchronous AI processing for seamless user experience:
 
-1. **New User Registration**
+- **Inngest Integration:** Event-driven background job processing
+- **Progress Updates:** Real-time status updates during content generation
+- **Error Recovery:** Automatic retry mechanisms with fallback content
+- **Rate Limiting:** Smart API usage management to prevent service limits
 
-   - Clerk handles authentication and social login
-   - Webhook triggers user creation in database
-   - Welcome email and dashboard access
-   - Initial statistics setup
+### 🎨 Modern User Interface
 
-2. **Returning User Experience**
-   - Seamless login with Clerk
-   - Statistics and progress restoration
-   - Personalized dashboard with recent courses
-   - Subscription status verification
+Beautiful, accessible design optimized for learning:
 
-### Payment & Subscription Management
+- **Dark/Light Themes:** Comfortable viewing in any environment
+- **Responsive Design:** Optimized for desktop, tablet, and mobile devices
+- **Accessibility Compliance:** WCAG-compliant design for inclusive education
+- **Smooth Animations:** Engaging transitions and interactive elements
 
-1. **Free to Premium Upgrade**
+### 🔍 Smart Study Features
 
-   - Landing page pricing section with clear CTAs
-   - Stripe checkout integration
-   - Webhook confirmation and status updates
-   - Instant premium access upon payment
+Advanced learning tools powered by AI and data analytics:
 
-2. **Subscription Lifecycle**
-   - Automated billing through Stripe
-   - Usage tracking and limits enforcement
-   - Customer portal for subscription management
-   - Cancellation and plan change handling
+- **Adaptive Flashcards:** Cards that adjust difficulty based on user performance
+- **Quiz Analytics:** Detailed performance analysis with improvement suggestions
+- **Study Reminders:** Intelligent notifications based on learning patterns
+- **Progress Predictions:** AI-powered estimates of completion timelines
 
-## 🔗 API Endpoints
+### 📱 Cross-Platform Learning
 
-### Course Management
+Seamless learning experience across all devices:
 
-- `POST /api/generate-course-outline`: Creates a new course outline with AI-generated structure
-- `GET /api/courses`: Retrieves user's created courses with status information
-- `POST /api/course-analytics`: Gets course progress and analytics data
+- **Mobile Optimization:** Touch-friendly interface for smartphones and tablets
+- **Offline Capabilities:** Limited functionality available without internet
+- **Progressive Web App:** App-like experience in web browsers
+- **Cross-Browser Support:** Consistent experience across all modern browsers
 
-### Study Materials Generation
+## 🗃️ Database Schema
 
-- `POST /api/study-type`: Retrieves or initiates generation of study materials (notes, flashcards, quizzes)
-- `POST /api/study-type-content`: Stores and retrieves generated study content
-- `POST /api/generate-chapters`: Generates detailed chapter content with AI
+The application uses PostgreSQL with Drizzle ORM and includes the following comprehensive data models:
 
-### User Management & Authentication
+### Core Models
 
-- `POST /api/create-user`: Processes Clerk webhooks for new user creation
-- `POST /api/ensure-user-exists`: Verifies and creates users if needed (background job)
-- `POST /api/validate-user`: Validates user existence and permissions
-- `GET|PUT /api/users/[userId]/stats`: Manages user statistics, streaks, and gamification
+- **User:** Multi-role user management with authentication integration and gamification stats
+- **StudyMaterial:** Course content with AI-generated outlines and metadata
+- **ChapterNotes:** Detailed chapter content with AI-generated explanations
+- **StudyTypeContent:** Flashcards and quizzes with dynamic content
+- **PaymentRecord:** Stripe payment tracking and subscription management
 
-### Payment Processing & Monetization
+### Key Features
 
-- `POST /api/payment/checkout`: Creates Stripe checkout sessions for premium upgrades
-- `POST /api/payment/manage-payment`: Manages existing payment settings and subscriptions
-- `POST /api/payment/webhook`: Processes Stripe webhooks for payment confirmations
+- **Role-based Access:** Comprehensive user roles with appropriate field access
+- **Gamification System:** Experience points, streaks, and achievement tracking
+- **Content Generation:** AI-generated course content with status tracking
+- **Financial Tracking:** Complete audit trail for payments and subscriptions
+- **Progress Analytics:** Detailed learning progress and performance metrics
 
-### Background Processing
+### Security & Compliance
 
-- `GET|POST|PUT /api/inngest`: Handles Inngest events and background job functions
-- **Automated Tasks:**
-  - User creation and verification
-  - AI content generation (notes, flashcards, quizzes)
-  - Course status updates
-  - User statistics tracking
+- **Data Encryption:** Sensitive user data protection
+- **Audit Trails:** Complete transaction and action logging
+- **Privacy Controls:** User data protection and consent management
+- **Secure Authentication:** Enterprise-grade security with Clerk integration
 
-## 🎯 User Journey
-
-### For New Visitors
-
-1. **Landing Page**: Discover features and pricing with smooth scrolling
-2. **Sign Up**: Create account with Clerk authentication
-3. **Free Trial**: Start with 10 courses per day limit
-4. **Upgrade Option**: Seamless upgrade to premium via Stripe
-
-### For Learners
-
-1. **Course Creation**: Input topic and preferences
-2. **AI Generation**: Instant course outline with 3 chapters
-3. **Background Processing**: Notes generated asynchronously
-4. **Interactive Study**: Access flashcards, quizzes, and progress tracking
-5. **Analytics**: Monitor learning progress and streaks
-
-### For Premium Users
-
-1. **Unlimited Generation**: Create unlimited courses
-2. **Advanced Analytics**: Detailed learning insights
-3. **Priority Support**: Direct customer support
-4. **Subscription Management**: Easy plan changes via Stripe
-
-## 🔧 Key Workflows
-
-### Course Generation Pipeline
-
-```
-User Input → AI Course Outline → Background Note Generation → Interactive Study → Progress Tracking
-```
-
-### Payment Flow
-
-```
-Landing Page → Stripe Checkout → Webhook Confirmation → Premium Access → Subscription Management
-```
-
-### User Onboarding
-
-```
-Sign Up → Email Verification → Dashboard → First Course → Study Materials → Progress Tracking
-```
-
-## 🚀 Deployment
-
-### Environment Setup for Production
-
-1. **Database**: Set up Neon PostgreSQL database
-2. **Authentication**: Configure Clerk application
-3. **AI Services**: Set up Google Gemini API keys (primary + fallback)
-4. **Payments**: Configure Stripe account and webhooks
-5. **Background Jobs**: Set up Inngest account and signing keys
-
-### Build & Deploy
+## 📜 Available Scripts
 
 ```bash
-# Install dependencies
-npm install
-
-# Build the application
-npm run build
-
-# Start production server
-npm start
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run start        # Start production server
+npm run lint         # Run ESLint
+npx drizzle-kit push:pg  # Push database schema changes
+npx inngest-cli dev  # Run Inngest development server
 ```
-
-### Environment Variables for Production
-
-Ensure all environment variables are properly configured for production, especially:
-
-- Database connection strings
-- API keys and secrets
-- Webhook endpoints
-- CORS and security settings
 
 ## 🤝 Contributing
 
@@ -609,11 +400,11 @@ We welcome contributions from the community! Here's how you can help:
 
 ### Ways to Contribute
 
-- 🐛 **Bug Reports**: Found a bug? [Open an issue](https://github.com/Shikhar1504/AI_Learning_Management_System/issues)
-- 💡 **Feature Requests**: Have an idea? [Suggest a feature](https://github.com/Shikhar1504/AI_Learning_Management_System/issues)
-- 📝 **Documentation**: Help improve documentation
-- 🧪 **Testing**: Write tests or report test cases
-- 🎨 **UI/UX**: Design improvements and user experience enhancements
+- 🐛 **Bug Reports:** Found a bug? [Open an issue](https://github.com/Shikhar1504/AI_Learning_Management_System/issues)
+- 💡 **Feature Requests:** Have an idea? [Suggest a feature](https://github.com/Shikhar1504/AI_Learning_Management_System/issues)
+- 📝 **Documentation:** Help improve documentation
+- 🧪 **Testing:** Write tests or report test cases
+- 🎨 **UI/UX:** Design improvements and user experience enhancements
 
 ### Development Workflow
 
@@ -621,7 +412,7 @@ We welcome contributions from the community! Here's how you can help:
 
    ```bash
    git clone https://github.com/Shikhar1504/AI_Learning_Management_System.git
-   cd
+   cd LearnForge
    ```
 
 2. **Create Feature Branch**
@@ -658,11 +449,11 @@ We welcome contributions from the community! Here's how you can help:
 
 ### Code Standards
 
-- **TypeScript/React**: Follow Next.js and React best practices
-- **Styling**: Use Tailwind CSS with consistent design patterns
-- **API Design**: RESTful conventions with proper error handling
-- **Security**: Input validation and secure coding practices
-- **Performance**: Optimize for speed and user experience
+- **TypeScript/React:** Follow Next.js and React best practices
+- **Styling:** Use Tailwind CSS with consistent design patterns
+- **API Design:** RESTful conventions with proper error handling
+- **Security:** Input validation and secure coding practices
+- **Performance:** Optimize for speed and user experience
 
 ### Testing
 
@@ -675,35 +466,63 @@ We welcome contributions from the community! Here's how you can help:
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
-
-- **Google Gemini AI** for powering the course generation
-- **Clerk** for seamless authentication
-- **Stripe** for reliable payment processing
-- **Inngest** for background job processing
-- **Neon** for PostgreSQL hosting
-- **Vercel** for deployment platform
-- **Open source community** for inspiration and tools
-
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/Shikhar1504/AI_Learning_Management_System/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Shikhar1504/AI_Learning_Management_System/discussions)
-- **Email**: For business inquiries or premium support
+For support, please open an issue in the repository or contact the maintainers.
 
-## 🔄 Version History
+## 🎓 Key Learning / Skills Demonstrated
 
-### v0.1.0 (Current)
+This project showcases a comprehensive full-stack development skill set suitable for modern web applications:
 
-- ✅ Complete AI-powered course generation
-- ✅ Interactive study materials (notes, flashcards, quizzes)
-- ✅ User authentication and profiles
-- ✅ Payment integration with Stripe
-- ✅ Background processing with Inngest
-- ✅ Modern responsive UI with dark theme
-- ✅ Landing page with pricing section
-- ✅ Gamification and progress tracking
-- ✅ API rate limiting and fallback systems
+### Frontend Development
+
+- **React 19** with Next.js 15 App Router
+- **Modern UI/UX** with Tailwind CSS and Shadcn/ui components
+- **Responsive Design** for mobile, tablet, and desktop
+- **State Management** using React Context and hooks
+- **Animation & Interactions** with Framer Motion
+- **Form Handling** and user input validation
+
+### Backend Development
+
+- **API Design** with RESTful conventions
+- **Database Design** with PostgreSQL and Drizzle ORM
+- **Authentication** integration with Clerk
+- **Payment Processing** with Stripe webhooks
+- **Background Processing** with Inngest
+- **Error Handling** and fallback systems
+
+### AI & Machine Learning Integration
+
+- **Google Gemini AI** integration for content generation
+- **Fallback Systems** for API reliability
+- **Rate Limiting** and error recovery
+- **Content Generation** for courses, notes, flashcards, and quizzes
+- **Prompt Engineering** for optimal AI responses
+
+### DevOps & Deployment
+
+- **Environment Configuration** for development and production
+- **Database Migrations** with Drizzle Kit
+- **Security Best Practices** with middleware and validation
+- **Performance Optimization** with lazy loading and caching
+- **Monitoring & Logging** for debugging and analytics
+
+### Business & Product Skills
+
+- **User Experience Design** with intuitive workflows
+- **Monetization Strategy** with freemium model
+- **Analytics & Tracking** for user behavior insights
+- **Gamification** for user engagement
+- **Scalability Planning** for growing user base
+
+### Technical Architecture
+
+- **Microservices Architecture** with separate concerns
+- **Event-Driven Processing** for asynchronous tasks
+- **Database Optimization** with efficient queries
+- **Security Implementation** with proper authentication
+- **API Rate Limiting** and abuse prevention
 
 ---
 
