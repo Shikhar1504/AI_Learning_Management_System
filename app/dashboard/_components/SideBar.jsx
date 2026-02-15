@@ -1,7 +1,6 @@
 "use client";
 import { CourseCountContext } from "@/app/_context/CourseCountContext";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { 
   LayoutDashboard, 
   Shield, 

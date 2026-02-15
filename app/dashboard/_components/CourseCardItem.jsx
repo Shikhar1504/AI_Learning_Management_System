@@ -2,9 +2,7 @@ import { Button } from "@/components/ui/button";
 import axios from "axios";
 import { format } from "date-fns";
 import {
-  AlertCircle,
   BookOpen,
-  Calendar,
   CheckCircle,
   Clock,
   Loader2,
@@ -13,121 +11,25 @@ import {
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 function CourseCardItem({ course, onCourseUpdate }) {
-  const router = useRouter();
-  const [analytics, setAnalytics] = useState({
-    progressPercentage: 0,
-    hasFlashcards: false,
-    hasQuiz: false,
-    hasNotes: false,
-    totalChapters: 0,
-    completedChapters: 0,
-  });
-  const [loadingAnalytics, setLoadingAnalytics] = useState(true);
-  const [analyticsError, setAnalyticsError] = useState(null);
+  // Derived analytics from course prop (O(1) access)
+  const analytics = {
+    progressPercentage: course?.progressPercentage || 0,
+    totalChapters: course?.courseLayout?.chapters?.length || 0,
+    completedChapters: 0, // Not strictly tracked in DB anymore, irrelevant for card
+    totalTopics: course?.totalTopics || 0,
+    completedTopics: course?.completedTopics || 0,
+    estimatedDuration: course?.totalTopics 
+      ? `${Math.round((course.totalTopics * 15) / 60)} hrs` 
+      : "Calculating...",
+    fallback: false
+  };
+  
+  const loadingAnalytics = false; // Data is instant now
+  const analyticsError = null;
   const statusCheckIntervalRef = useRef(null);
-  const analyticsRequestRef = useRef(null); // Track ongoing requests
-
-  const fetchCourseAnalytics = useCallback(
-    async (retryCount = 0) => {
-      // Cancel any ongoing request
-      if (analyticsRequestRef.current) {
-        analyticsRequestRef.current.cancel("New request initiated");
-      }
-
-      const maxRetries = 0; // Disabled retries to prevent multiple concurrent requests
-
-      try {
-        setLoadingAnalytics(true);
-        setAnalyticsError(null);
-
-        // Create cancellable request
-        const source = axios.CancelToken.source();
-        analyticsRequestRef.current = source;
-
-        const response = await axios.get("/api/course-analytics", {
-          params: {
-            courseId: course.courseId,
-          },
-          timeout: 10000, // Increased to 10 seconds
-          cancelToken: source.token,
-        });
-
-        // Clear the request reference on success
-        analyticsRequestRef.current = null;
-
-        setAnalytics(response.data);
-
-        // Log if using fallback data
-        if (response.data.fallback) {
-          console.warn(
-            "📊 Using fallback analytics data for course:",
-            course.courseId
-          );
-          if (response.data.ultraFast) {
-            console.warn(
-              "⚡ Using ultra-fast fallback for course:",
-              course.courseId
-            );
-          }
-        }
-      } catch (error) {
-        // Clear the request reference
-        analyticsRequestRef.current = null;
-
-        // Don't log errors for cancelled requests
-        if (axios.isCancel(error)) {
-          console.log(
-            "Analytics request cancelled for course:",
-            course.courseId
-          );
-          return;
-        }
-
-        console.error(`Failed to fetch course analytics:`, error);
-        setAnalyticsError(error.message);
-
-        // Simplified error handling without retries
-        if (
-          error.code === "ECONNABORTED" ||
-          error.message.includes("timeout")
-        ) {
-          console.warn("⏱️ Analytics request timed out, using local fallback");
-        } else if (error.response?.status === 404) {
-          console.warn("🔍 Analytics endpoint not found, using local fallback");
-        } else if (error.response?.status >= 500) {
-          console.warn("🔧 Server error in analytics, using local fallback");
-        }
-
-        // Use enhanced fallback values with better defaults
-        setAnalytics({
-          progressPercentage: 0,
-          hasFlashcards: false,
-          hasQuiz: false,
-          hasNotes: course?.courseLayout?.chapters?.length > 0,
-          totalChapters: course?.courseLayout?.chapters?.length || 3,
-          completedChapters: 0,
-          estimatedDuration: "Calculating...",
-          rating: 0,
-          lastStudyTime: "Not started",
-          materialCounts: {
-            flashcard: 0,
-            quiz: 0,
-            notes: 0,
-          },
-          courseStatus: course?.status || "Ready",
-          difficulty: "Intermediate",
-          fallback: true,
-        });
-      } finally {
-        setLoadingAnalytics(false);
-      }
-    },
-    [course?.courseId, course?.courseLayout?.chapters?.length, course?.status]
-  );
 
   // Check course status for auto-reload
   const checkCourseStatus = useCallback(async () => {
@@ -160,8 +62,8 @@ function CourseCardItem({ course, onCourseUpdate }) {
           statusCheckIntervalRef.current = null;
         }
 
-        // Refresh analytics first
-        await fetchCourseAnalytics();
+        // Refresh analytics happens via parent update
+
 
         // Notify parent to update course list
         if (onCourseUpdate) {
@@ -180,15 +82,10 @@ function CourseCardItem({ course, onCourseUpdate }) {
     course?.courseId,
     course?.createdBy,
     course?.status,
-    fetchCourseAnalytics,
     onCourseUpdate,
   ]);
 
-  useEffect(() => {
-    if (course?.courseId) {
-      fetchCourseAnalytics();
-    }
-  }, [course?.courseId]);
+
 
   // Start/stop status polling based on course status
   useEffect(() => {
@@ -215,11 +112,6 @@ function CourseCardItem({ course, onCourseUpdate }) {
       if (statusCheckIntervalRef.current) {
         clearInterval(statusCheckIntervalRef.current);
         statusCheckIntervalRef.current = null;
-      }
-      // Cancel any ongoing analytics requests
-      if (analyticsRequestRef.current) {
-        analyticsRequestRef.current.cancel("Component unmounting");
-        analyticsRequestRef.current = null;
       }
     };
   }, [course?.status, checkCourseStatus]);
@@ -262,31 +154,9 @@ function CourseCardItem({ course, onCourseUpdate }) {
   // Calculate comprehensive progress based on chapters, flashcards, and quiz
   const calculateOverallProgress = () => {
     if (loadingAnalytics) {
-      // Show estimated progress based on course status while loading
-      if (course?.status === "Ready") return 5; // Ready courses have some initial progress
-      if (course?.status === "Generating") return 0;
-      return 0;
+       return 0;
     }
-
-    const totalChapters =
-      analytics.totalChapters || course?.courseLayout?.chapters?.length || 3;
-    const completedChapters = analytics.completedChapters || 0;
-
-    // Enhanced weight calculation with fallback handling
-    // Weight: Chapters 40%, Flashcards 30%, Quiz 30%
-    const chapterProgress =
-      totalChapters > 0 ? (completedChapters / totalChapters) * 40 : 0;
-    const flashcardProgress =
-      analytics.hasFlashcards || analytics.materialCounts?.flashcard > 0
-        ? 30
-        : 0;
-    const quizProgress =
-      analytics.hasQuiz || analytics.materialCounts?.quiz > 0 ? 30 : 0;
-
-    const totalProgress = Math.round(
-      chapterProgress + flashcardProgress + quizProgress
-    );
-    return Math.min(totalProgress, 100);
+    return analytics.progressPercentage || 0;
   };
 
   const overallProgress = calculateOverallProgress();
@@ -313,204 +183,112 @@ function CourseCardItem({ course, onCourseUpdate }) {
   };
 
   return (
-    <div className="modern-card-interactive group relative overflow-hidden h-full">
-      {/* Progress Bar */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-white/5">
-        <div
-          className={`h-full bg-gradient-to-r ${getStatusColor()} transition-all duration-1000 ease-out`}
-          style={{ width: `${progressPercentage}%` }}
-        />
-      </div>
+    <div className="group relative h-full rounded-2xl bg-card border border-border/50 overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-primary/20 flex flex-col">
+      {/* Glow Effect */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-      <div className="p-6 h-full flex flex-col">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-6">
-          <div
-            className={`p-3 rounded-xl bg-gradient-to-br ${getStatusColor()}/20 group-hover:scale-110 transition-transform duration-300`}
-          >
-            {isCompleted ? (
-              <CheckCircle className="h-6 w-6 text-green-400" />
-            ) : isGenerating ? (
-              <RefreshCw className="h-6 w-6 text-orange-400 animate-spin" />
-            ) : (
-              <BookOpen className="h-6 w-6 text-purple-400" />
-            )}
+      <div className="p-5 flex-1 flex flex-col relative z-10">
+        {/* Header: Icon + Badge + Menu */}
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-3">
+             <div
+               className={`p-2.5 rounded-lg bg-gradient-to-br ${getStatusColor()}/10 group-hover:scale-110 transition-transform duration-300`}
+             >
+               {isCompleted ? (
+                 <CheckCircle className={`h-5 w-5 ${isCompleted ? 'text-green-500' : 'text-primary'}`} />
+               ) : isGenerating ? (
+                 <RefreshCw className="h-5 w-5 text-orange-400 animate-spin" />
+               ) : (
+                 <BookOpen className="h-5 w-5 text-primary" />
+               )}
+             </div>
+             {/* Status Badge */}
+             <div className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${
+                isCompleted 
+                  ? "bg-green-500/10 text-green-500 border-green-500/20" 
+                  : isGenerating
+                  ? "bg-orange-500/10 text-orange-500 border-orange-500/20"
+                  : "bg-primary/5 text-primary border-primary/10"
+             }`}>
+                {getStatusText()}
+             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div
-              className={`px-3 py-1 rounded-full text-xs font-medium border ${
-                isCompleted
-                  ? "bg-green-500/20 text-green-400 border-green-500/30"
-                  : isGenerating
-                  ? "bg-orange-500/20 text-orange-400 border-orange-500/30"
-                  : "bg-purple-500/20 text-purple-400 border-purple-500/30"
-              }`}
-            >
-              {getStatusText()}
-            </div>
-
-            {/* Delete Button */}
-            {!isGenerating && (
+          {/* Delete Action - Fade in on hover */}
+          {!isGenerating && (
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               <Button
                 variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 text-muted-foreground hover:text-red-400 hover:bg-red-500/10"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
                 onClick={(e) => {
                   e.preventDefault();
-                  e.stopPropagation();
+                  // For now, simpler direct delete conform, can upgrade to dropdown later
                   handleDeleteCourse();
                 }}
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="h-4 w-4" /> 
               </Button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
-        {/* Content */}
-        <div className="flex-1">
-          <h3 className="font-semibold text-lg text-foreground line-clamp-2 mb-3 group-hover:text-gradient-primary transition-all font-display">
+        {/* Title & Description */}
+        <div className="space-y-2 mb-6">
+          <h3 className="font-bold text-lg text-foreground line-clamp-1 leading-tight group-hover:text-primary transition-colors">
             {course?.courseLayout?.courseTitle ||
               course?.courseLayout?.course_title ||
               "Untitled Course"}
           </h3>
 
-          <p className="body-small text-muted-foreground line-clamp-3 mb-6">
+          <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed min-h-[3em]">
             {course?.courseLayout?.summary || "No description available."}
           </p>
         </div>
-
-        {/* Footer */}
-        <div className="space-y-4">
-          {/* Progress */}
-          {!isGenerating && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Overall Progress</span>
-                <span className="font-medium text-foreground">
-                  {loadingAnalytics ? (
-                    <div className="flex items-center gap-1">
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                      <span>Loading...</span>
-                    </div>
-                  ) : (
-                    `${progressPercentage}%`
-                  )}
-                </span>
+        
+        {/* Progress Bar Section (Polished) */}
+        {!isGenerating && (
+           <div className="mt-auto mb-4 space-y-2">
+              <div className="flex justify-between text-xs font-semibold">
+                 <span className="text-muted-foreground">{Math.round(progressPercentage)}% Complete</span>
               </div>
-              <div className="w-full bg-white/5 rounded-full h-2">
-                <div
-                  className={`h-full bg-gradient-to-r ${getStatusColor()} rounded-full transition-all duration-1000 ease-out`}
-                  style={{ width: `${progressPercentage}%` }}
-                />
+              <div className="h-2 w-full bg-secondary/50 rounded-full overflow-hidden">
+                 <div
+                    className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full transition-all duration-1000 ease-out"
+                    style={{ width: `${progressPercentage}%` }}
+                 />
               </div>
+           </div>
+        )}
 
-              {/* Progress Breakdown */}
-              {!loadingAnalytics && progressPercentage > 0 && (
-                <div className="flex justify-center gap-3 text-xs text-gray-500">
-                  <span
-                    className="flex items-center gap-1"
-                    title="Chapter Progress"
-                  >
-                    📚{" "}
-                    {Math.round(
-                      ((analytics.completedChapters || 0) /
-                        (analytics.totalChapters || 1)) *
-                        40
-                    )}
-                    %
-                  </span>
-                  <span className="flex items-center gap-1" title="Flashcards">
-                    🃏{" "}
-                    {analytics.hasFlashcards ||
-                    analytics.materialCounts?.flashcard > 0
-                      ? "30%"
-                      : "0%"}
-                  </span>
-                  <span className="flex items-center gap-1" title="Quiz">
-                    ❓{" "}
-                    {analytics.hasQuiz || analytics.materialCounts?.quiz > 0
-                      ? "30%"
-                      : "0%"}
-                  </span>
-                  {analytics.fallback && (
-                    <span
-                      className="flex items-center gap-1 text-orange-400"
-                      title="Using fallback data"
-                    >
-                      ⚠️
-                    </span>
-                  )}
-                </div>
-              )}
-
-              {/* Error indicator */}
-              {analyticsError && !loadingAnalytics && (
-                <div className="text-xs text-orange-400 flex items-center gap-1">
-                  <AlertCircle className="h-3 w-3" />
-                  <span>Displaying estimated data</span>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Date & Action */}
-          <div className="flex items-center justify-between pt-4 border-t border-white/10">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Calendar className="h-3 w-3" />
-              {currentDate}
+        {/* Footer: Metadata + Action */}
+        <div className="pt-4 border-t border-border/50 flex items-center justify-between mt-auto">
+            {/* Metadata */}
+            <div className="flex items-center gap-3 text-xs text-muted-foreground font-medium">
+               <div className="flex items-center gap-1.5" title="Chapters">
+                  <BookOpen className="h-3.5 w-3.5" />
+                  <span>{analytics.totalChapters || 0}</span>
+               </div>
+               <div className="flex items-center gap-1.5" title="Estimated Time">
+                  <Clock className="h-3.5 w-3.5" />
+                  <span>{analytics.estimatedDuration?.replace(' hrs', 'h') || '0h'}</span>
+               </div>
             </div>
 
+            {/* Action */}
             {isGenerating ? (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-orange-400">
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                  <span className="font-medium">Generating...</span>
-                </div>
-
-                {/* Expected Duration Message */}
-                <div className="bg-orange-500/10 border border-orange-500/20 rounded-md p-3">
-                  <div className="flex items-start gap-2 text-xs text-orange-300">
-                    <Clock className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium mb-1">
-                        Please wait patiently...
-                      </p>
-                      <p className="text-orange-400/80">
-                        Content generation typically takes 5-10 minutes. The
-                        page will refresh automatically once complete.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+               <div className="flex items-center gap-2 text-xs text-orange-400 font-medium">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <span>Building...</span>
+               </div>
             ) : (
-              <Link href={`/course/${course?.courseId}`}>
-                <Button
-                  size="sm"
-                  className={`btn-primary h-9 px-4 text-sm font-medium group-hover:scale-105 transition-all duration-300`}
-                >
-                  {isCompleted ? (
-                    <>
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Review
-                    </>
-                  ) : progressPercentage > 0 ? (
-                    <>
-                      <Play className="h-4 w-4 mr-2" />
-                      Continue
-                    </>
-                  ) : (
-                    <>
-                      <Play className="h-4 w-4 mr-2" />
-                      Start
-                    </>
-                  )}
-                </Button>
-              </Link>
+               <Link href={`/course/${course?.courseId}${isCompleted ? '' : '/learn'}`}>
+                  <button className="flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary/80 transition-all group/btn">
+                     {isCompleted ? 'Review' : 'Continue'}
+                     <Play className="h-3 w-3 fill-current transform group-hover/btn:translate-x-1 transition-transform duration-200" />
+                  </button>
+               </Link>
             )}
-          </div>
         </div>
       </div>
     </div>

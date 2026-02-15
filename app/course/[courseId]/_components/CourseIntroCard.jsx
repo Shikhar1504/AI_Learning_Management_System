@@ -10,127 +10,53 @@ import { useEffect, useState } from "react";
 function CourseIntroCard({ course }) {
   const { user } = useUser();
   const router = useRouter();
-  const [analytics, setAnalytics] = useState({
-    progressPercentage: 0,
-    estimatedDuration: "Loading...",
-    lastStudyTime: "Loading...",
-    totalChapters: 0,
-    completedChapters: 0,
-  });
-  const [loading, setLoading] = useState(true);
+
 
   // Navigation logic for Continue Learning button
   const handleContinueLearning = () => {
     const courseId = course?.courseId;
     if (!courseId) return;
 
+    // For now, let's redirect to the new learning page for all cases as it handles everything
+    router.push(`/course/${courseId}/learn`);
+
     // Determine the next logical step based on progress
-    if (analytics.progressPercentage === 0) {
-      // If no progress, start with notes
-      router.push(`/course/${courseId}/notes`);
-    } else if (analytics.progressPercentage < 40) {
-      // If chapter progress is incomplete, continue with notes
-      router.push(`/course/${courseId}/notes`);
-    } else if (analytics.progressPercentage < 70 && !analytics.hasFlashcards) {
-      // If chapters are done but flashcards aren't generated/completed
-      router.push(`/course/${courseId}/flashcards`);
-    } else if (analytics.progressPercentage < 100 && !analytics.hasQuiz) {
-      // If flashcards are done but quiz isn't completed
-      router.push(`/course/${courseId}/quiz`);
-    } else {
-      // If everything is complete or in progress, go to notes (most recent activity)
-      router.push(`/course/${courseId}/notes`);
-    }
+    // if (analytics.progressPercentage === 0) {
+    //   // If no progress, start with notes
+    //   router.push(`/course/${courseId}/notes`);
+    // } else if (analytics.progressPercentage < 40) {
+    //   // If chapter progress is incomplete, continue with notes
+    //   router.push(`/course/${courseId}/notes`);
+    // } else if (analytics.progressPercentage < 70 && !analytics.hasFlashcards) {
+    //   // If chapters are done but flashcards aren't generated/completed
+    //   router.push(`/course/${courseId}/flashcards`);
+    // } else if (analytics.progressPercentage < 100 && !analytics.hasQuiz) {
+    //   // If flashcards are done but quiz isn't completed
+    //   router.push(`/course/${courseId}/quiz`);
+    // } else {
+    //   // If everything is complete or in progress, go to notes (most recent activity)
+    //   router.push(`/course/${courseId}/notes`);
+    // }
   };
 
-  useEffect(() => {
-    if (course?.courseId) {
-      fetchAnalytics();
-    }
-  }, [course?.courseId, user?.primaryEmailAddress?.emailAddress]);
-
-  const fetchAnalytics = async (retryCount = 0) => {
-    const maxRetries = 3; // Increased to 3 retries
-    const baseDelay = 2000; // Increased to 2 seconds
-
-    try {
-      setLoading(true);
-      const response = await axios.get("/api/course-analytics", {
-        params: {
-          courseId: course.courseId,
-          userEmail: user?.primaryEmailAddress?.emailAddress,
-        },
-        timeout: 30000, // Increased to 30 seconds for slow database connections
-      });
-      setAnalytics(response.data);
-
-      if (response.data.fallback) {
-        console.warn(
-          "Using fallback analytics data due to database connectivity issues"
-        );
-      }
-    } catch (error) {
-      console.error(
-        `Failed to fetch course analytics (attempt ${retryCount + 1}/${
-          maxRetries + 1
-        }):`,
-        error
-      );
-
-      // Check if it's a timeout or network error and we haven't exceeded max retries
-      if (
-        (error.code === "ECONNABORTED" ||
-          error.code === "ENOTFOUND" ||
-          error.code === "ECONNREFUSED") &&
-        retryCount < maxRetries
-      ) {
-        const delay = baseDelay * Math.pow(2, retryCount); // Exponential backoff
-        console.log(`Retrying analytics fetch in ${delay}ms...`);
-        setTimeout(() => fetchAnalytics(retryCount + 1), delay);
-        return; // Don't set fallback yet, wait for retry
-      }
-
-      // Set fallback analytics on error or max retries reached
-      setAnalytics({
-        progressPercentage: 0,
-        estimatedDuration: "4-6 hours",
-        lastStudyTime: "Unable to load",
-        totalChapters: course?.courseLayout?.chapters?.length || 3,
-        completedChapters: 0,
-        fallback: true,
-        error: "Analytics temporarily unavailable",
-      });
-    } finally {
-      setLoading(false);
-    }
+  // Derived from course prop directly
+  const analytics = {
+    progressPercentage: course?.progressPercentage || 0,
+    estimatedDuration: course?.totalTopics 
+      ? `${Math.round((course.totalTopics * 15) / 60)} hrs` 
+      : "Calculating...",
+    lastStudyTime: "In Progress", // Simplified for now since we removed the field from API
+    totalChapters: course?.courseLayout?.chapters?.length || 0,
+    completedChapters: 0,
+    totalTopics: course?.totalTopics || 0,
+    completedTopics: course?.completedTopics || 0,
+    fallback: false
   };
+  
+  const loading = false; // Data is available immediately from prop
 
-  // Calculate comprehensive progress based on chapters, flashcards, and quiz
-  const calculateOverallProgress = () => {
-    if (loading) return 0;
-
-    const totalChapters =
-      analytics.totalChapters || course?.courseLayout?.chapters?.length || 3;
-    const completedChapters = analytics.completedChapters || 0;
-
-    // Weight: Chapters 40%, Flashcards 30%, Quiz 30%
-    const chapterProgress =
-      totalChapters > 0 ? (completedChapters / totalChapters) * 40 : 0;
-
-    // Check if flashcards and quiz are generated (this would come from study materials)
-    const hasFlashcards = analytics.hasFlashcards || false;
-    const hasQuiz = analytics.hasQuiz || false;
-
-    const flashcardProgress = hasFlashcards ? 30 : 0;
-    const quizProgress = hasQuiz ? 30 : 0;
-
-    const totalProgress = Math.round(
-      chapterProgress + flashcardProgress + quizProgress
-    );
-    return Math.min(totalProgress, 100);
-  };
-
-  const overallProgress = calculateOverallProgress();
+  // No local calculation - use API data strictly
+  const overallProgress = analytics.progressPercentage || 0;
 
   const difficulty = course?.difficultyLevel || "Intermediate";
   const createdDate = course?.createdAt
@@ -154,264 +80,142 @@ function CourseIntroCard({ course }) {
   };
 
   return (
-    <div className="w-full space-y-12">
-      {/* Course Hero Section */}
-      <div className="modern-card relative overflow-hidden p-8 lg:p-12">
-        {/* Subtle background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/3 to-blue-500/3" />
+    <div className="w-full space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* Left Column: Course Info & Metadata (Span 2) */}
+        <div className="lg:col-span-2 space-y-8">
+          {/* Hero Section */}
+          <div className="modern-card relative overflow-hidden p-8 border border-white/10 bg-white/5 backdrop-blur-md">
+             {/* Background Gradients */}
+            <div className="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl opacity-50" />
+            <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl opacity-50" />
 
-        <div className="relative z-10">
-          <div className="flex flex-col lg:flex-row items-start gap-8">
-            {/* Course Icon */}
-            <div className="flex-shrink-0">
-              <div className="p-6 rounded-2xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 border border-white/10">
-                <div className="relative w-16 h-16 flex items-center justify-center">
-                  <Image
-                    src="/knowledge.png"
-                    alt="Course Icon"
-                    width={64}
-                    height={64}
-                    className="object-contain filter drop-shadow-lg"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Course Information */}
-            <div className="flex-1 space-y-6">
-              {/* Title and Badge */}
-              <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                  <h1 className="text-4xl lg:text-5xl font-bold text-white leading-tight">
-                    {course?.courseLayout?.course_title ||
-                      course?.courseLayout?.courseTitle ||
-                      "Course Title"}
-                  </h1>
-                  <div
-                    className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r ${getDifficultyColor(
-                      difficulty
-                    )} text-white shadow-lg`}
-                  >
+            <div className="relative z-10 space-y-6">
+              {/* Badge & Date Row */}
+              <div className="flex items-center gap-4 text-sm">
+                 <div className={`px-4 py-1.5 rounded-full font-semibold text-xs uppercase tracking-wider bg-gradient-to-r ${getDifficultyColor(difficulty)} text-white shadow-lg shadow-purple-500/20`}>
                     {difficulty}
-                  </div>
-                </div>
+                 </div>
+                 <div className="flex items-center gap-2 text-white/60 font-medium">
+                    <Calendar className="h-4 w-4 text-white/80" />
+                    <span>{createdDate}</span>
+                 </div>
+              </div>
 
-                <p className="text-lg text-gray-300 leading-relaxed max-w-4xl">
-                  {course?.courseLayout?.summary ||
-                    "This course provides comprehensive learning materials designed to help you master the subject effectively."}
+              {/* Title & Description */}
+              <div className="space-y-4">
+                <h1 className="text-4xl md:text-5xl font-extrabold font-display bg-gradient-to-r from-purple-200 via-white to-blue-200 bg-clip-text text-transparent leading-tight drop-shadow-sm">
+                  {course?.courseLayout?.course_title || course?.courseLayout?.courseTitle || "Course Title"}
+                </h1>
+                <p className="text-white/70 leading-relaxed text-lg max-w-2xl font-light">
+                   {course?.courseLayout?.summary || "Master this subject with our comprehensive guide."}
                 </p>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Course Stats and Progress */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-        {/* Stats Section */}
-        <div className="lg:col-span-3 space-y-6">
-          <div className="flex items-center gap-3">
-            <BarChart3 className="h-6 w-6 text-blue-400" />
-            <h2 className="text-2xl font-bold text-white">Course Overview</h2>
-          </div>
+              {/* Interactive Metadata Grid */}
+              <div className="flex flex-wrap gap-6 pt-6 border-t border-white/10">
+                 <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors cursor-default">
+                    <div className="p-2 rounded-lg bg-blue-500/20 text-blue-300">
+                       <BarChart3 className="h-5 w-5" />
+                    </div>
+                    <div>
+                       <p className="text-sm font-bold text-white">{loading ? "..." : analytics.totalChapters}</p>
+                       <p className="text-[10px] uppercase tracking-wider text-white/50 font-semibold">Modules</p>
+                    </div>
+                 </div>
+                 
+                 <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors cursor-default">
+                    <div className="p-2 rounded-lg bg-purple-500/20 text-purple-300">
+                       <Clock className="h-5 w-5" />
+                    </div>
+                    <div>
+                       <p className="text-sm font-bold text-white">{loading ? "..." : analytics.estimatedDuration}</p>
+                       <p className="text-[10px] uppercase tracking-wider text-white/50 font-semibold">Duration</p>
+                    </div>
+                 </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Chapters */}
-            <div className="modern-card p-6 hover:scale-105 transition-transform duration-300">
-              <div className="text-center space-y-4">
-                <div className="p-4 rounded-xl bg-purple-500/20 mx-auto w-fit">
-                  <BarChart3 className="h-8 w-8 text-purple-400" />
-                </div>
-                <div className="space-y-2">
-                  <div className="text-3xl font-bold text-white">
-                    {loading ? "..." : analytics.totalChapters || 0}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-white text-lg">
-                      Chapters
-                    </h3>
-                    <p className="text-sm text-gray-400">Learning modules</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Duration */}
-            <div className="modern-card p-6 hover:scale-105 transition-transform duration-300">
-              <div className="text-center space-y-4">
-                <div className="p-4 rounded-xl bg-blue-500/20 mx-auto w-fit">
-                  <Clock className="h-8 w-8 text-blue-400" />
-                </div>
-                <div className="space-y-2">
-                  <div className="text-xl font-bold text-white">
-                    {loading ? "..." : analytics.estimatedDuration}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-white text-lg">
-                      Duration
-                    </h3>
-                    <p className="text-sm text-gray-400">Estimated time</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Created */}
-            <div className="modern-card p-6 hover:scale-105 transition-transform duration-300">
-              <div className="text-center space-y-4">
-                <div className="p-4 rounded-xl bg-green-500/20 mx-auto w-fit">
-                  <Calendar className="h-8 w-8 text-green-400" />
-                </div>
-                <div className="space-y-2">
-                  <div className="text-lg font-bold text-white">
-                    {createdDate}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-white text-lg">
-                      Created
-                    </h3>
-                    <p className="text-sm text-gray-400">Launch date</p>
-                  </div>
-                </div>
+                 <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors cursor-default">
+                    <div className="p-2 rounded-lg bg-green-500/20 text-green-300">
+                       <Play className="h-5 w-5" />
+                    </div>
+                    <div>
+                       <p className="text-sm font-bold text-white">{loading ? "..." : analytics.totalTopics}</p>
+                       <p className="text-[10px] uppercase tracking-wider text-white/50 font-semibold">Topics</p>
+                    </div>
+                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Progress Section */}
-        <div className="lg:col-span-2">
-          <div className="modern-card p-8 h-full">
-            <div className="space-y-8">
-              {/* Progress Header */}
-              <div className="flex items-center gap-3">
-                <TrendingUp className="h-6 w-6 text-purple-400" />
-                <h2 className="text-2xl font-bold text-white">Progress</h2>
-                {analytics.fallback && (
-                  <div className="px-3 py-1 rounded-full bg-orange-500/20 border border-orange-500/30">
-                    <span className="text-xs text-orange-400">Offline</span>
-                  </div>
-                )}
-              </div>
+        {/* Right Column: Progress & Action (Span 1) */}
+        <div className="lg:col-span-1 h-full">
+          <div className="modern-card p-8 h-full flex flex-col justify-between relative overflow-hidden ring-1 ring-white/10 bg-gradient-to-b from-white/5 to-transparent backdrop-blur-xl">
+             
+             {/* Progress Status Text */}
+             <div className="text-center space-y-2 mb-6">
+                <p className="text-sm font-medium text-purple-300 uppercase tracking-widest">Current Status</p>
+                <h3 className="text-xl font-bold text-white min-h-[3.5rem] flex items-center justify-center">
+                  {overallProgress === 0 && "Just getting started 🚀"}
+                  {overallProgress > 0 && overallProgress < 20 && "Good start! Keep going 🌱"}
+                  {overallProgress >= 20 && overallProgress < 60 && "Making solid progress 💪"}
+                  {overallProgress >= 60 && overallProgress < 100 && "Almost there! 🔥"}
+                  {overallProgress === 100 && "Course Completed 🎉"}
+                </h3>
+             </div>
 
-              {/* Progress Circle */}
-              <div className="flex flex-col items-center space-y-6">
-                <div className="relative w-32 h-32">
-                  {/* Background circle */}
-                  <svg
-                    className="w-full h-full transform -rotate-90"
-                    viewBox="0 0 100 100"
-                  >
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      fill="none"
-                      stroke="rgba(255,255,255,0.1)"
-                      strokeWidth="8"
-                    />
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      fill="none"
-                      stroke="url(#gradient)"
-                      strokeWidth="8"
-                      strokeLinecap="round"
-                      strokeDasharray={`${
-                        loading ? 0 : overallProgress * 2.51
-                      } 251`}
-                      className="transition-all duration-1000 ease-out"
-                    />
-                    <defs>
-                      <linearGradient
-                        id="gradient"
-                        x1="0%"
-                        y1="0%"
-                        x2="100%"
-                        y2="100%"
-                      >
-                        <stop offset="0%" stopColor="#8b5cf6" />
-                        <stop offset="100%" stopColor="#3b82f6" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
+             {/* Progress Circle in Center */}
+             <div className="flex-1 flex flex-col items-center justify-center space-y-8">
+                 <div className="relative w-48 h-48 group">
+                   {/* Background Glow */}
+                   <div className="absolute inset-0 bg-purple-500/20 rounded-full blur-2xl group-hover:bg-purple-500/30 transition-all duration-700" />
+                   
+                   {/* Background circle */}
+                   <svg className="w-full h-full transform -rotate-90 relative z-10" viewBox="0 0 100 100">
+                     <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="4" className="text-white/5" />
+                     {/* Animated Progress Path */}
+                     <circle 
+                        cx="50" 
+                        cy="50" 
+                        r="40" 
+                        fill="none" 
+                        stroke="url(#gradient-progress)" 
+                        strokeWidth="4" 
+                        strokeLinecap="round" 
+                        strokeDasharray={`${loading ? 0 : overallProgress * 2.51} 251`} 
+                        className="transition-all duration-1000 ease-out drop-shadow-[0_0_10px_rgba(139,92,246,0.5)]" 
+                     />
+                     <defs>
+                       <linearGradient id="gradient-progress" x1="0%" y1="0%" x2="100%" y2="0%">
+                         <stop offset="0%" stopColor="#c084fc" />
+                         <stop offset="100%" stopColor="#60a5fa" />
+                       </linearGradient>
+                     </defs>
+                   </svg>
+                   
+                   <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
+                     <span className="text-5xl font-black text-white tracking-tighter drop-shadow-lg">{loading ? "..." : `${Math.round(overallProgress)}%`}</span>
+                   </div>
+                 </div>
+             </div>
 
-                  {/* Center text */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-3xl font-bold text-white">
-                      {loading ? "..." : `${overallProgress}%`}
-                    </span>
-                    <span className="text-sm text-gray-400">Complete</span>
-                  </div>
-                </div>
-
-                {/* Progress Status */}
-                <div className="text-center space-y-2">
-                  {!loading && overallProgress > 0 && overallProgress < 100 && (
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                      <span className="text-sm font-medium text-green-400">
-                        In Progress
-                      </span>
-                    </div>
-                  )}
-                  {!loading && overallProgress === 0 && (
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-gray-400" />
-                      <span className="text-sm font-medium text-gray-400">
-                        Not Started
-                      </span>
-                    </div>
-                  )}
-                  {!loading && overallProgress === 100 && (
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                      <span className="text-sm font-medium text-green-400">
-                        Completed
-                      </span>
-                    </div>
-                  )}
-                  <div className="space-y-1">
-                    <p className="text-sm text-gray-400">
-                      {loading
-                        ? "Loading..."
-                        : `${analytics.completedChapters} of ${analytics.totalChapters} chapters completed`}
-                    </p>
-                    <div className="flex justify-center gap-4 text-xs text-gray-500">
-                      <span>
-                        📚 Chapters:{" "}
-                        {Math.round(
-                          (analytics.completedChapters /
-                            (analytics.totalChapters || 1)) *
-                            40
-                        )}
-                        %
-                      </span>
-                      <span>
-                        🃏 Flashcards: {analytics.hasFlashcards ? "30%" : "0%"}
-                      </span>
-                      <span>❓ Quiz: {analytics.hasQuiz ? "30%" : "0%"}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Button */}
-              <Button
-                className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 border-0 transition-all duration-300 hover:scale-105"
-                disabled={loading}
-                onClick={handleContinueLearning}
-              >
-                <Play className="h-5 w-5 mr-3" />
-                {loading
-                  ? "Loading..."
-                  : overallProgress > 0
-                  ? "Continue Learning"
-                  : "Start Course"}
-              </Button>
-            </div>
+             {/* Premium Action Button */}
+             <div className="mt-8">
+                <Button 
+                   onClick={handleContinueLearning}
+                   className="w-full h-14 text-sm font-bold tracking-widest uppercase bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:via-indigo-500 hover:to-blue-500 hover:shadow-[0_0_30px_-5px_rgba(124,58,237,0.5)] hover:-translate-y-1 transition-all duration-300 border border-white/10 rounded-xl overflow-hidden group relative"
+                >
+                   <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 skew-y-12" />
+                   <span className="relative z-10 flex items-center justify-center gap-3">
+                     {overallProgress === 0 ? "Start Course" : overallProgress === 100 ? "Review Course" : "Continue Learning"}
+                     <Play className="h-4 w-4 fill-current" />
+                   </span>
+                </Button>
+             </div>
           </div>
         </div>
+
       </div>
     </div>
   );

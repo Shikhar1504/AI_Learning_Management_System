@@ -3,6 +3,7 @@ import {
   CHAPTER_NOTES_TABLE,
   STUDY_MATERIAL_TABLE,
   STUDY_TYPE_CONTENT_TABLE,
+  TOPIC_TABLE,
 } from "@/configs/schema";
 import { desc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
@@ -172,6 +173,11 @@ export async function DELETE(req) {
       await db
         .delete(STUDY_TYPE_CONTENT_TABLE)
         .where(eq(STUDY_TYPE_CONTENT_TABLE.courseId, courseId));
+
+      // Delete topics
+      await db
+        .delete(TOPIC_TABLE)
+        .where(eq(TOPIC_TABLE.courseId, courseId));
 
       // Finally, delete the main course
       const result = await db

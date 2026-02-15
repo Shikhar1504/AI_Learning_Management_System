@@ -7,6 +7,7 @@ import {
   text,
   varchar,
   timestamp,
+  index,
 } from "drizzle-orm/pg-core";
 
 export const USER_TABLE = pgTable("users", {
@@ -31,6 +32,10 @@ export const USER_TABLE = pgTable("users", {
   learnerLevel: integer().default(1), // 1 = New, 2 = Intermediate, 3 = Advanced
   levelProgress: integer().default(0), // progress towards next level (0-100)
   lastLevelUpdate: timestamp(), // when level was last calculated
+}, (table) => {
+  return {
+    emailIdx: index("email_idx").on(table.email),
+  };
 });
 
 export const STUDY_MATERIAL_TABLE = pgTable("studyMaterial", {
@@ -42,6 +47,16 @@ export const STUDY_MATERIAL_TABLE = pgTable("studyMaterial", {
   courseLayout: json(),
   createdBy: varchar().notNull(),
   status: varchar().default("Generating"),
+  createdAt: timestamp().defaultNow(),
+  // NEW FIELDS
+  totalTopics: integer().default(0),
+  completedTopics: integer().default(0),
+  progressPercentage: integer().default(0),
+}, (table) => {
+  return {
+    courseIdIdx: index("course_id_idx").on(table.courseId),
+    createdByIdx: index("created_by_idx").on(table.createdBy),
+  };
 });
 
 export const CHAPTER_NOTES_TABLE = pgTable("chapterNotes", {
@@ -57,6 +72,23 @@ export const STUDY_TYPE_CONTENT_TABLE = pgTable("studyTypeContent", {
   content: json(),
   type: varchar().notNull(),
   status: varchar().default("Generating"),
+});
+
+export const TOPIC_TABLE = pgTable("topics", {
+  id: varchar("id", { length: 256 }).primaryKey(),
+  courseId: varchar().notNull(),
+  chapterIndex: integer().notNull(),
+  topicIndex: integer().notNull(),
+  chapterTitle: varchar().notNull(),
+  topicTitle: varchar().notNull(),
+  notesContent: text(),
+  status: varchar().default("pending"), // pending | generating | completed
+  createdAt: timestamp().defaultNow(),
+  updatedAt: timestamp().defaultNow(),
+}, (table) => {
+  return {
+    topicCourseIdIdx: index("topic_course_id_idx").on(table.courseId),
+  };
 });
 
 export const PAYMENT_RECORD_TABLE = pgTable("paymentRecord", {

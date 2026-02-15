@@ -123,9 +123,9 @@ function DashboardHeader() {
 
         {/* Right Side Actions */}
         <div className="flex items-center gap-3">
-          {/* Create Course Button */}
+          {/* Create Course Button - Primary Global CTA */}
           <Link href="/create">
-            <Button className="btn-primary h-9 px-4 text-sm font-semibold hidden sm:flex">
+            <Button className="btn-primary h-9 px-4 text-sm font-semibold hidden sm:flex shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 transition-all">
               <Plus className="h-4 w-4 mr-2" /> 
               Create AI Course
             </Button>
@@ -133,8 +133,8 @@ function DashboardHeader() {
           
           {/* Mobile Create Button */}
           <Link href="/create" className="sm:hidden">
-            <Button size="sm" className="btn-primary p-2">
-              <Plus className="h-4 w-4" />
+            <Button size="sm" className="btn-primary p-2 h-9 w-9 rounded-full shadow-lg">
+              <Plus className="h-5 w-5" />
             </Button>
           </Link>
           

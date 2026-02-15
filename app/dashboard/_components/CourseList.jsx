@@ -2,20 +2,24 @@
 import { CourseCountContext } from "@/app/_context/CourseCountContext";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@clerk/nextjs";
-import axios from "axios";
 import { RefreshCw, BookOpen, Plus, Sparkles, Eye, EyeOff } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import CourseCardItem from "./CourseCardItem";
 import Link from "next/link";
 import Image from "next/image";
 
-function CourseList() {
+function CourseList({ courses, loading, onRefresh }) {
   const { user } = useUser();
-  const [courseList, setCourseList] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [showAllCourses, setShowAllCourses] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const { totalCourse, setTotalCourse } = useContext(CourseCountContext);
+  const { setTotalCourse } = useContext(CourseCountContext);
+
+  // Update context when courses change
+  useEffect(() => {
+    if (courses) {
+      setTotalCourse(courses.length);
+    }
+  }, [courses, setTotalCourse]);
 
   // Detect mobile device
   useEffect(() => {
@@ -28,25 +32,6 @@ function CourseList() {
     
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-
-  useEffect(() => {
-    user && GetCourseList();
-  }, [user]);
-
-  const GetCourseList = async () => {
-    setLoading(true);
-    try {
-      const result = await axios.post("/api/courses", {
-        createdBy: user?.primaryEmailAddress?.emailAddress,
-      });
-      setCourseList(result.data.result);
-      setTotalCourse(result.data.result.length);
-    } catch (error) {
-      console.error("Failed to fetch courses:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const LoadingSkeleton = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -108,6 +93,8 @@ function CourseList() {
     </div>
   );
 
+  const courseList = courses || [];
+
   if (loading) {
     return <LoadingSkeleton />;
   }
@@ -148,7 +135,7 @@ function CourseList() {
         </div>
         
         <Button 
-          onClick={GetCourseList}
+          onClick={onRefresh}
           variant="outline"
           size="sm"
           className="btn-secondary h-10 px-4 border-white/20"
@@ -167,7 +154,7 @@ function CourseList() {
             className="fade-in"
             style={{ animationDelay: `${index * 100}ms` }}
           >
-            <CourseCardItem course={course} onCourseUpdate={GetCourseList} />
+            <CourseCardItem course={course} onCourseUpdate={onRefresh} />
           </div>
         ))}
         

@@ -5,9 +5,10 @@ import CourseIntroCard from "./_components/CourseIntroCard";
 import StudyMaterialSection from "./_components/StudyMaterialSection";
 import ChapterList from "./_components/ChapterList";
 import axios from "axios";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import StudyTips from "./_components/StudyTips";
 
 function Course() {
   const { courseId } = useParams();
@@ -65,20 +66,31 @@ function Course() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-12 pb-20">
       {/* Course Introduction */}
       <section className="fade-in">
         <CourseIntroCard course={course} />
       </section>
       
+      {/* Divider */}
+      <div className="w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
       {/* Study Materials */}
-      <section className="slide-up" style={{ animationDelay: '200ms' }}>
+      <section className="slide-up" style={{ animationDelay: '100ms' }}>
         <StudyMaterialSection courseId={courseId} course={course} /> 
       </section>
+
+      {/* Divider */}
+      <div className="w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
       
       {/* Chapter List */}
-      <section className="slide-up" style={{ animationDelay: '400ms' }}>
+      <section className="slide-up" style={{ animationDelay: '200ms' }}>
         <ChapterList course={course} />
+      </section>
+
+      {/* Study Tips */}
+      <section className="slide-up" style={{ animationDelay: '300ms' }}>
+        <StudyTips />
       </section>
     </div>
   );

@@ -107,46 +107,26 @@ const ProgressDashboard = ({ className = "" }) => {
     <div className={cn("space-y-6", className)}>
       {/* Essential Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* AI Courses */}
+        {/* Card 1: Active Courses */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <BookOpen className="h-4 w-4 text-blue-500" />
-              AI Courses
+              Active Courses
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.courseCount}</div>
+            <div className="text-2xl font-bold">
+               {/* Calculate Active Courses = Total - Completed (100%) */}
+               {Math.max(0, (stats.courseCount || 0) - (stats.completedCoursesWithProgress || 0))}
+            </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {stats.completedCourses} completed
+              In progress
             </p>
           </CardContent>
         </Card>
 
-        {/* Learning Streak */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Flame className="h-4 w-4 text-orange-500" />
-              Learning Streak
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.streak} days</div>
-            <div className={cn(
-              "text-xs px-2 py-1 rounded-full mt-2 inline-block",
-              stats.streakInfo?.status === 'active' ? 'bg-green-100 text-green-600' :
-              stats.streakInfo?.status === 'at-risk' ? 'bg-yellow-100 text-yellow-600' :
-              'bg-gray-100 text-gray-600'
-            )}>
-              {stats.streakInfo?.status === 'active' ? 'Keep it up!' :
-               stats.streakInfo?.status === 'at-risk' ? 'Study today!' :
-               'Start learning'}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Overall Progress */}
+        {/* Card 2: Completed Courses */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -157,7 +137,25 @@ const ProgressDashboard = ({ className = "" }) => {
           <CardContent>
             <div className="text-2xl font-bold">{stats.completedCoursesWithProgress || 0}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              {stats.completedCoursesWithProgress === 1 ? '1 course' : `${stats.completedCoursesWithProgress || 0} courses`} at 100%
+              100% finished
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Card 3: Topics Completed */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-purple-500" />
+              Topics Completed
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+                {stats.completedTopics || 0} <span className="text-base font-normal text-muted-foreground">/ {stats.totalTopics || 0}</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Across all courses
             </p>
           </CardContent>
         </Card>

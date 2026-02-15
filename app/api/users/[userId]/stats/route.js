@@ -12,6 +12,7 @@ export async function GET(request, { params }) {
       );
     }
 
+    // Single call to comprehensive service (optimized)
     const stats = await UserStatsService.getUserStats(userId);
 
     return NextResponse.json(stats);

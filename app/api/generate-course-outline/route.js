@@ -1,8 +1,9 @@
-import { courseOutlineAIModel } from "@/configs/AiModel";
+import { courseOutlineAIModel, geminiWithFallback } from "@/configs/AiModel";
 import { db } from "@/configs/db";
-import { STUDY_MATERIAL_TABLE } from "@/configs/schema";
+import { STUDY_MATERIAL_TABLE, TOPIC_TABLE } from "@/configs/schema";
 import { inngest } from "@/inngest/client";
 import UserStatsService from "@/lib/userStatsService";
+import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
@@ -18,15 +19,6 @@ export async function POST(req) {
       { error: error.message },
       { status: 429 } // Too Many Requests
     );
-  }
-
-  {
-    /*It extracts the request body fields:
-  courseId → Unique ID for the course
-  topic → The topic of the study material (e.g., "React Development")
-  courseType → Type of course (e.g., "Programming")
-  difficultyLevel → How difficult the course should be (e.g., "Intermediate")
-  createdBy → The email of the user who created the course*/
   }
 
   const PROMPT =
@@ -76,35 +68,97 @@ export async function POST(req) {
   } catch (error) {
     console.error("AI Model Error:", error.message);
 
-    // Fallback content when AI fails
-    aiResult = {
-      courseTitle: topic,
-      summary: `A comprehensive course on ${topic} for ${difficultyLevel} level students.`,
-      chapters: [
-        {
-          title: "Introduction to " + topic,
-          emoji: "📚",
-          summary: "Basic concepts and fundamentals of " + topic,
-          topics: ["Overview", "Core concepts", "Getting started"],
-        },
-        {
-          title: "Intermediate " + topic,
-          emoji: "🔍",
-          summary: "Deeper exploration of " + topic + " concepts",
-          topics: ["Advanced techniques", "Best practices", "Case studies"],
-        },
-        {
-          title: "Mastering " + topic,
-          emoji: "🚀",
-          summary: "Expert-level knowledge and applications",
-          topics: [
-            "Professional applications",
-            "Future trends",
-            "Final project",
-          ],
-        },
-      ],
-    };
+    // Try fallback API key if available
+    if (
+      geminiWithFallback.hasFallback() &&
+      (error.message.includes("429") ||
+        error.message.includes("Too Many Requests") ||
+        error.message.includes("503") ||
+        error.message.includes("Resource has been exhausted"))
+    ) {
+      console.log("🔄 Primary API key overloaded, trying fallback...");
+      if (geminiWithFallback.switchToFallback()) {
+        try {
+          // Re-create the model configuration for fallback
+          const fallbackModel = geminiWithFallback.getGenerativeModel({
+            model: "gemini-2.5-flash",
+          });
+          
+          const generationConfig = {
+            temperature: 1,
+            topP: 0.95,
+            topK: 40,
+            maxOutputTokens: 8192,
+            responseMimeType: "application/json",
+          };
+
+          const fallbackChat = fallbackModel.startChat({
+            generationConfig,
+            history: [
+              {
+                role: "user",
+                parts: [
+                  {
+                    text: "Generate a study material for Python for  Exam and level of difficulty will be EASY with summery of course,List of Chapters along with summery for each chapter, Topic list in each chapter, All resule in JSON format\n\n",
+                  },
+                ],
+              },
+              {
+                role: "model",
+                parts: [
+                  {
+                    text: '```json\n{\n  "course_title": "Python for Beginners",\n  "difficulty": "Easy",\n  "summary": "This course provides an introduction to the Python programming language...",\n  "chapters": []\n}\n```',
+                  },
+                ],
+              },
+            ],
+          });
+
+          const aiResp = await fallbackChat.sendMessage(PROMPT);
+          aiResult = JSON.parse(aiResp.response.text());
+          console.log("✅ Successfully used fallback API key for course outline");
+          
+          // Reset check 
+          geminiWithFallback.resetToPrimary();
+        } catch (fallbackError) {
+           console.error("❌ Fallback API key also failed:", fallbackError.message);
+           // Fall through to manual fallback content
+        }
+      }
+    }
+
+    // Only use manual fallback if aiResult is still undefined
+    if (!aiResult) {
+      console.log("⚠️ Using manual fallback content");
+      aiResult = {
+        courseTitle: topic,
+        summary: `A comprehensive course on ${topic} for ${difficultyLevel} level students.`,
+        chapters: [
+          {
+            title: "Introduction to " + topic,
+            emoji: "📚",
+            summary: "Basic concepts and fundamentals of " + topic,
+            topics: ["Overview", "Core concepts", "Getting started"],
+          },
+          {
+            title: "Intermediate " + topic,
+            emoji: "🔍",
+            summary: "Deeper exploration of " + topic + " concepts",
+            topics: ["Advanced techniques", "Best practices", "Case studies"],
+          },
+          {
+            title: "Mastering " + topic,
+            emoji: "🚀",
+            summary: "Expert-level knowledge and applications",
+            topics: [
+              "Professional applications",
+              "Future trends",
+              "Final project",
+            ],
+          },
+        ],
+      };
+    }
   }
 
   // Save the result along with User Input
@@ -119,7 +173,7 @@ export async function POST(req) {
       topic: topic,
       difficultyLevel: difficultyLevel, // Add missing difficulty level
       courseLayout: aiResult,
-      status: "Generating", // Add status field
+      status: "Ready", // Notes are now generated on-demand, so course is ready immediately
     })
     .returning({ resp: STUDY_MATERIAL_TABLE });
   console.log("Database insertion successful:", dbResult);
@@ -139,19 +193,60 @@ export async function POST(req) {
     // Continue execution even if stats update fails
   }
 
-  //Trigger the Inngest function to generate chapter notes
+  // Populate TOPIC_TABLE
   try {
-    await inngest.send({
-      name: "notes.generate",
-      data: {
-        course: dbResult[0].resp,
-      },
+    const chapters = aiResult?.chapters || [];
+    const topicsToInsert = [];
+
+    chapters.forEach((chapter, chapterIndex) => {
+      if (chapter.topics && Array.isArray(chapter.topics)) {
+        chapter.topics.forEach((topic, topicIndex) => {
+          topicsToInsert.push({
+            id: crypto.randomUUID(),
+            courseId: courseId,
+            chapterIndex: chapterIndex,
+            topicIndex: topicIndex,
+            chapterTitle: chapter.title || `Chapter ${chapterIndex + 1}`, // Fallback for safety
+            topicTitle: topic,
+            status: "pending",
+            notesContent: null,
+          });
+        });
+      }
     });
-    console.log("Inngest event sent successfully");
+
+    if (topicsToInsert.length > 0) {
+      await db.insert(TOPIC_TABLE).values(topicsToInsert);
+      console.log(`Inserted ${topicsToInsert.length} topics into TOPIC_TABLE`);
+
+      // Initialize STUDY_MATERIAL_TABLE progress fields
+      await db
+        .update(STUDY_MATERIAL_TABLE)
+        .set({
+          totalTopics: topicsToInsert.length,
+          completedTopics: 0,
+          progressPercentage: 0,
+        })
+        .where(eq(STUDY_MATERIAL_TABLE.courseId, courseId));
+    }
   } catch (error) {
-    console.error("Inngest API Error:", error.message);
-    // Continue execution even if Inngest fails
+    console.error("Error populating TOPIC_TABLE:", error);
+    // Log error but don't fail the request as course is created
   }
+
+  //Trigger the Inngest function to generate chapter notes
+  // try {
+  //   await inngest.send({
+  //     name: "notes.generate",
+  //     data: {
+  //       course: dbResult[0].resp,
+  //     },
+  //   });
+  //   console.log("Inngest event sent successfully");
+  // } catch (error) {
+  //   console.error("Inngest API Error:", error.message);
+  //   // Continue execution even if Inngest fails
+  // }
 
   return NextResponse.json({ result: dbResult[0] });
 }

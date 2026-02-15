@@ -12,7 +12,7 @@ function StudyMaterialSection({ courseId, course }) {
       name: "Course Notes",
       desc: "Comprehensive study notes with detailed explanations and examples",
       icon: FileText,
-      path: "/notes",
+      path: "/learn",
       type: "notes",
       gradient: "from-blue-500 to-cyan-500",
       bgGradient: "from-blue-500/10 to-cyan-500/10"
@@ -94,49 +94,6 @@ function StudyMaterialSection({ courseId, course }) {
         ))}
       </div>
 
-      {/* Enhanced Study Tips */}
-      <div className="modern-card p-8 border border-white/10 bg-gradient-to-br from-yellow-500/5 to-orange-500/5">
-        <div className="text-center space-y-6">
-          <div className="flex items-center justify-center gap-3">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-yellow-500/20 to-orange-500/20">
-              <Sparkles className="h-6 w-6 text-yellow-400" />
-            </div>
-            <h3 className="text-xl font-bold text-foreground">Pro Learning Tips</h3>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-3">
-              <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center mx-auto">
-                <FileText className="h-6 w-6 text-blue-400" />
-              </div>
-              <h4 className="font-semibold text-foreground">1. Start with Notes</h4>
-              <p className="text-sm text-muted-foreground">
-                Build a solid foundation by reading through comprehensive notes first
-              </p>
-            </div>
-            
-            <div className="space-y-3">
-              <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center mx-auto">
-                <Layers className="h-6 w-6 text-purple-400" />
-              </div>
-              <h4 className="font-semibold text-foreground">2. Practice with Flashcards</h4>
-              <p className="text-sm text-muted-foreground">
-                Reinforce memory using spaced repetition techniques for better retention
-              </p>
-            </div>
-            
-            <div className="space-y-3">
-              <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center mx-auto">
-                <HelpCircle className="h-6 w-6 text-green-400" />
-              </div>
-              <h4 className="font-semibold text-foreground">3. Test with Quizzes</h4>
-              <p className="text-sm text-muted-foreground">
-                Validate your understanding and identify areas that need more focus
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

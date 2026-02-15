@@ -1,5 +1,6 @@
 import { db } from "@/configs/db";
-import { STUDY_TYPE_CONTENT_TABLE } from "@/configs/schema";
+import { STUDY_MATERIAL_TABLE, STUDY_TYPE_CONTENT_TABLE } from "@/configs/schema";
+import { eq } from "drizzle-orm";
 import { inngest } from "@/inngest/client";
 import { NextResponse } from "next/server";
 
@@ -16,6 +17,28 @@ export async function POST(req) {
   // Normalize the type to match Inngest function expectations
   const normalizedType =
     type === "flashcard" ? "Flashcard" : type === "quiz" ? "Quiz" : type;
+
+  if (normalizedType === "notes") {
+    // Fetch course details to pass to Inngest
+    const courseResult = await db
+      .select()
+      .from(STUDY_MATERIAL_TABLE)
+      .where(eq(STUDY_MATERIAL_TABLE.courseId, courseId));
+
+    if (!courseResult || courseResult.length === 0) {
+      return NextResponse.json({ error: "Course not found" }, { status: 404 });
+    }
+
+    // Trigger Inngest Function to Generate Notes
+    await inngest.send({
+      name: "notes.generate",
+      data: {
+        course: courseResult[0],
+      },
+    });
+
+    return NextResponse.json({ status: "Generating", type: "notes" });
+  }
 
   const PROMPT = // AI Prompt for flashcard and quiz generation
     normalizedType == "Flashcard"
