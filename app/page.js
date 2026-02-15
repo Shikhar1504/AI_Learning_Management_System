@@ -377,12 +377,11 @@ export default function Home() {
               </div>
               <div className="space-y-4">
                 <h3 className="text-xl font-semibold text-foreground">
-                  Define Your Goals
+                  Enter A Topic
                 </h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  Tell us what you want to learn, your current knowledge level,
-                  and your learning preferences. Our AI analyzes your needs to
-                  create a personalized plan.
+                  Simply enter the topic you want to learn. Our AI analyzes your
+                  request to understand the scope and key concepts.
                 </p>
               </div>
             </div>
@@ -397,12 +396,11 @@ export default function Home() {
               </div>
               <div className="space-y-4">
                 <h3 className="text-xl font-semibold text-foreground">
-                  AI Content Creation
+                  Generate Outline
                 </h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  Our advanced AI generates comprehensive study materials
-                  including interactive lessons, flashcards, practice questions,
-                  and visual aids tailored to your learning style.
+                  The AI creates a structured course outline with chapters and
+                  topics, ensuring a logical learning progression.
                 </p>
               </div>
             </div>
@@ -417,12 +415,11 @@ export default function Home() {
               </div>
               <div className="space-y-4">
                 <h3 className="text-xl font-semibold text-foreground">
-                  Track & Improve
+                  Start Learning
                 </h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  Study at your own pace with our intuitive interface. Our AI
-                  continuously adapts to your progress, focusing on areas that
-                  need improvement.
+                  Dive into the content! Generate detailed notes, interactive
+                  flashcards, and quizzes for each topic as you progress.
                 </p>
               </div>
             </div>
@@ -531,11 +528,11 @@ export default function Home() {
                 <Brain className="h-6 w-6 text-orange-400" />
               </div>
               <h3 className="text-xl font-semibold text-foreground mb-3">
-                AI Tutoring
+                Smart Explanations
               </h3>
               <p className="text-muted-foreground leading-relaxed flex-1">
-                Get instant help and explanations when you're stuck on difficult
-                concepts with our AI assistant.
+                Get detailed, AI-generated explanations for every topic,
+                complete with examples and code snippets instantly.
               </p>
             </div>
 
@@ -548,11 +545,11 @@ export default function Home() {
                 <Users className="h-6 w-6 text-cyan-400" />
               </div>
               <h3 className="text-xl font-semibold text-foreground mb-3">
-                Community Learning
+                Gamified Learning
               </h3>
               <p className="text-muted-foreground leading-relaxed flex-1">
-                Connect with fellow learners, share knowledge, and collaborate
-                on challenging topics together.
+                Stay motivated with streaks, experience points (XP), and
+                achievement badges as you master new skills.
               </p>
             </div>
           </div>

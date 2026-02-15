@@ -54,7 +54,7 @@ Fully responsive design optimized for desktop, tablet, and mobile devices
 
 ### Core Technologies
 
-- **Frontend Framework:** Next.js 15.1.6 with App Router
+- **Frontend Framework:** Next.js 15.1.11 with App Router
 - **Runtime:** Node.js 18+
 - **Language:** JavaScript/JSX
 - **Package Manager:** npm/yarn
@@ -200,6 +200,7 @@ LearnForge/
 │   │   ├── ensure-user-exists/   # User verification
 │   │   ├── generate-chapters/    # Chapter generation
 │   │   ├── generate-course-outline/ # Course outline generation
+│   │   ├── generate-topic-notes/ # Topic content generation
 │   │   ├── inngest/              # Inngest background processing
 │   │   ├── payment/              # Stripe payment integration
 │   │   ├── study-type/           # Study material type management
@@ -278,7 +279,7 @@ Intelligent course creation with advanced AI content structuring:
 
 Comprehensive study tools designed for effective learning:
 
-- **Detailed Chapter Notes:** AI-generated explanations with key concepts and examples
+- **Detailed Topic Notes:** AI-generated explanations with key concepts and examples
 - **Interactive Flashcards:** Smart flashcards that adapt to learning progress
 - **Practice Quizzes:** Multiple-choice questions with immediate feedback
 - **Progress Analytics:** Real-time tracking of learning achievements and streaks
@@ -364,6 +365,7 @@ The application uses PostgreSQL with Drizzle ORM and includes the following comp
 
 - **User:** Multi-role user management with authentication integration and gamification stats
 - **StudyMaterial:** Course content with AI-generated outlines and metadata
+- **Topic:** Granular topic-level tracking for precise learning progress
 - **ChapterNotes:** Detailed chapter content with AI-generated explanations
 - **StudyTypeContent:** Flashcards and quizzes with dynamic content
 - **PaymentRecord:** Stripe payment tracking and subscription management
