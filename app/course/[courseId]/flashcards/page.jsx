@@ -9,15 +9,18 @@ import {
 } from "@/components/ui/carousel";
 import { useUser } from "@clerk/nextjs";
 import axios from "axios";
-import { AlertCircle, ArrowLeft, RefreshCcw } from "lucide-react";
+import { AlertCircle, ArrowLeft, RefreshCcw, Zap } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import FlashcardItem from "./_components/FlashcardItem";
+import { useToast } from "@/hooks/use-toast";
+import { useStudyStatus } from "@/hooks/useStudyStatus";
 
 function Flashcards() {
   const { courseId } = useParams();
   const router = useRouter();
   const { user } = useUser();
+  const { toast } = useToast();
   const [flashCards, setFlashCards] = useState([]);
   const [isFlipped, setIsFlipped] = useState(false);
   const [api, setApi] = useState(null);
@@ -27,6 +30,7 @@ function Flashcards() {
   const [sessionStarted, setSessionStarted] = useState(false);
   const [studySessionTracked, setStudySessionTracked] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  // const [isGenerating, setIsGenerating] = useState(false); // Removed local state
 
   useEffect(() => {
     GetFlashCards();
@@ -62,21 +66,98 @@ function Flashcards() {
 
       console.log("Flashcard API Response:", result?.data);
 
-      // The API returns content directly for specific study types, not wrapped in 'content'
       const flashcardData = result?.data || [];
 
       if (Array.isArray(flashcardData) && flashcardData.length > 0) {
         setFlashCards(flashcardData);
+        return flashcardData;
       } else {
-        setError(
-          "No flashcards found for this course. Please generate flashcards first."
-        );
+        return [];
       }
     } catch (error) {
       console.error("Error fetching flashcards:", error);
       setError("Failed to load flashcards. Please try again.");
+      return [];
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Use custom hook for status polling
+  const { 
+    status, 
+    isGenerating: isFlashcardGenerating, 
+    isCompleted: isFlashcardCompleted, 
+    isFailed: isFlashcardFailed, 
+    setStatus 
+  } = useStudyStatus(courseId, "flashcard");
+
+  // Effect to handle completion with race condition fix
+  // Track previous status to prevent repeated toasts
+  const prevStatusRef = useRef(status);
+
+  // Effect to handle completion with race condition fix
+  useEffect(() => {
+    // Only trigger if transitioning from generating to completed
+    if (prevStatusRef.current === "generating" && isFlashcardCompleted) {
+      const fetchAndVerify = async () => {
+        const data = await GetFlashCards();
+        // If DB propagation is slow, retry once after 1s
+        if (!data || data.length === 0) {
+          setTimeout(GetFlashCards, 1000);
+        }
+      };
+      
+      fetchAndVerify();
+      
+      toast({
+        title: "Success! 🎉",
+        description: "Flashcards generated successfully!",
+      });
+    }
+    
+    // Update ref with current status
+    prevStatusRef.current = status;
+  }, [isFlashcardCompleted, status]);
+
+  // Effect to handle failure
+  useEffect(() => {
+    if (isFlashcardFailed) {
+      toast({
+        title: "Error",
+        description: "Failed to generate flashcards.",
+        variant: "destructive",
+      });
+    }
+  }, [isFlashcardFailed]);
+
+  const GenerateFlashcards = async () => {
+    // Block duplicate requests
+    if (isFlashcardGenerating) return;
+
+    // Manually set status to generating to trigger the hook's polling
+    setStatus("generating");
+    
+    try {
+      // 1. Initial trigger
+      await axios.post("/api/study-type-content", {
+        courseId: courseId,
+        type: "flashcard", 
+      });
+
+      toast({
+        title: "Generation Started",
+        description: "Creating your flashcards...",
+      });
+      
+    } catch (error) {
+      console.error("Generation failed:", error);
+      setStatus("failed"); // Reset status on immediate failure
+      toast({
+        title: "Error",
+        description: "Failed to generate flashcards.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -137,15 +218,35 @@ function Flashcards() {
     GetFlashCards();
   };
 
-  // Loading state
-  if (loading) {
+  // 1. Generating State (Highest Priority)
+  if (isFlashcardGenerating) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
           <RefreshCcw className="h-8 w-8 animate-spin text-purple-500 mx-auto" />
           <div>
             <h2 className="text-xl font-semibold text-foreground mb-2">
-              Loading Flashcards
+              Generating Flashcards...
+            </h2>
+            <p className="text-muted-foreground">
+              AI is creating your study material
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. Syncing State (Completed but content not yet verified/loaded)
+  // or just general loading
+  if (loading || (status === 'completed' && flashCards.length === 0)) {
+     return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <RefreshCcw className="h-8 w-8 animate-spin text-purple-500 mx-auto" />
+          <div>
+            <h2 className="text-xl font-semibold text-foreground mb-2">
+              Loading Flashcards...
             </h2>
             <p className="text-muted-foreground">
               Fetching your study materials...
@@ -156,7 +257,7 @@ function Flashcards() {
     );
   }
 
-  // Error state
+  // 3. Error State
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
@@ -185,34 +286,34 @@ function Flashcards() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b border-white/10 bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Flashcards</h1>
-              <p className="text-muted-foreground mt-1">
-                Master concepts with interactive flashcards
-              </p>
+  // 4. Content State (Study UI)
+  if (flashCards.length > 0) {
+    return (
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <div className="border-b border-white/10 bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">Flashcards</h1>
+                <p className="text-muted-foreground mt-1">
+                  Master concepts with interactive flashcards
+                </p>
+              </div>
+              <Button
+                onClick={handleGoBack}
+                variant="outline"
+                className="border-white/20"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Course
+              </Button>
             </div>
-            <Button
-              onClick={handleGoBack}
-              variant="outline"
-              className="border-white/20"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Course
-            </Button>
           </div>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {flashCards.length > 0 ? (
-          <>
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Flashcard Display */}
             <div className="flex items-center justify-center mb-8">
               <Carousel setApi={setApi} className="w-full max-w-4xl">
@@ -277,26 +378,64 @@ function Flashcards() {
                 </div>
               </div>
             </div>
-          </>
-        ) : (
-          <div className="text-center space-y-6 py-20">
-            <div className="w-16 h-16 bg-purple-500/20 rounded-2xl flex items-center justify-center mx-auto">
-              <AlertCircle className="h-8 w-8 text-purple-400" />
-            </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 5. Empty/Generate State (Fallback)
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="border-b border-white/10 bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-semibold text-foreground mb-2">
-                No Flashcards Available
-              </h2>
-              <p className="text-muted-foreground">
-                There are no flashcards for this course yet.
+              <h1 className="text-2xl font-bold text-foreground">Flashcards</h1>
+              <p className="text-muted-foreground mt-1">
+                Master concepts with interactive flashcards
               </p>
             </div>
-            <Button onClick={handleGoBack} className="btn-primary">
+            <Button
+              onClick={handleGoBack}
+              variant="outline"
+              className="border-white/20"
+            >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Course
             </Button>
           </div>
-        )}
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center space-y-6 py-20">
+          <div className="w-16 h-16 bg-purple-500/20 rounded-2xl flex items-center justify-center mx-auto">
+            <AlertCircle className="h-8 w-8 text-purple-400" />
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold text-foreground mb-2">
+              No Flashcards Available
+            </h2>
+            <p className="text-muted-foreground">
+              There are no flashcards for this course yet.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button 
+                onClick={GenerateFlashcards} 
+                className="btn-primary"
+                disabled={isFlashcardGenerating}
+            >
+                <Zap className="h-4 w-4 mr-2" />
+                {isFlashcardGenerating ? "Generating..." : "Generate Flashcards"}
+            </Button>
+            <Button onClick={handleGoBack} variant="outline">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Course
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );

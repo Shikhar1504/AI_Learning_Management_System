@@ -1,17 +1,20 @@
 "use client";
 import axios from "axios";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { ArrowLeft, Brain, CheckCircle, X, RotateCcw } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { ArrowLeft, Brain, CheckCircle, X, RotateCcw, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import QuizCardItem from "./_components/QuizCardItem";
 import { useUser } from "@clerk/nextjs";
+import { useToast } from "@/hooks/use-toast";
+import { useStudyStatus } from "@/hooks/useStudyStatus";
 
 function Quiz() {
   const { courseId } = useParams();
   const router = useRouter();
   const { user } = useUser();
+  const { toast } = useToast();
   const [quiz, setQuiz] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -21,6 +24,7 @@ function Quiz() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [studySessionTracked, setStudySessionTracked] = useState(false);
+  // const [isGenerating, setIsGenerating] = useState(false); // Removed local state
 
   useEffect(() => {
     if (courseId) {
@@ -58,14 +62,93 @@ function Quiz() {
         if (!studySessionTracked) {
           trackStudyActivity();
         }
+        return quizQuestions;
       } else {
-        setError("No quiz questions found. Please generate quiz content first.");
+        return [];
       }
     } catch (error) {
       console.error("Error fetching quiz:", error);
       setError("Failed to load quiz. Please try again.");
+      return [];
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Use custom hook for status polling
+  const { 
+    status, 
+    isGenerating: isQuizGenerating, 
+    isCompleted: isQuizCompleted, 
+    isFailed: isQuizFailed, 
+    setStatus 
+  } = useStudyStatus(courseId, "quiz");
+
+  // Track previous status to prevent repeated toasts
+  const prevStatusRef = useRef(status);
+
+  // Effect to handle completion with race condition fix
+  useEffect(() => {
+    // Only trigger if transitioning from generating to completed
+    if (prevStatusRef.current === "generating" && isQuizCompleted) {
+      const fetchAndVerify = async () => {
+        const data = await GetQuiz();
+        // If DB propagation is slow, retry once after 1s
+        if (!data || data.length === 0) {
+          setTimeout(GetQuiz, 1000);
+        }
+      };
+      
+      fetchAndVerify();
+      
+      toast({
+        title: "Success! 🎉",
+        description: "Quiz generated successfully!",
+      });
+    }
+
+    // Update ref with current status
+    prevStatusRef.current = status;
+  }, [isQuizCompleted, status]);
+
+  // Effect to handle failure
+  useEffect(() => {
+    if (isQuizFailed) {
+      toast({
+        title: "Error",
+        description: "Failed to generate quiz.",
+        variant: "destructive",
+      });
+    }
+  }, [isQuizFailed]);
+
+  const GenerateQuiz = async () => {
+    // Block duplicate requests
+    if (isQuizGenerating) return;
+
+    // Manually set status to generating to trigger the hook's polling
+    setStatus("generating");
+    
+    try {
+      // 1. Initial trigger
+      await axios.post("/api/study-type-content", {
+        courseId: courseId,
+        type: "quiz", 
+      });
+
+      toast({
+        title: "Generation Started",
+        description: "Creating your quiz...",
+      });
+      
+    } catch (error) {
+      console.error("Generation failed:", error);
+      setStatus("failed");
+      toast({
+        title: "Error",
+        description: "Failed to generate quiz.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -133,22 +216,45 @@ function Quiz() {
     router.push(`/course/${courseId}`);
   };
 
-  // Loading State
-  if (loading) {
+  // 1. Generating State
+  if (isQuizGenerating) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center mx-auto">
             <Brain className="h-8 w-8 text-green-400 animate-pulse" />
           </div>
-          <h2 className="text-xl font-semibold text-foreground">Loading Quiz...</h2>
-          <p className="text-muted-foreground">Preparing your questions</p>
+          <h2 className="text-xl font-semibold text-foreground">
+            Generating Quiz...
+          </h2>
+          <p className="text-muted-foreground">
+            AI is crafting challenging questions
+          </p>
         </div>
       </div>
     );
   }
 
-  // Error State
+  // 2. Syncing/Loading State
+  if (loading || (status === 'completed' && quiz.length === 0)) {
+     return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center mx-auto">
+            <Brain className="h-8 w-8 text-green-400 animate-pulse" />
+          </div>
+          <h2 className="text-xl font-semibold text-foreground">
+            Loading Quiz...
+          </h2>
+          <p className="text-muted-foreground">
+            Preparing your questions
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // 3. Error State
   if (error) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -174,165 +280,197 @@ function Quiz() {
       </div>
     );
   }
-
-  // Completion State
-  if (isCompleted) {
-    const percentage = Math.round((score / quiz.length) * 100);
-    const isGoodScore = percentage >= 70;
-    
-    return (
-      <div className="min-h-screen bg-background">
-        {/* Header */}
-        <div className="border-b border-white/10 bg-card/50 backdrop-blur-sm">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="p-2 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20">
-                  <Brain className="h-6 w-6 text-green-400" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold text-foreground">Quiz Complete!</h1>
-                  <p className="text-muted-foreground">Great job on finishing the quiz</p>
-                </div>
-              </div>
-              <Button onClick={handleGoBack} variant="outline" className="border-white/20">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Course
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Results */}
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center space-y-8">
-            <div className={`w-32 h-32 rounded-full mx-auto flex items-center justify-center ${isGoodScore ? 'bg-green-500/20' : 'bg-orange-500/20'}`}>
-              <div className="text-4xl font-bold text-foreground">
-                {percentage}%
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <h2 className="text-3xl font-bold text-foreground">
-                {isGoodScore ? 'Excellent Work!' : 'Good Effort!'}
-              </h2>
-              <p className="text-xl text-muted-foreground">
-                You scored {score} out of {quiz.length} questions correctly
-              </p>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button onClick={handleRestartQuiz} className="btn-primary">
-                <RotateCcw className="h-4 w-4 mr-2" />
-                Retake Quiz
-              </Button>
-              <Button onClick={handleGoBack} variant="outline" className="border-white/20">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Course
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Quiz State
-  const currentQ = quiz[currentQuestion];
-  const progress = ((currentQuestion + 1) / quiz.length) * 100;
   
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b border-white/10 bg-card/50 backdrop-blur-sm">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20">
-                <Brain className="h-6 w-6 text-green-400" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">Knowledge Quiz</h1>
-                <p className="text-muted-foreground">Question {currentQuestion + 1} of {quiz.length}</p>
-              </div>
-            </div>
-            <Button onClick={handleGoBack} variant="outline" className="border-white/20">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Exit Quiz
-            </Button>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="mt-6">
-            <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
-              <span>Progress</span>
-              <span>{Math.round(progress)}%</span>
-            </div>
-            <Progress value={progress} className="h-2" />
-          </div>
-        </div>
-      </div>
-
-      {/* Quiz Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="space-y-8">
-          {/* Question */}
-          <QuizCardItem
-            quiz={currentQ}
-            selectedAnswer={selectedAnswer}
-            isAnswered={isAnswered}
-            onAnswerSelect={handleAnswerSelect}
-          />
-
-          {/* Answer Feedback */}
-          {isAnswered && (
-            <div className="space-y-4">
-              <div className={`modern-card p-6 border ${
-                selectedAnswer === currentQ?.answer
-                  ? 'border-green-500/30 bg-green-500/10'
-                  : 'border-red-500/30 bg-red-500/10'
-              }`}>
-                <div className="flex items-start gap-4">
-                  <div className={`p-2 rounded-lg ${
-                    selectedAnswer === currentQ?.answer
-                      ? 'bg-green-500/20'
-                      : 'bg-red-500/20'
-                  }`}>
-                    {selectedAnswer === currentQ?.answer ? (
-                      <CheckCircle className="h-5 w-5 text-green-400" />
-                    ) : (
-                      <X className="h-5 w-5 text-red-400" />
-                    )}
+  // 4. Content State (Study UI)
+  if (quiz.length > 0) {
+      // 4a. Completed Quiz UI
+      if (isCompleted) {
+        const percentage = Math.round((score / quiz.length) * 100);
+        const isGoodScore = percentage >= 70;
+        
+        return (
+          <div className="min-h-screen bg-background">
+            {/* Header */}
+            <div className="border-b border-white/10 bg-card/50 backdrop-blur-sm">
+              <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="p-2 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20">
+                      <Brain className="h-6 w-6 text-green-400" />
+                    </div>
+                    <div>
+                      <h1 className="text-2xl font-bold text-foreground">Quiz Complete!</h1>
+                      <p className="text-muted-foreground">Great job on finishing the quiz</p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <h3 className={`font-semibold mb-2 ${
-                      selectedAnswer === currentQ?.answer
-                        ? 'text-green-400'
-                        : 'text-red-400'
-                    }`}>
-                      {selectedAnswer === currentQ?.answer ? 'Correct!' : 'Incorrect'}
-                    </h3>
-                    {selectedAnswer !== currentQ?.answer && (
-                      <p className="text-muted-foreground">
-                        The correct answer is: <span className="font-medium text-foreground">{currentQ?.answer}</span>
-                      </p>
-                    )}
-                  </div>
+                  <Button onClick={handleGoBack} variant="outline" className="border-white/20">
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Back to Course
+                  </Button>
                 </div>
               </div>
+            </div>
 
-              {/* Next Button */}
-              <div className="flex justify-center">
-                <Button onClick={handleNextQuestion} className="btn-primary px-8">
-                  {currentQuestion < quiz.length - 1 ? 'Next Question' : 'Complete Quiz'}
+            {/* Results */}
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+              <div className="text-center space-y-8">
+                <div className={`w-32 h-32 rounded-full mx-auto flex items-center justify-center ${isGoodScore ? 'bg-green-500/20' : 'bg-orange-500/20'}`}>
+                  <div className="text-4xl font-bold text-foreground">
+                    {percentage}%
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <h2 className="text-3xl font-bold text-foreground">
+                    {isGoodScore ? 'Excellent Work!' : 'Good Effort!'}
+                  </h2>
+                  <p className="text-xl text-muted-foreground">
+                    You scored {score} out of {quiz.length} questions correctly
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Button onClick={handleRestartQuiz} className="btn-primary">
+                    <RotateCcw className="h-4 w-4 mr-2" />
+                    Retake Quiz
+                  </Button>
+                  <Button onClick={handleGoBack} variant="outline" className="border-white/20">
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Back to Course
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+    // 4b. Active Quiz UI
+    const currentQ = quiz[currentQuestion];
+    const progress = ((currentQuestion + 1) / quiz.length) * 100;
+      
+    return (
+        <div className="min-h-screen bg-background">
+          {/* Header */}
+          <div className="border-b border-white/10 bg-card/50 backdrop-blur-sm">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-2 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20">
+                    <Brain className="h-6 w-6 text-green-400" />
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-bold text-foreground">Knowledge Quiz</h1>
+                    <p className="text-muted-foreground">Question {currentQuestion + 1} of {quiz.length}</p>
+                  </div>
+                </div>
+                <Button onClick={handleGoBack} variant="outline" className="border-white/20">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Exit Quiz
                 </Button>
               </div>
+
+              {/* Progress Bar */}
+              <div className="mt-6">
+                <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
+                  <span>Progress</span>
+                  <span>{Math.round(progress)}%</span>
+                </div>
+                <Progress value={progress} className="h-2" />
+              </div>
             </div>
-          )}
+          </div>
+
+          {/* Quiz Content */}
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="space-y-8">
+              {/* Question */}
+              <QuizCardItem
+                quiz={currentQ}
+                selectedAnswer={selectedAnswer}
+                isAnswered={isAnswered}
+                onAnswerSelect={handleAnswerSelect}
+              />
+
+              {/* Answer Feedback */}
+              {isAnswered && (
+                <div className="space-y-4">
+                  <div className={`modern-card p-6 border ${
+                    selectedAnswer === currentQ?.answer
+                      ? 'border-green-500/30 bg-green-500/10'
+                      : 'border-red-500/30 bg-red-500/10'
+                  }`}>
+                    <div className="flex items-start gap-4">
+                      <div className={`p-2 rounded-lg ${
+                        selectedAnswer === currentQ?.answer
+                          ? 'bg-green-500/20'
+                          : 'bg-red-500/20'
+                      }`}>
+                        {selectedAnswer === currentQ?.answer ? (
+                          <CheckCircle className="h-5 w-5 text-green-400" />
+                        ) : (
+                          <X className="h-5 w-5 text-red-400" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className={`font-semibold mb-2 ${
+                          selectedAnswer === currentQ?.answer
+                            ? 'text-green-400'
+                            : 'text-red-400'
+                        }`}>
+                          {selectedAnswer === currentQ?.answer ? 'Correct!' : 'Incorrect'}
+                        </h3>
+                        {selectedAnswer !== currentQ?.answer && (
+                          <p className="text-muted-foreground">
+                            The correct answer is: <span className="font-medium text-foreground">{currentQ?.answer}</span>
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Next Button */}
+                  <div className="flex justify-center">
+                    <Button onClick={handleNextQuestion} className="btn-primary px-8">
+                      {currentQuestion < quiz.length - 1 ? 'Next Question' : 'Complete Quiz'}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+  }
+
+  // 5. Empty/Generate State (Fallback)
+  return (
+        <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-6 max-w-md">
+          <div className="w-16 h-16 bg-green-500/20 rounded-2xl flex items-center justify-center mx-auto">
+            <Brain className="h-8 w-8 text-green-400" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-semibold text-foreground">No Quiz Available</h2>
+            <p className="text-muted-foreground">There is no quiz for this course yet.</p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button 
+                onClick={GenerateQuiz} 
+                className="btn-primary"
+                disabled={isQuizGenerating}
+            >
+              <Zap className="h-4 w-4 mr-2" />
+              {isQuizGenerating ? "Generating..." : "Generate Quiz"}
+            </Button>
+            <Button onClick={handleGoBack} variant="outline" className="border-white/20">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Course
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
-  );
+  )
 }
 
 export default Quiz;

@@ -5,12 +5,56 @@ import axios from "axios";
 import { RefreshCcw, Play, Zap, CheckCircle, Clock, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+
+import { useStudyStatus } from "@/hooks/useStudyStatus";
 
 function MaterialCardItem({ item, studyTypeContent, course, refreshData, loading: globalLoading }) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const Icon = item.icon;
+  
+  // Use custom hook for status polling
+  // Only active for flashcard and quiz types
+  const shouldPoll = item.type === 'flashcard' || item.type === 'quiz';
+  const { status, isGenerating, isCompleted, isFailed, setStatus } = useStudyStatus(
+    shouldPoll ? course?.courseId : null,
+    shouldPoll ? item.type : null
+  );
+
+  // Effect to handle completion
+  // Track previous status to prevent repeated toasts
+  const prevStatusRef = useRef(status);
+
+  // Effect to handle completion
+  useEffect(() => {
+    // Only trigger if transitioning from generating to completed
+    if (prevStatusRef.current === "generating" && status === "completed") {
+      const fetchData = async () => {
+         await refreshData();
+         toast({
+          title: "Content Ready! 🎉",
+          description: `Your ${item.name.toLowerCase()} are ready to use.`,
+        });
+      };
+      fetchData();
+    }
+    
+    // Update ref with current status
+    prevStatusRef.current = status;
+  }, [status]);
+
+  // Effect to handle failure
+   useEffect(() => {
+    if (isFailed) {
+      toast({
+        title: "Generation Failed",
+        description: "Please try again or contact support.",
+        variant: "destructive",
+      });
+    }
+  }, [isFailed]);
+
   
   // Get the actual content for this item type
   const getItemContent = () => {
@@ -25,11 +69,16 @@ function MaterialCardItem({ item, studyTypeContent, course, refreshData, loading
   };
   
   const itemContent = getItemContent();
-  const isGenerated = itemContent && Array.isArray(itemContent) && itemContent.length > 0;
+  const hasContent = itemContent && Array.isArray(itemContent) && itemContent.length > 0;
   
+  // Use content presence as the primary source of truth for "Ready" state
+  // This prevents showing "Ready" with 0 items while fetching
+  const isGenerated = hasContent;
+
   // Calculate item count based on content type
   const getItemCount = () => {
-    if (!isGenerated) return 0;
+    // If not generated or no content available, return 0
+    if (!hasContent) return 0;
     
     // For quiz content, check if items have questions property or are direct questions
     if (item.type === 'quiz') {
@@ -46,7 +95,14 @@ function MaterialCardItem({ item, studyTypeContent, course, refreshData, loading
   };
   
   const itemCount = getItemCount();
-  const isGenerating = loading || globalLoading;
+  
+  // Combined processing state: 
+  // 1. Local loading (triggering generation)
+  // 2. Global loading (fetching initial data)
+  // 3. Hook generating state (polling)
+  // 4. Syncing state (Status is completed but content not yet verified/loaded)
+  const isSyncing = status === 'completed' && !hasContent;
+  const isProcessing = loading || globalLoading || isGenerating || isSyncing;
   
   // Get appropriate image for each material type
   const getImageForType = (type) => {
@@ -72,39 +128,14 @@ function MaterialCardItem({ item, studyTypeContent, course, refreshData, loading
         type: item.type,
         chapters: chapters,
       });
-      
+
       toast({
-        title: "Content Generated! 🎉",
-        description: `Your ${item.name.toLowerCase()} are ready to use. Updating interface...`,
+        title: "Generation Started! 🚀",
+        description: `Your ${item.name.toLowerCase()} are being generated. This may take a moment.`,
       });
       
-      // Function to check and refresh data
-      const checkAndRefresh = async (attempt = 1, maxAttempts = 3) => {
-        console.log(`Refresh attempt ${attempt}/${maxAttempts}`);
-        
-        await refreshData();
-        
-        // Wait a moment for state to update
-        setTimeout(() => {
-          const currentContent = getItemContent();
-          const isNowGenerated = currentContent && Array.isArray(currentContent) && currentContent.length > 0;
-          
-          if (!isNowGenerated && attempt < maxAttempts) {
-            // If content still not showing and we have more attempts, try again
-            setTimeout(() => checkAndRefresh(attempt + 1, maxAttempts), 2000);
-          } else if (!isNowGenerated && attempt >= maxAttempts) {
-            // If content still not showing after all attempts, reload page
-            console.log('Content not detected after refreshes, reloading page...');
-            window.location.reload();
-          } else {
-            // Content is now showing, no need to reload
-            console.log('Content successfully loaded, no reload needed');
-          }
-        }, 1000);
-      };
-      
-      // Start the check and refresh process
-      setTimeout(() => checkAndRefresh(), 2000);
+      // Manually set status to generating to trigger the hook's polling
+      setStatus("generating");
       
     } catch (error) {
       console.error("Generation failed:", error);
@@ -114,7 +145,7 @@ function MaterialCardItem({ item, studyTypeContent, course, refreshData, loading
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
   };
 
@@ -200,12 +231,14 @@ function MaterialCardItem({ item, studyTypeContent, course, refreshData, loading
             <Button
               className="w-full h-12 rounded-xl btn-secondary border-white/10 hover:bg-white/10 transition-all duration-300"
               onClick={GenerateContent}
-              disabled={isGenerating}
+              disabled={isProcessing}
             >
-              {isGenerating ? (
+              {isProcessing ? (
                 <>
                   <RefreshCcw className="h-4 w-4 mr-2 animate-spin text-orange-400" />
-                  <span className="text-orange-400">Generating...</span>
+                  <span className="text-orange-400">
+                    {isSyncing ? "Finalizing..." : "Generating..."}
+                  </span>
                 </>
               ) : (
                 <>

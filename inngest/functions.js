@@ -1,7 +1,7 @@
-import {
-  GenerateFlashcardAiModel,
+import {GenerateFlashcardAiModel,
   generateNotesAiModel,
   GenerateQuizAiModel,
+  geminiWithFallback
 } from "@/configs/AiModel";
 import { db } from "@/configs/db";
 import {
@@ -349,7 +349,7 @@ export const GenerateStudyTypeContent = inngest.createFunction(
     let usingFallback = false;
 
     try {
-      if (studyType === "Flashcard") {
+      if (studyType.toLowerCase() === "flashcard") {
         AiResult = await step.run(
           "Generating Flashcards using AI",
           async () => {
@@ -412,7 +412,7 @@ export const GenerateStudyTypeContent = inngest.createFunction(
             }
           }
         );
-      } else if (studyType === "Quiz") {
+      } else if (studyType.toLowerCase() === "quiz") {
         AiResult = await step.run("Generating Quiz using AI", async () => {
           try {
             const result = await GenerateQuizAiModel.sendMessage(prompt);
@@ -486,7 +486,7 @@ export const GenerateStudyTypeContent = inngest.createFunction(
           .update(STUDY_TYPE_CONTENT_TABLE)
           .set({
             content: null,
-            status: "Failed",
+            status: "failed", // Standardized status
             error: error.message,
           })
           .where(eq(STUDY_TYPE_CONTENT_TABLE.id, recordId));
@@ -500,7 +500,7 @@ export const GenerateStudyTypeContent = inngest.createFunction(
         .update(STUDY_TYPE_CONTENT_TABLE)
         .set({
           content: AiResult,
-          status: "Ready",
+          status: "completed", // Standardized status
           error: null,
         })
         .where(eq(STUDY_TYPE_CONTENT_TABLE.id, recordId));

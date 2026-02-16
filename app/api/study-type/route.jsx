@@ -3,64 +3,85 @@ import {
   CHAPTER_NOTES_TABLE,
   STUDY_TYPE_CONTENT_TABLE,
 } from "@/configs/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, desc } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
-// studyType (Study Material Fetching)
-// Purpose: Retrieves available study materials for a course (notes, flashcards, quizzes, and Q&A).
-// Triggered By: StudyMaterialSection component via the GetStudyMaterial() function.
-// API Route Used: /api/study-type (from route.jsx [6]).
-// Database Table Used: CHAPTER_NOTES_TABLE.
-
 export async function POST(req) {
-  const { courseId, studyType } = await req.json(); // Get The Study Type from The Request
+  const { courseId, studyType } = await req.json();
 
-  if (studyType == "ALL") {
+  if (!courseId) {
+    return NextResponse.json([], { status: 400 });
+  }
+
+  const normalizedType = studyType?.toLowerCase();
+
+  // =========================
+  // FETCH ALL STUDY MATERIALS
+  // =========================
+  if (normalizedType === "all") {
     const notes = await db
       .select()
       .from(CHAPTER_NOTES_TABLE)
-      .where(eq(CHAPTER_NOTES_TABLE?.courseId, courseId));
-   
-    {
-      /*content list save the quiz and chapter data from the database - STUDY_TYPE_CONTENT_TABLE*/
-    }
+      .where(eq(CHAPTER_NOTES_TABLE.courseId, courseId));
+
     const contentList = await db
       .select()
       .from(STUDY_TYPE_CONTENT_TABLE)
-      .where(eq(STUDY_TYPE_CONTENT_TABLE?.courseId, courseId));
+      .where(eq(STUDY_TYPE_CONTENT_TABLE.courseId, courseId));
 
     const result = {
-      notes: notes,
-      flashcard: contentList
-        ?.filter((item) => item.type == "Flashcard" && item.status == "Ready")
-        ?.flatMap(item => item.content || []) || [],
-      quiz: contentList
-        ?.filter((item) => item.type == "Quiz" && item.status == "Ready")
-        ?.flatMap(item => item.content || []) || [],
-      qa: [],
+      notes: notes || [],
+      flashcard:
+        contentList
+          ?.filter(
+            (item) =>
+              item.type?.toLowerCase() === "flashcard" &&
+              item.status?.toLowerCase() === "completed"
+          )
+          ?.flatMap((item) => item.content || []) || [],
+      quiz:
+        contentList
+          ?.filter(
+            (item) =>
+              item.type?.toLowerCase() === "quiz" &&
+              item.status?.toLowerCase() === "completed"
+          )
+          ?.flatMap((item) => item.content || []) || [],
     };
 
     return NextResponse.json(result);
-  } else if (studyType == "notes") {
+  }
+
+  // =========================
+  // FETCH NOTES
+  // =========================
+  if (normalizedType === "notes") {
     const notes = await db
       .select()
       .from(CHAPTER_NOTES_TABLE)
-      .where(eq(CHAPTER_NOTES_TABLE?.courseId, courseId)); // Filter by courseId
-    return NextResponse.json(notes);
-  } else {
-    const result = await db
-      .select()
-      .from(STUDY_TYPE_CONTENT_TABLE)
-      .where(
-        and(
-          eq(STUDY_TYPE_CONTENT_TABLE?.courseId, courseId),
-          eq(STUDY_TYPE_CONTENT_TABLE.type, studyType),
-          eq(STUDY_TYPE_CONTENT_TABLE.status, "Ready")
-        )
-      );
-    
-    // Return the actual content array instead of database records
-    const content = result.length > 0 && result[0].content ? result[0].content : [];
-    return NextResponse.json(content);
+      .where(eq(CHAPTER_NOTES_TABLE.courseId, courseId));
+
+    return NextResponse.json(notes || []);
   }
+
+  // =========================
+  // FETCH FLASHCARD OR QUIZ
+  // =========================
+  const record = await db
+    .select()
+    .from(STUDY_TYPE_CONTENT_TABLE)
+    .where(
+      and(
+        eq(STUDY_TYPE_CONTENT_TABLE.courseId, courseId),
+        eq(STUDY_TYPE_CONTENT_TABLE.type, normalizedType),
+        eq(STUDY_TYPE_CONTENT_TABLE.status, "completed")
+      )
+    )
+    .orderBy(desc(STUDY_TYPE_CONTENT_TABLE.id));
+
+  if (!record.length || !record[0].content) {
+    return NextResponse.json([]);
+  }
+
+  return NextResponse.json(record[0].content);
 }
