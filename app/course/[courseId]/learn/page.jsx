@@ -4,7 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Menu, X } from "lucide-react";
 import CourseSidebar from "./_components/CourseSidebar";
 import TopicContent from "./_components/TopicContent";
 import { toast } from "sonner";
@@ -17,6 +17,7 @@ function TopicLearning() {
   const [activeTopic, setActiveTopic] = useState(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (courseId) {
@@ -144,17 +145,56 @@ function TopicLearning() {
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
+      {/* Sidebar (Desktop) */}
       <CourseSidebar 
         course={course} 
         topics={topics} 
         activeTopic={activeTopic} 
-        setActiveTopic={setActiveTopic} 
+        setActiveTopic={setActiveTopic}
+        className="hidden md:block"
       />
+
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div className="fixed inset-0 z-50 flex md:hidden">
+          <div 
+            className="fixed inset-0 bg-background/80 backdrop-blur-sm"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+          <div className="relative flex-1 w-full max-w-xs bg-background h-full shadow-2xl animate-in slide-in-from-left duration-200 border-r border-border">
+              <div className="absolute top-3 right-3 z-50">
+                   <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(false)}>
+                      <X className="h-5 w-5" />
+                   </Button>
+              </div>
+              <CourseSidebar 
+                  course={course} 
+                  topics={topics} 
+                  activeTopic={activeTopic}
+                  setActiveTopic={(t) => {
+                      setActiveTopic(t);
+                      setIsSidebarOpen(false);
+                  }}
+                   className="w-full border-r-0 mt-8"
+              />
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Top Bar for Mobile/Navigation */}
-        <div className="p-4 border-b border-border flex items-center justify-between bg-card/50 backdrop-blur-sm">
+        <div className="p-4 border-b border-border flex items-center gap-3 bg-card/50 backdrop-blur-sm">
+          {/* Mobile Menu Toggle */}
+           <Button 
+            variant="ghost" 
+            size="icon" 
+            className="md:hidden"
+            onClick={() => setIsSidebarOpen(true)}
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+
           <Link href={`/course/${courseId}`}>
              <Button variant="ghost" size="sm">
                <ArrowLeft className="h-4 w-4 mr-2" />

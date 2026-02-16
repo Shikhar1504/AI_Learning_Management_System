@@ -10,7 +10,7 @@ import {
 import { CheckCircle, Circle, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-function CourseSidebar({ course, topics, activeTopic, setActiveTopic }) {
+function CourseSidebar({ course, topics, activeTopic, setActiveTopic, className }) {
   // Group topics by chapter
   const chapters = course?.courseLayout?.chapters || [];
   
@@ -22,7 +22,7 @@ function CourseSidebar({ course, topics, activeTopic, setActiveTopic }) {
   };
 
   return (
-    <div className="h-full border-r border-border bg-card/30 backdrop-blur-sm overflow-y-auto w-80 flex-shrink-0 hidden md:block">
+    <div className={cn("h-full border-r border-border bg-card/30 backdrop-blur-sm overflow-y-auto w-80 flex-shrink-0", className)}>
       <div className="p-6 border-b border-border">
         <h2 className="font-bold text-lg line-clamp-2">{course?.courseLayout?.courseTitle || course?.topic}</h2>
         <p className="text-xs text-muted-foreground mt-1">Course Content</p>
