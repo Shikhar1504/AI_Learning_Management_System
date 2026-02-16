@@ -46,45 +46,45 @@ function CourseList({ courses, loading, onRefresh }) {
   );
 
   const EmptyState = () => (
-    <div className="text-center py-16">
-      <div className="modern-card p-12 max-w-lg mx-auto">
+    <div className="text-center py-8 md:py-16">
+      <div className="modern-card p-6 md:p-12 max-w-lg mx-auto">
         {/* Animated Icon */}
         <div className="relative mb-8">
-          <div className="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center">
-            <BookOpen className="h-12 w-12 text-purple-400" />
+          <div className="w-20 h-20 md:w-24 md:h-24 mx-auto rounded-2xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center">
+            <BookOpen className="h-10 w-10 md:h-12 md:w-12 text-purple-400" />
           </div>
           <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center animate-bounce">
             <Sparkles className="h-4 w-4 text-white" />
           </div>
         </div>
         
-        <h3 className="heading-3 text-foreground mb-3 font-display">
+        <h3 className="heading-3 text-foreground mb-3 font-display text-xl md:text-2xl">
           Your Learning Journey Starts Here
         </h3>
         
-        <p className="body-regular text-muted-foreground mb-8 max-w-md mx-auto">
+        <p className="body-regular text-muted-foreground mb-8 max-w-md mx-auto text-sm md:text-base">
           Create your first AI-powered course and begin an amazing learning experience tailored just for you.
         </p>
         
-        <div className="space-y-4">
-          <Link href="/create">
-            <Button className="btn-primary h-12 px-8">
+        <div className="space-y-6">
+          <Link href="/create" className="block w-full">
+            <Button className="btn-primary h-12 px-8 w-full sm:w-auto">
               <Plus className="h-5 w-5 mr-2" />
               Create Your First Course
             </Button>
           </Link>
           
-          <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500" />
+          <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
               <span>AI-Powered</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-blue-500" />
+            <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
+              <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
               <span>Interactive</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-purple-500" />
+            <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
+              <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
               <span>Personalized</span>
             </div>
           </div>
