@@ -19,14 +19,24 @@ import { cn } from '@/lib/utils';
 /**
  * Simplified Progress Dashboard - Focus on AI LMS essentials
  */
-const ProgressDashboard = ({ className = "" }) => {
+const ProgressDashboard = ({ className = "", userStats: paramsUserStats = null }) => {
   const { user } = useUser();
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState(paramsUserStats);
+  const [loading, setLoading] = useState(!paramsUserStats);
   const [error, setError] = useState(null);
 
-  // Fetch user statistics
+  // Update local stats when prop changes
   useEffect(() => {
+    if (paramsUserStats) {
+      setStats(paramsUserStats);
+      setLoading(false);
+    }
+  }, [paramsUserStats]);
+
+  // Fetch user statistics ONLY if not provided via props
+  useEffect(() => {
+    if (paramsUserStats) return;
+
     const fetchStats = async () => {
       if (!user?.primaryEmailAddress?.emailAddress) return;
 
@@ -34,7 +44,8 @@ const ProgressDashboard = ({ className = "" }) => {
         setLoading(true);
         setError(null);
         
-        const response = await fetch(`/api/users/${user.primaryEmailAddress.emailAddress}/stats`);
+        // Add cache-busting to ensure fresh data
+        const response = await fetch(`/api/users/${user.primaryEmailAddress.emailAddress}/stats?t=${new Date().getTime()}`);
         if (!response.ok) {
           throw new Error('Failed to fetch user statistics');
         }
@@ -50,7 +61,7 @@ const ProgressDashboard = ({ className = "" }) => {
     };
 
     fetchStats();
-  }, [user?.primaryEmailAddress?.emailAddress]);
+  }, [user?.primaryEmailAddress?.emailAddress, paramsUserStats]);
 
   if (loading) {
     return (

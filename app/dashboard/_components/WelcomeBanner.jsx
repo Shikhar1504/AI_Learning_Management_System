@@ -102,7 +102,7 @@ function WelcomeBanner({ userStats, loading }) {
       </div>
       
       {/* Simplified Progress Dashboard */}
-      <ProgressDashboard className="slide-up" />
+      <ProgressDashboard className="slide-up" userStats={userStats} />
     </div>
   );
 }

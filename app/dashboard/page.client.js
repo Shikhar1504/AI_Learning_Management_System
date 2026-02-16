@@ -22,6 +22,7 @@ export default function DashboardClient() {
       const response = await axios.get("/api/dashboard-data", {
         params: {
           userEmail: user.primaryEmailAddress.emailAddress,
+          _: new Date().getTime(), // Prevent caching
         },
       });
       setDashboardData(response.data);
