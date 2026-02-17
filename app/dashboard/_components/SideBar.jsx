@@ -10,7 +10,8 @@ import {
   Zap,
   TrendingUp,
   Menu,
-  X
+  X,
+  Dumbbell
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -24,6 +25,12 @@ function SideBar() {
       icon: LayoutDashboard,
       path: "/dashboard",
       gradient: "from-blue-500 to-cyan-500"
+    },
+    {
+      name: "Practice",
+      icon: Dumbbell,
+      path: "/dashboard/practice",
+      gradient: "from-pink-500 to-rose-500"
     },
     {
       name: "Profile",
@@ -128,24 +135,6 @@ function SideBar() {
             <p className="text-xs text-muted-foreground font-medium">AI Learning Platform</p>
           </div>
         </div>
-      </div>
-
-      {/* Create Course Button */}
-      <div className="mb-6">
-        <Button
-          className="w-full btn-primary h-12 text-base font-semibold shadow-xl active:scale-95 transition-transform"
-          onClick={() => {
-            if (!userStats.canCreateCourse) {
-              router.push("/dashboard/upgrade");
-            } else {
-              router.push("/create");
-            }
-            setIsMobileMenuOpen(false);
-          }}
-        >
-          <Plus className="h-5 w-5 mr-2" /> 
-          Create AI Course
-        </Button>
       </div>
 
       {/* Navigation Menu */}

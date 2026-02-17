@@ -32,6 +32,12 @@ export const USER_TABLE = pgTable("users", {
   learnerLevel: integer().default(1), // 1 = New, 2 = Intermediate, 3 = Advanced
   levelProgress: integer().default(0), // progress towards next level (0-100)
   lastLevelUpdate: timestamp(), // when level was last calculated
+  // Quiz optimization fields
+  quizTotalAttempts: integer().default(0),
+  quizBestScore: integer().default(0),
+  quizAverageScore: integer().default(0),
+  quizLastScore: integer().default(0),
+  quizTotalPercentageSum: integer().default(0),
 }, (table) => {
   return {
     emailIdx: index("email_idx").on(table.email),
@@ -95,4 +101,19 @@ export const PAYMENT_RECORD_TABLE = pgTable("paymentRecord", {
   id: varchar("id", { length: 256 }).primaryKey(),
   customerId: varchar(),
   sessionId: varchar(),
+});
+
+export const QUIZ_ATTEMPT_TABLE = pgTable("quizAttempt", {
+  id: varchar("id", { length: 256 }).primaryKey(),
+  userEmail: varchar().notNull(),
+  courseId: varchar(), // null for mixed quiz
+  score: integer().notNull(),
+  totalQuestions: integer().notNull(),
+  percentage: integer().notNull(),
+  timeTaken: integer(), // seconds
+  createdAt: timestamp().defaultNow(),
+}, (table) => {
+  return {
+    userIdx: index("quiz_attempt_user_idx").on(table.userEmail),
+  };
 });

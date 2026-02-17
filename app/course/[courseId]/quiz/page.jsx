@@ -194,6 +194,40 @@ function Quiz() {
     }
   };
 
+  const [startTime, setStartTime] = useState(null); // Track start time
+
+  // Set start time when quiz loads
+  useEffect(() => {
+    if (quiz.length > 0 && !startTime) {
+      setStartTime(Date.now());
+    }
+  }, [quiz, startTime]);
+
+  const saveQuizAttempt = async () => {
+    const timeTaken = startTime ? Math.round((Date.now() - startTime) / 1000) : 0;
+    
+    try {
+      await axios.post("/api/quiz-attempt", {
+        score: score,
+        totalQuestions: quiz.length,
+        timeTaken: timeTaken,
+        courseId: courseId
+      });
+      
+      toast({
+        title: "Quiz Saved 💾",
+        description: "Your attempt has been recorded!",
+      });
+    } catch (error) {
+      console.error("Failed to save attempt:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save quiz result.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleNextQuestion = () => {
     if (currentQuestion < quiz.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
@@ -201,6 +235,7 @@ function Quiz() {
       setIsAnswered(false);
     } else {
       setIsCompleted(true);
+      saveQuizAttempt(); // Save attempt when quiz finishes
     }
   };
 

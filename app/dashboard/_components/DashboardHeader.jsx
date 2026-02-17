@@ -10,7 +10,8 @@ import {
   Shield,
   LayoutDashboard,
   UserCircle,
-  Zap
+  Zap,
+  Dumbbell
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -168,6 +169,12 @@ function DashboardHeader() {
               <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition-all">
                 <LayoutDashboard className="h-4 w-4" />
                 <span className="text-sm font-medium">Dashboard</span>
+              </div>
+            </Link>
+            <Link href="/dashboard/practice" onClick={() => setIsMobileMenuOpen(false)}>
+              <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition-all">
+                <Dumbbell className="h-4 w-4" />
+                <span className="text-sm font-medium">Practice</span>
               </div>
             </Link>
             <Link href="/dashboard/profile" onClick={() => setIsMobileMenuOpen(false)}>
