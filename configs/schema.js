@@ -65,13 +65,6 @@ export const STUDY_MATERIAL_TABLE = pgTable("studyMaterial", {
   };
 });
 
-export const CHAPTER_NOTES_TABLE = pgTable("chapterNotes", {
-  id: varchar("id", { length: 256 }).primaryKey(),
-  courseId: varchar().notNull(),
-  chapterId: integer().notNull(),
-  notes: text(),
-});
-
 export const STUDY_TYPE_CONTENT_TABLE = pgTable("studyTypeContent", {
   id: varchar("id", { length: 256 }).primaryKey(),
   courseId: varchar().notNull(),

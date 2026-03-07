@@ -234,19 +234,6 @@ export async function POST(req) {
     // Log error but don't fail the request as course is created
   }
 
-  //Trigger the Inngest function to generate chapter notes
-  // try {
-  //   await inngest.send({
-  //     name: "notes.generate",
-  //     data: {
-  //       course: dbResult[0].resp,
-  //     },
-  //   });
-  //   console.log("Inngest event sent successfully");
-  // } catch (error) {
-  //   console.error("Inngest API Error:", error.message);
-  //   // Continue execution even if Inngest fails
-  // }
 
   return NextResponse.json({ result: dbResult[0] });
 }

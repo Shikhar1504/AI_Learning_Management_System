@@ -1,6 +1,6 @@
 import { serve } from "inngest/next";
 import { inngest } from "../../../inngest/client";
-import { CreateNewUser, GenerateNotes, GenerateStudyTypeContent, HandleRiseAppEvent } from "@/inngest/functions";
+import { CreateNewUser, GenerateStudyTypeContent } from "@/inngest/functions";
 import { NextRequest, NextResponse } from "next/server";
 
 // Use Node.js runtime for better compatibility
@@ -46,9 +46,7 @@ const handler = serve({
   streaming: "allow",
     functions: [
     CreateNewUser,
-    GenerateNotes,
     GenerateStudyTypeContent,
-    HandleRiseAppEvent,
   ],
   landingPage: false, // Disable landing page to reduce conflicts
 });

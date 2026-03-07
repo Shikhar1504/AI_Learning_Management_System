@@ -1,6 +1,5 @@
 import { db } from "@/configs/db";
 import {
-  CHAPTER_NOTES_TABLE,
   STUDY_MATERIAL_TABLE,
   STUDY_TYPE_CONTENT_TABLE,
   TOPIC_TABLE,
@@ -164,10 +163,7 @@ export async function DELETE(req) {
 
     // First, delete related content from other tables
     await retryDbOperation(async () => {
-      // Delete chapter notes
-      await db
-        .delete(CHAPTER_NOTES_TABLE)
-        .where(eq(CHAPTER_NOTES_TABLE.courseId, courseId));
+      // Note: Chapter notes deletion removed as the table is deprecated
 
       // Delete study type content (flashcards, quizzes)
       await db

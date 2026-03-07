@@ -1,6 +1,5 @@
 import { db } from "@/configs/db";
 import {
-  CHAPTER_NOTES_TABLE,
   STUDY_TYPE_CONTENT_TABLE,
 } from "@/configs/schema";
 import { and, eq, desc } from "drizzle-orm";
@@ -19,10 +18,9 @@ export async function POST(req) {
   // FETCH ALL STUDY MATERIALS
   // =========================
   if (normalizedType === "all") {
-    const notes = await db
-      .select()
-      .from(CHAPTER_NOTES_TABLE)
-      .where(eq(CHAPTER_NOTES_TABLE.courseId, courseId));
+    // Notes are now handled at the topic level, returning empty for legacy chapter notes
+    // to maintain API contract without breaking frontend if anything still calls this
+    const notes = [];
 
     const contentList = await db
       .select()
@@ -30,7 +28,7 @@ export async function POST(req) {
       .where(eq(STUDY_TYPE_CONTENT_TABLE.courseId, courseId));
 
     const result = {
-      notes: notes || [],
+      notes: [], // Chapter notes are deprecated in favor of topic notes
       flashcard:
         contentList
           ?.filter(
@@ -53,15 +51,11 @@ export async function POST(req) {
   }
 
   // =========================
-  // FETCH NOTES
+  // FETCH NOTES - NO LONGER USED (Replaced by Topic Notes)
   // =========================
   if (normalizedType === "notes") {
-    const notes = await db
-      .select()
-      .from(CHAPTER_NOTES_TABLE)
-      .where(eq(CHAPTER_NOTES_TABLE.courseId, courseId));
-
-    return NextResponse.json(notes || []);
+    // Return empty array as chapter notes are deprecated
+    return NextResponse.json([]);
   }
 
   // =========================
