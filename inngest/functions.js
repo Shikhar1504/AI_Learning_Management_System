@@ -1,11 +1,9 @@
 import {GenerateFlashcardAiModel,
-  generateNotesAiModel,
   GenerateQuizAiModel,
   geminiWithFallback
 } from "@/configs/AiModel";
 import { db } from "@/configs/db";
 import {
-  STUDY_MATERIAL_TABLE,
   STUDY_TYPE_CONTENT_TABLE,
   USER_TABLE,
 } from "@/configs/schema";

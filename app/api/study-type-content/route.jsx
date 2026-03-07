@@ -1,5 +1,5 @@
 import { db } from "@/configs/db";
-import { STUDY_MATERIAL_TABLE, STUDY_TYPE_CONTENT_TABLE } from "@/configs/schema";
+import { STUDY_TYPE_CONTENT_TABLE } from "@/configs/schema";
 import { and, desc, eq } from "drizzle-orm";
 import { inngest } from "@/inngest/client";
 import { NextResponse } from "next/server";
@@ -15,29 +15,7 @@ export async function POST(req) {
   const { chapters, courseId, type } = await req.json(); // get the data from the request
 
   // Normalize the type to match Inngest function expectations (always lowercase)
-  const normalizedType = type?.toLowerCase(); 
-
-  if (normalizedType === "notes") {
-    // Fetch course details to pass to Inngest
-    const courseResult = await db
-      .select()
-      .from(STUDY_MATERIAL_TABLE)
-      .where(eq(STUDY_MATERIAL_TABLE.courseId, courseId));
-
-    if (!courseResult || courseResult.length === 0) {
-      return NextResponse.json({ error: "Course not found" }, { status: 404 });
-    }
-
-    // Trigger Inngest Function to Generate Notes
-    await inngest.send({
-      name: "notes.generate",
-      data: {
-        course: courseResult[0],
-      },
-    });
-
-    return NextResponse.json({ status: "generating", type: "notes" });
-  }
+  const normalizedType = type?.toLowerCase();
 
   const PROMPT = // AI Prompt for flashcard and quiz generation
     normalizedType == "flashcard"

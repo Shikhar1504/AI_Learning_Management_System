@@ -9,7 +9,6 @@ import {
   GraduationCap,
   Menu,
   Sparkles,
-  Star,
   Target,
   Users,
   X,

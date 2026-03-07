@@ -5,7 +5,6 @@ import {
   TrendingUp, 
   BookOpen, 
   Clock, 
-  Target, 
   Flame, 
   CheckCircle,
   AlertCircle,
@@ -172,37 +171,6 @@ const ProgressDashboard = ({ className = "", userStats: paramsUserStats = null }
         </Card>
       </div>
 
-      {/* Current Goal - Only if exists */}
-      {stats.goalProgress && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5" />
-              Current Goal
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="font-medium">{stats.goalProgress.title || 'Learning Goal'}</h4>
-                {stats.goalProgress.isCompleted && (
-                  <Badge variant="success" className="flex items-center gap-1">
-                    <CheckCircle className="h-3 w-3" />
-                    Completed
-                  </Badge>
-                )}
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span>Progress</span>
-                  <span>{stats.goalProgress.currentProgress}/{stats.goalProgress.target}</span>
-                </div>
-                <Progress value={stats.goalProgress.progressPercentage} />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };

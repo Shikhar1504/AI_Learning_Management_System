@@ -22,16 +22,10 @@ export const USER_TABLE = pgTable("users", {
   completedCourses: integer().default(0),
   progress: integer().default(0), // overall progress percentage
   lastStudyDate: timestamp(),
-  currentGoal: json(), // { title: string, progress: number }
-  preferences: json(), // user learning preferences
   // Daily course limit tracking
   dailyCoursesCreated: integer().default(0), // courses created today
   lastCourseDate: timestamp(), // last course creation date
-  // Learner level system fields (deprecated but kept for compatibility)
-  experiencePoints: integer().default(0), // total XP earned
-  learnerLevel: integer().default(1), // 1 = New, 2 = Intermediate, 3 = Advanced
-  levelProgress: integer().default(0), // progress towards next level (0-100)
-  lastLevelUpdate: timestamp(), // when level was last calculated
+
   // Quiz optimization fields
   quizTotalAttempts: integer().default(0),
   quizBestScore: integer().default(0),
