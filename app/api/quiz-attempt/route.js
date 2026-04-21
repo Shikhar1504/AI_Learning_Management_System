@@ -1,6 +1,6 @@
 import { db } from "@/configs/db";
 import { QUIZ_ATTEMPT_TABLE, USER_TABLE } from "@/configs/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import { currentUser } from "@clerk/nextjs/server";
@@ -41,12 +41,24 @@ export async function POST(req) {
     // 3️⃣ Calculate percentage safely
     const percentage = Math.round((score / totalQuestions) * 100);
 
+    // 3.5️⃣ Map to DB User
+    const dbUser = await db
+      .select({ id: USER_TABLE.id })
+      .from(USER_TABLE)
+      .where(eq(USER_TABLE.email, email))
+      .limit(1);
+
+    if (dbUser.length === 0) {
+      return NextResponse.json({ error: "User profile not found in database" }, { status: 404 });
+    }
+    const userId = dbUser[0].id;
+
     // 4️⃣ Insert attempt
     const result = await db
       .insert(QUIZ_ATTEMPT_TABLE)
       .values({
         id: uuidv4(),
-        userEmail: email,
+        userId: userId,
         courseId,
         score,
         totalQuestions,
@@ -56,39 +68,22 @@ export async function POST(req) {
       })
       .returning();
 
-    // 5️⃣ Update User Stats (Denormalized)
-    // Fetch current stats
-    const currentUserStats = await db
-      .select({
-         quizTotalAttempts: USER_TABLE.quizTotalAttempts,
-         quizBestScore: USER_TABLE.quizBestScore,
-         quizTotalPercentageSum: USER_TABLE.quizTotalPercentageSum,
-      })
-      .from(USER_TABLE)
-      .where(eq(USER_TABLE.email, email))
-      .then(res => res[0] || {});
-
-    // Calculate new values
-    const currentAttempts = currentUserStats.quizTotalAttempts || 0;
-    const currentBest = currentUserStats.quizBestScore || 0;
-    const currentSum = currentUserStats.quizTotalPercentageSum || 0;
-
-    const newAttempts = currentAttempts + 1;
-    const newBest = Math.max(currentBest, percentage);
-    const newSum = currentSum + percentage;
-    const newAverage = Math.round(newSum / newAttempts);
-
-    // Update User Table
+    // 5️⃣ Update User Stats using atomic SQL increments
+    // Avoids the Read-Modify-Write race condition where two concurrent
+    // requests both read the same old value and overwrite each other.
     await db
       .update(USER_TABLE)
       .set({
-        quizTotalAttempts: newAttempts,
-        quizBestScore: newBest,
-        quizAverageScore: newAverage,
+        // Atomic: DB increments the stored value, no read needed
+        quizTotalAttempts: sql`${USER_TABLE.quizTotalAttempts} + 1`,
+        quizTotalPercentageSum: sql`${USER_TABLE.quizTotalPercentageSum} + ${percentage}`,
+        // GREATEST ensures we never accidentally lower the best score
+        quizBestScore: sql`GREATEST(${USER_TABLE.quizBestScore}, ${percentage})`,
+        // Recompute average atomically: (sum + new) / (attempts + 1)
+        quizAverageScore: sql`ROUND((${USER_TABLE.quizTotalPercentageSum} + ${percentage})::numeric / (${USER_TABLE.quizTotalAttempts} + 1))`,
         quizLastScore: percentage,
-        quizTotalPercentageSum: newSum
       })
-      .where(eq(USER_TABLE.email, email));
+      .where(eq(USER_TABLE.id, userId));
 
     return NextResponse.json({
       success: true,

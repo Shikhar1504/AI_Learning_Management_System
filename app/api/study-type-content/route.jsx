@@ -3,6 +3,7 @@ import { STUDY_TYPE_CONTENT_TABLE } from "@/configs/schema";
 import { and, desc, eq } from "drizzle-orm";
 import { inngest } from "@/inngest/client";
 import { NextResponse } from "next/server";
+import { FLASHCARD_PROMPT, QUIZ_PROMPT } from "@/configs/prompts";
 
 // studyTypeContent (Generating New Study Materials)
 // Purpose: Generates new study materials (flashcards, quizzes, etc.).
@@ -14,17 +15,32 @@ import { NextResponse } from "next/server";
 export async function POST(req) {
   const { chapters, courseId, type } = await req.json(); // get the data from the request
 
-  // Normalize the type to match Inngest function expectations (always lowercase)
+  // Normalize BEFORE validation so checks operate on clean value
   const normalizedType = type?.toLowerCase();
 
+  if (!courseId || !normalizedType || !chapters) {
+    return NextResponse.json(
+      { success: false, error: "Missing required fields" },
+      { status: 400 },
+    );
+  }
+
+  // Only allow supported study types
+  const ALLOWED_TYPES = ["flashcard", "quiz"];
+  if (!ALLOWED_TYPES.includes(normalizedType)) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: `Invalid type. Allowed: ${ALLOWED_TYPES.join(", ")}`,
+      },
+      { status: 400 },
+    );
+  }
+
   const PROMPT = // AI Prompt for flashcard and quiz generation
-    normalizedType == "flashcard"
-      ? "Generate the flashcard on topic : " +
-        chapters +
-        " in JSON format with front back content, Maximum 15"
-      : "Generate Quiz on topic : " +
-        chapters +
-        " with Question and Options along with correct answer in JSON format, (Max 10)";
+    normalizedType === "flashcard"
+      ? FLASHCARD_PROMPT(chapters)
+      : QUIZ_PROMPT(chapters);
 
   // Check if a record already exists for this (courseId, type)
   const existingRecord = await db
@@ -33,8 +49,8 @@ export async function POST(req) {
     .where(
       and(
         eq(STUDY_TYPE_CONTENT_TABLE.courseId, courseId),
-        eq(STUDY_TYPE_CONTENT_TABLE.type, normalizedType)
-      )
+        eq(STUDY_TYPE_CONTENT_TABLE.type, normalizedType),
+      ),
     )
     .orderBy(desc(STUDY_TYPE_CONTENT_TABLE.id));
 
@@ -44,9 +60,9 @@ export async function POST(req) {
     const record = existingRecord[0];
     const status = record.status?.toLowerCase();
 
-    // If already generating or completed, do not regenerate
+    // Return early WITHOUT firing Inngest - no duplicate job for active/done records
     if (status === "generating" || status === "completed") {
-      return NextResponse.json(record.id);
+      return NextResponse.json({ success: true, data: record.id });
     }
 
     // If failed, we retry by updating the existing record
@@ -55,26 +71,55 @@ export async function POST(req) {
         .update(STUDY_TYPE_CONTENT_TABLE)
         .set({ status: "generating", error: null })
         .where(eq(STUDY_TYPE_CONTENT_TABLE.id, record.id));
-      
+
       recordId = record.id;
     }
   }
 
   // If no record exists (or we're not retrying an existing one), create a new one
   if (!recordId) {
-    const result = await db
-      .insert(STUDY_TYPE_CONTENT_TABLE)
-      .values({
-        id: crypto.randomUUID(),
-        courseId: courseId,
-        type: normalizedType,
-        status: "generating",
-      })
-      .returning({ id: STUDY_TYPE_CONTENT_TABLE.id });
-    
-    recordId = result[0].id;
+    try {
+      const result = await db
+        .insert(STUDY_TYPE_CONTENT_TABLE)
+        .values({
+          id: crypto.randomUUID(),
+          courseId: courseId,
+          type: normalizedType,
+          status: "generating",
+        })
+        .returning({ id: STUDY_TYPE_CONTENT_TABLE.id });
+
+      recordId = result[0].id;
+    } catch (error) {
+      if (
+        error.code === "23505" ||
+        error.message.includes("unique constraint")
+      ) {
+        console.log(
+          `[Course ${courseId}] Duplicate insert caught for ${normalizedType}, retrieving existing record`,
+        );
+        const existing = await db
+          .select()
+          .from(STUDY_TYPE_CONTENT_TABLE)
+          .where(
+            and(
+              eq(STUDY_TYPE_CONTENT_TABLE.courseId, courseId),
+              eq(STUDY_TYPE_CONTENT_TABLE.type, normalizedType),
+            ),
+          )
+          .limit(1);
+
+        if (existing.length > 0) {
+          recordId = existing[0].id;
+        } else {
+          throw error;
+        }
+      } else {
+        throw error;
+      }
+    }
   }
-  
+
   //Trigger Inngest Function to Generate Content
   await inngest.send({
     name: "studyType.content",
@@ -86,5 +131,5 @@ export async function POST(req) {
     },
   });
 
-  return NextResponse.json(recordId);
+  return NextResponse.json({ success: true, data: recordId });
 }

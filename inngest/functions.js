@@ -1,16 +1,15 @@
-import {GenerateFlashcardAiModel,
-  GenerateQuizAiModel,
-  geminiWithFallback
+import {
+  createFlashcardAiModel,
+  createQuizAiModel,
+  geminiWithFallback,
+  getModel,
+  MEDIUM_REASONING_CONFIG,
+  MODELS,
 } from "@/configs/AiModel";
 import { db } from "@/configs/db";
-import {
-  STUDY_TYPE_CONTENT_TABLE,
-  USER_TABLE,
-} from "@/configs/schema";
-import { eq } from "drizzle-orm";
+import { STUDY_TYPE_CONTENT_TABLE, USER_TABLE } from "@/configs/schema";
+import { eq, sql } from "drizzle-orm";
 import { inngest } from "./client";
-
-
 
 /* 
 🚀 How This Works (Inngest Flow) 🚀
@@ -46,34 +45,35 @@ export const CreateNewUser = inngest.createFunction(
           return [];
         }
 
-        const result = await db
-          .select()
-          .from(USER_TABLE)
-          .where(eq(USER_TABLE.email, email));
+        // Use an idempotent Upsert method to avoid Check-Then-Act race condition duplicates
+        const insertResult = await db
+          .insert(USER_TABLE)
+          .values({
+            id: crypto.randomUUID(),
+            name: user?.fullName || email.split("@")[0],
+            email: email,
+          })
+          .onConflictDoNothing({ target: USER_TABLE.email })
+          .returning();
 
-        if (result?.length == 0) {
-          //If Not, Then add to DB
-          console.log("Creating new user with email:", email); // Add logging for user creation
-          const userResp = await db
-            .insert(USER_TABLE)
-            .values({
-              id: crypto.randomUUID(),
-              name: user?.fullName,
-              email: email,
-            })
-            .returning({ USER_TABLE });
-          return userResp;
+        if (insertResult.length > 0) {
+          console.log("Created new user with email:", email);
+          return insertResult;
+        } else {
+          // User already exists, fetch them safely
+          const existingUser = await db
+            .select()
+            .from(USER_TABLE)
+            .where(eq(USER_TABLE.email, email));
+          return existingUser;
         }
-        return result;
-      }
+      },
     );
     return result?.length === 0
       ? "New user successfully created."
       : "User already exists in the database.";
-  }
+  },
 );
-
-
 
 // Generate Study Type Content
 export const GenerateStudyTypeContent = inngest.createFunction(
@@ -84,142 +84,106 @@ export const GenerateStudyTypeContent = inngest.createFunction(
     const { studyType, prompt, courseId, recordId } = event.data;
     let AiResult = null; // Initialize AI result
 
-    // Generate Study Type Content safely with fallback mechanism
-    let usingFallback = false;
+    // Fix #3: Identity guard — if Inngest retries and the job already completed, skip re-running
+    const isAlreadyDone = await step.run(
+      "Check if already completed",
+      async () => {
+        const record = await db
+          .select({ status: STUDY_TYPE_CONTENT_TABLE.status })
+          .from(STUDY_TYPE_CONTENT_TABLE)
+          .where(eq(STUDY_TYPE_CONTENT_TABLE.id, recordId))
+          .limit(1);
+        return record[0]?.status === "completed";
+      },
+    );
 
+    if (isAlreadyDone) {
+      console.log(
+        `[Course ${courseId}] [${studyType}] Record already completed, skipping re-generation`,
+      );
+      return;
+    }
+
+    // Fix #4: Mark generating + clear any previous error at the start of every execution
+    await step.run("Mark as generating", async () => {
+      await db
+        .update(STUDY_TYPE_CONTENT_TABLE)
+        .set({ status: "generating", error: null })
+        .where(eq(STUDY_TYPE_CONTENT_TABLE.id, recordId));
+    });
+
+    // Generate Study Type Content safely with fallback mechanism
     try {
       if (studyType.toLowerCase() === "flashcard") {
         AiResult = await step.run(
           "Generating Flashcards using AI",
           async () => {
-            try {
-              const result = await GenerateFlashcardAiModel.sendMessage(prompt);
-              return JSON.parse(result.response.text());
-            } catch (error) {
-              // Try fallback API key if available and error indicates overload
-              if (
-                !usingFallback &&
-                geminiWithFallback.hasFallback() &&
-                (error.message.includes("429") ||
-                  error.message.includes("Too Many Requests") ||
-                  error.message.includes("Resource has been exhausted"))
-              ) {
-                console.log(
-                  "🔄 Primary API key overloaded for flashcards, trying fallback..."
-                );
-                if (geminiWithFallback.switchToFallback()) {
-                  usingFallback = true;
-                  const fallbackModel = geminiWithFallback.getGenerativeModel({
-                    model: "gemini-2.5-flash",
-                  });
-                  const fallbackChat = fallbackModel.startChat({
-                    generationConfig: {
-                      temperature: 1,
-                      topP: 0.95,
-                      topK: 40,
-                      maxOutputTokens: 8192,
-                      responseMimeType: "application/json",
+            const GenerateFlashcardAiModel = createFlashcardAiModel();
+            return await runAiWithFallback({
+              primaryModel: GenerateFlashcardAiModel,
+              modelName: MODELS.FAST,
+              generationConfig: MEDIUM_REASONING_CONFIG,
+              prompt,
+              courseId,
+              studyType,
+              fallbackHistory: [
+                {
+                  role: "user",
+                  parts: [
+                    {
+                      text: "Generate the flashcard on topic : Flutter Fundamentals,User Interface (UI) Development,Basic App Navigation in JSON format with front back content, Maximum 15",
                     },
-                    history: [
-                      {
-                        role: "user",
-                        parts: [
-                          {
-                            text: "Generate the flashcard on topic : Flutter Fundamentals,User Interface (UI) Development,Basic App Navigation in JSON format with front back content, Maximum 15",
-                          },
-                        ],
-                      },
-                      {
-                        role: "model",
-                        parts: [
-                          {
-                            text: '```json\n[\n  {\n    "front": "What is a Widget in Flutter?",\n    "back": "A Widget is the basic building block of a Flutter UI. Everything you see on the screen is a widget, including layout elements, text, images, and more.  They are immutable and describe the UI."\n  }\n]\n```',
-                          },
-                        ],
-                      },
-                    ],
-                  });
-
-                  const result = await fallbackChat.sendMessage(prompt);
-                  console.log(
-                    "✅ Successfully used fallback API key for flashcards"
-                  );
-                  return JSON.parse(result.response.text());
-                }
-              }
-              throw error; // Re-throw if fallback not available or didn't work
-            }
-          }
+                  ],
+                },
+                {
+                  role: "model",
+                  parts: [
+                    {
+                      text: '```json\n[\n  {\n    "front": "What is a Widget in Flutter?",\n    "back": "A Widget is the basic building block of a Flutter UI. Everything you see on the screen is a widget, including layout elements, text, images, and more.  They are immutable and describe the UI."\n  }\n]\n```',
+                    },
+                  ],
+                },
+              ],
+            });
+          },
         );
       } else if (studyType.toLowerCase() === "quiz") {
         AiResult = await step.run("Generating Quiz using AI", async () => {
-          try {
-            const result = await GenerateQuizAiModel.sendMessage(prompt);
-            return JSON.parse(result.response.text());
-          } catch (error) {
-            // Try fallback API key if available and error indicates overload
-            if (
-              !usingFallback &&
-              geminiWithFallback.hasFallback() &&
-              (error.message.includes("429") ||
-                error.message.includes("Too Many Requests") ||
-                error.message.includes("Resource has been exhausted"))
-            ) {
-              console.log(
-                "🔄 Primary API key overloaded for quiz, trying fallback..."
-              );
-              if (geminiWithFallback.switchToFallback()) {
-                usingFallback = true;
-                const fallbackModel = geminiWithFallback.getGenerativeModel({
-                  model: "gemini-2.5-flash",
-                });
-                const fallbackChat = fallbackModel.startChat({
-                  generationConfig: {
-                    temperature: 1,
-                    topP: 0.95,
-                    topK: 40,
-                    maxOutputTokens: 8192,
-                    responseMimeType: "application/json",
+          const GenerateQuizAiModel = createQuizAiModel();
+          return await runAiWithFallback({
+            primaryModel: GenerateQuizAiModel,
+            modelName: MODELS.FAST,
+            generationConfig: MEDIUM_REASONING_CONFIG,
+            prompt,
+            courseId,
+            studyType,
+            fallbackHistory: [
+              {
+                role: "user",
+                parts: [
+                  {
+                    text: "Generate Quiz on topic : Flutter Fundamentals,User Interface (UI) Development,Basic App Navigation with Question and Options along with correct answer in JSON format",
                   },
-                  history: [
-                    {
-                      role: "user",
-                      parts: [
-                        {
-                          text: "Generate Quiz on topic : Flutter Fundamentals,User Interface (UI) Development,Basic App Navigation with Question and Options along with correct answer in JSON format",
-                        },
-                      ],
-                    },
-                    {
-                      role: "model",
-                      parts: [
-                        {
-                          text: '```json\n{\n  "quizTitle": "Flutter Fundamentals, UI Development & Basic Navigation",\n  "questions": [\n    {\n      "question": "What is the fundamental building block of a Flutter UI?",\n      "options": ["Widget", "Layout", "View", "Component"],\n      "answer": "Widget"\n    }\n  ]\n}\n```',
-                        },
-                      ],
-                    },
-                  ],
-                });
-
-                const result = await fallbackChat.sendMessage(prompt);
-                console.log("✅ Successfully used fallback API key for quiz");
-                return JSON.parse(result.response.text());
-              }
-            }
-            throw error; // Re-throw if fallback not available or didn't work
-          }
+                ],
+              },
+              {
+                role: "model",
+                parts: [
+                  {
+                    text: '```json\n{\n  "quizTitle": "Flutter Fundamentals, UI Development & Basic Navigation",\n  "questions": [\n    {\n      "question": "What is the fundamental building block of a Flutter UI?",\n      "options": ["Widget", "Layout", "View", "Component"],\n      "answer": "Widget"\n    }\n  ]\n}\n```',
+                  },
+                ],
+              },
+            ],
+          });
         });
       } else {
         throw new Error(`Unsupported studyType: ${studyType}`);
       }
-
-      // Reset to primary API key if we were using fallback and it worked
-      if (usingFallback) {
-        geminiWithFallback.resetToPrimary();
-        console.log("✅ Fallback API key worked, resetting to primary");
-      }
     } catch (error) {
-      console.error(`AI generation failed for ${studyType}`, error);
+      console.error(
+        `[Course ${courseId}] [${studyType}] AI generation failed: ${error.message}`,
+      );
       await step.run("Update DB - Failed Generation", async () => {
         await db
           .update(STUDY_TYPE_CONTENT_TABLE)
@@ -227,6 +191,7 @@ export const GenerateStudyTypeContent = inngest.createFunction(
             content: null,
             status: "failed", // Standardized status
             error: error.message,
+            retryCount: sql`${STUDY_TYPE_CONTENT_TABLE.retryCount} + 1`,
           })
           .where(eq(STUDY_TYPE_CONTENT_TABLE.id, recordId));
       });
@@ -244,5 +209,67 @@ export const GenerateStudyTypeContent = inngest.createFunction(
         })
         .where(eq(STUDY_TYPE_CONTENT_TABLE.id, recordId));
     });
-  }
+  },
 );
+
+/**
+ * Utility to execute an AI prompt with a resilient fallback mechanism
+ */
+async function runAiWithFallback({
+  primaryModel,
+  modelName,
+  generationConfig,
+  prompt,
+  courseId,
+  studyType,
+  fallbackHistory,
+}) {
+  let finalResult;
+  try {
+    const result = await primaryModel.sendMessage(prompt);
+    finalResult = result.response.text();
+  } catch (error) {
+    if (
+      geminiWithFallback.hasFallback() &&
+      (error.message.includes("429") ||
+        error.message.includes("Too Many Requests") ||
+        error.message.includes("503") ||
+        error.message.includes("Resource has been exhausted"))
+    ) {
+      console.log(
+        `[Course ${courseId}] [${studyType}] 🔄 Primary API overloaded, hitting fallback...`,
+      );
+      if (geminiWithFallback.switchToFallback()) {
+        try {
+          // Fallback fix: retry with SAME model + SAME config; only API key changes.
+          const fallbackModel = getModel(modelName);
+          const fallbackChat = fallbackModel.startChat({
+            generationConfig,
+            history: fallbackHistory,
+          });
+
+          const fbResult = await fallbackChat.sendMessage(prompt);
+          finalResult = fbResult.response.text();
+          console.log(
+            `[Course ${courseId}] ✅ Fallback API key used successfully`,
+          );
+        } finally {
+          geminiWithFallback.resetToPrimary();
+        }
+      } else {
+        throw error;
+      }
+    } else {
+      throw error;
+    }
+  }
+
+  try {
+    return JSON.parse(finalResult);
+  } catch (parseError) {
+    console.error(
+      `[Course ${courseId}] JSON parse failed: ${parseError.message}`,
+    );
+    throw new Error(`Failed to parse AI ${studyType} response`);
+  }
+}

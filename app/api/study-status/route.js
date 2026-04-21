@@ -6,7 +6,8 @@ import { NextResponse } from "next/server";
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const courseId = searchParams.get("courseId");
-  const type = searchParams.get("type");
+  // Normalize so "Flashcard", "FLASHCARD", "flashcard" all match the stored lowercase value
+  const type = searchParams.get("type")?.toLowerCase();
 
   if (!courseId || !type) {
     return NextResponse.json(
@@ -19,6 +20,7 @@ export async function GET(req) {
     const result = await db
       .select({
         status: STUDY_TYPE_CONTENT_TABLE.status,
+        error: STUDY_TYPE_CONTENT_TABLE.error,
       })
       .from(STUDY_TYPE_CONTENT_TABLE)
       .where(
@@ -36,7 +38,10 @@ export async function GET(req) {
       return NextResponse.json({ status: "pending" });
     }
 
-    return NextResponse.json({ status: result[0].status?.toLowerCase() });
+    return NextResponse.json({ 
+      status: result[0].status?.toLowerCase(),
+      errorMessage: result[0].error
+    });
   } catch (error) {
     console.error("Error fetching study status:", error);
     return NextResponse.json(

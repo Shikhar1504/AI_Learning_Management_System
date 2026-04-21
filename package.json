@@ -42,7 +42,8 @@
     "svix": "^1.75.0",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
-    "uuidv4": "^6.2.13"
+    "uuidv4": "^6.2.13",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "drizzle-kit": "^0.30.2",

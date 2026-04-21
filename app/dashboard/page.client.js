@@ -21,11 +21,10 @@ export default function DashboardClient() {
       setLoading(true);
       const response = await axios.get("/api/dashboard-data", {
         params: {
-          userEmail: user.primaryEmailAddress.emailAddress,
           _: new Date().getTime(), // Prevent caching
         },
       });
-      setDashboardData(response.data);
+      setDashboardData(response.data.data);
     } catch (error) {
       console.error("Failed to fetch dashboard data:", error);
     } finally {

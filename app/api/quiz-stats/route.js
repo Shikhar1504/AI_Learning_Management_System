@@ -24,10 +24,11 @@ export async function GET() {
         bestScore: USER_TABLE.quizBestScore,
         averageScore: USER_TABLE.quizAverageScore,
         lastScore: USER_TABLE.quizLastScore,
+        streak: USER_TABLE.streak,
       })
       .from(USER_TABLE)
       .where(eq(USER_TABLE.email, email))
-      .then(res => res[0]);
+      .then((res) => res[0]);
 
     if (!userStats) {
       return NextResponse.json({
@@ -35,6 +36,7 @@ export async function GET() {
         bestScore: 0,
         averageScore: 0,
         lastScore: 0,
+        streak: 0,
       });
     }
 
@@ -43,13 +45,13 @@ export async function GET() {
       bestScore: userStats.bestScore || 0,
       averageScore: userStats.averageScore || 0,
       lastScore: userStats.lastScore || 0,
+      streak: userStats.streak || 0,
     });
-
   } catch (error) {
     console.error("Error fetching quiz stats:", error);
     return NextResponse.json(
       { error: "Failed to fetch stats" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -12,6 +12,7 @@ export function useStudyStatus(courseId, type) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [isFailed, setIsFailed] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
   
   // Use statusRef to access current status inside intervals without dependency cycles
   const statusRef = useRef(status);
@@ -29,6 +30,11 @@ export function useStudyStatus(courseId, type) {
       );
       
       const newStatus = response.data.status?.toLowerCase() || "pending";
+      
+      if (response.data.errorMessage) {
+        setErrorMessage(response.data.errorMessage);
+      }
+      
       setStatus(newStatus);
       return newStatus;
     } catch (error) {
@@ -69,6 +75,7 @@ export function useStudyStatus(courseId, type) {
       // 1. Timeout Check (2 minutes)
       if (Date.now() - pollingStartTimeRef.current > 120000) {
         setStatus("failed"); // Or specific timeout status
+        setErrorMessage("Generation timed out. Please try again.");
         clearInterval(intervalId);
         return;
       }
@@ -93,6 +100,7 @@ export function useStudyStatus(courseId, type) {
     isGenerating,
     isCompleted,
     isFailed,
+    errorMessage,
     checkStatus: () => fetchStatus(), // Manual re-check if needed
     setStatus, // Allow manual override (e.g., setting "generating" immediately after trigger)
   };

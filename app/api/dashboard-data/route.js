@@ -3,19 +3,20 @@ import { db } from "@/configs/db";
 import { STUDY_MATERIAL_TABLE, USER_TABLE } from "@/configs/schema";
 import { eq, desc } from "drizzle-orm";
 import UserStatsService from "@/lib/userStatsService";
+import { currentUser } from "@clerk/nextjs/server";
 
 // Force dynamic since we're fetching user-specific data
 export const dynamic = "force-dynamic";
 
 export async function GET(request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const userEmail = searchParams.get("userEmail");
+    const user = await currentUser();
+    const userEmail = user?.primaryEmailAddress?.emailAddress;
 
     if (!userEmail) {
       return NextResponse.json(
-        { error: "User email is required" },
-        { status: 400 }
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
       );
     }
 
@@ -30,13 +31,16 @@ export async function GET(request) {
     ]);
 
     return NextResponse.json({
-      userStats: stats,
-      courses: courses,
+      success: true,
+      data: {
+        userStats: stats,
+        courses: courses,
+      }
     });
   } catch (error) {
     console.error("Error fetching dashboard data:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }

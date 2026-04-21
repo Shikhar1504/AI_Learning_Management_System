@@ -8,12 +8,13 @@ import {
   varchar,
   timestamp,
   index,
+  unique,
 } from "drizzle-orm/pg-core";
 
 export const USER_TABLE = pgTable("users", {
   id: varchar("id", { length: 256 }).primaryKey(),
   name: varchar().notNull(),
-  email: varchar().notNull(),
+  email: varchar().notNull().unique(),
   isMember: boolean().default(false),
   customerId: varchar(),
   // User stats fields
@@ -46,7 +47,7 @@ export const STUDY_MATERIAL_TABLE = pgTable("studyMaterial", {
   difficultyLevel: varchar().default("Easy"),
   courseLayout: json(),
   createdBy: varchar().notNull(),
-  status: varchar().default("Generating"),
+  status: varchar().default("generating"),
   createdAt: timestamp().defaultNow(),
   // NEW FIELDS
   totalTopics: integer().default(0),
@@ -65,6 +66,12 @@ export const STUDY_TYPE_CONTENT_TABLE = pgTable("studyTypeContent", {
   content: json(),
   type: varchar().notNull(),
   status: varchar().default("generating"), // Standardized default
+  retryCount: integer().default(0),
+  error: text(),
+}, (table) => {
+  return {
+    courseTypeUnique: unique("course_type_unique").on(table.courseId, table.type),
+  };
 });
 
 export const TOPIC_TABLE = pgTable("topics", {
@@ -75,7 +82,8 @@ export const TOPIC_TABLE = pgTable("topics", {
   chapterTitle: varchar().notNull(),
   topicTitle: varchar().notNull(),
   notesContent: text(),
-  status: varchar().default("pending"), // pending | generating | completed
+  status: varchar().default("pending"), // pending | generating | completed | failed
+  error: text(),
   createdAt: timestamp().defaultNow(),
   updatedAt: timestamp().defaultNow(),
 }, (table) => {
@@ -92,7 +100,7 @@ export const PAYMENT_RECORD_TABLE = pgTable("paymentRecord", {
 
 export const QUIZ_ATTEMPT_TABLE = pgTable("quizAttempt", {
   id: varchar("id", { length: 256 }).primaryKey(),
-  userEmail: varchar().notNull(),
+  userId: varchar().notNull(),
   courseId: varchar(), // null for mixed quiz
   score: integer().notNull(),
   totalQuestions: integer().notNull(),
@@ -101,6 +109,6 @@ export const QUIZ_ATTEMPT_TABLE = pgTable("quizAttempt", {
   createdAt: timestamp().defaultNow(),
 }, (table) => {
   return {
-    userIdx: index("quiz_attempt_user_idx").on(table.userEmail),
+    userIdx: index("quiz_attempt_user_idx").on(table.userId),
   };
 });

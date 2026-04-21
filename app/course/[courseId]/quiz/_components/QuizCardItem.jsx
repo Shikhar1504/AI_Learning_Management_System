@@ -19,8 +19,10 @@ function QuizCardItem({ quiz, selectedAnswer, isAnswered, onAnswerSelect }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
         {quiz.options?.map((option, index) => {
           const isSelected = selectedAnswer === option;
-          const isCorrect = isAnswered && option === quiz.answer;
-          const isIncorrect = isAnswered && isSelected && option !== quiz.answer;
+          // Normalize to prevent AI whitespace/case hallucinations
+          const normalize = (str) => String(str || "").trim().toLowerCase();
+          const isCorrect = isAnswered && normalize(option) === normalize(quiz.answer);
+          const isIncorrect = isAnswered && isSelected && normalize(option) !== normalize(quiz.answer);
           
           return (
             <button

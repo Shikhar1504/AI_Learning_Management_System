@@ -1,4 +1,10 @@
-import { generateNotesAiModel, geminiWithFallback } from "@/configs/AiModel";
+import {
+  createNotesAiModel,
+  geminiWithFallback,
+  getModel,
+  HIGH_REASONING_TEXT_CONFIG,
+  MODELS,
+} from "@/configs/AiModel";
 import { db } from "@/configs/db";
 import { STUDY_MATERIAL_TABLE, TOPIC_TABLE } from "@/configs/schema";
 import { and, eq } from "drizzle-orm";
@@ -40,11 +46,27 @@ export async function POST(req) {
     );
   }
 
-  // Update status to generating
-  await db
+  // Allow retry if previously failed; reject any other unexpected state (e.g. unknown value)
+  if (topic.status !== "pending" && topic.status !== "failed") {
+    return NextResponse.json(
+      { message: `Cannot generate notes for topic in state: ${topic.status}` },
+      { status: 409 }
+    );
+  }
+
+  // Update status to generating — state guard above ensures only pending/failed reaches here
+  const updateResult = await db
     .update(TOPIC_TABLE)
     .set({ status: "generating", updatedAt: new Date() })
-    .where(eq(TOPIC_TABLE.id, topicId));
+    .where(eq(TOPIC_TABLE.id, topicId))
+    .returning({ id: TOPIC_TABLE.id });
+
+  if (!updateResult || updateResult.length === 0) {
+    return NextResponse.json(
+      { message: "Topic is not in pending state or does not exist" },
+      { status: 409 }
+    );
+  }
 
   try {
     const PROMPT =
@@ -71,7 +93,8 @@ export async function POST(req) {
       "- Question 1\n" +
       "- Question 2";
 
-    // Call Gemini
+    // Call Gemini — create a fresh session per request to avoid shared history
+    const generateNotesAiModel = createNotesAiModel();
     let aiResp;
     let notesContent;
     
@@ -89,20 +112,12 @@ export async function POST(req) {
       ) {
         console.log("🔄 Primary API key overloaded for notes, trying fallback...");
         if (geminiWithFallback.switchToFallback()) {
-            const fallbackModel = geminiWithFallback.getGenerativeModel({
-              model: "gemini-2.5-flash",
-            });
-            
-            const generationConfig2 = {
-              temperature: 1,
-              topP: 0.95,
-              topK: 40,
-              maxOutputTokens: 8192,
-              responseMimeType: "text/plain",
-            };
+          try {
+            // Fallback fix: retry with the SAME model/config, only API key switches.
+            const fallbackModel = getModel(MODELS.SMART);
 
             const fallbackChat = fallbackModel.startChat({
-              generationConfig: generationConfig2,
+              generationConfig: HIGH_REASONING_TEXT_CONFIG,
               history: [
                 {
                   role: "user",
@@ -128,8 +143,9 @@ export async function POST(req) {
             aiResp = await fallbackChat.sendMessage(PROMPT);
             notesContent = aiResp.response.text();
             console.log("✅ Successfully used fallback API key for notes");
-            
+          } finally {
             geminiWithFallback.resetToPrimary();
+          }
         } else {
             throw error;
         }
@@ -178,19 +194,19 @@ export async function POST(req) {
       status: "completed",
     });
   } catch (error) {
-    console.error("Error generating topic notes:", error);
+    console.error(`[Topic ${topicId}] Error generating topic notes:`, error);
 
-    // Reset status to pending on error
     await db
       .update(TOPIC_TABLE)
       .set({
-        status: "pending",
+        status: "failed",
+        error: error.message || "Failed to generate notes",
         updatedAt: new Date(),
       })
       .where(eq(TOPIC_TABLE.id, topicId));
 
     return NextResponse.json(
-      { error: "Failed to generate notes" },
+      { error: error.message || "Failed to generate notes" },
       { status: 500 }
     );
   }

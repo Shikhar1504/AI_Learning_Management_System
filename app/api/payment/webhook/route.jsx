@@ -33,55 +33,35 @@ export async function POST(req) {
   }
 
   switch (eventType) {
-    case "checkout.session.completed":
-      // Payment is successful and the subscription is created.
-      // You should provision the subscription and save the customer ID to your database.
-      const result = await db
-        .update(USER_TABLE)
-        .set({
-          isMember: true,
-        })
-        .where(eq(USER_TABLE.email, data.object.customer_details.email));
-
+    case "checkout.session.completed": {
+      const email = data.object.customer_details?.email;
+      if (!email) { console.warn("[Stripe] checkout.session.completed: no email found"); break; }
+      const r1 = await db.update(USER_TABLE).set({ isMember: true }).where(eq(USER_TABLE.email, email)).returning();
+      if (r1.length === 0) console.warn(`[Stripe] checkout.session.completed: no user found for email ${email}`);
       break;
-    case "invoice.paid":
-      // Continue to provision the subscription as payments continue to be made.
-      // Store the status in your database and check when a user accesses your service.
-      // This approach helps you avoid hitting rate limits.
-      // Record to Payment-Record Table
-      await db
-        .update(USER_TABLE)
-        .set({
-          isMember: true,
-        })
-        .where(eq(USER_TABLE.email, data.object.customer_email));
+    }
+    case "invoice.paid": {
+      const email = data.object.customer_email;
+      if (!email) { console.warn("[Stripe] invoice.paid: no email found"); break; }
+      const r2 = await db.update(USER_TABLE).set({ isMember: true }).where(eq(USER_TABLE.email, email)).returning();
+      if (r2.length === 0) console.warn(`[Stripe] invoice.paid: no user found for email ${email}`);
       break;
-
-    case "customer.subscription.deleted":
-      // const customerSubscriptionDeleted = e.object;
-      await db
-        .update(USER_TABLE)
-        .set({
-          isMember: false,
-        })
-        .where(eq(USER_TABLE.customerId, data.object.customer));
-
-      // Then define and call a function to handle the event customer.subscription.deleted
+    }
+    case "customer.subscription.deleted": {
+      const customerId = data.object.customer;
+      const r3 = await db.update(USER_TABLE).set({ isMember: false }).where(eq(USER_TABLE.customerId, customerId)).returning();
+      if (r3.length === 0) console.warn(`[Stripe] subscription.deleted: no user found for customerId ${customerId}`);
       break;
-    case "invoice.payment_failed":
-      // The payment failed or the customer does not have a valid payment method.
-      // The subscription becomes past_due. Notify your customer and send them to the
-      // customer portal to update their payment information.
-      await db
-        .update(USER_TABLE)
-        .set({
-          isMember: false,
-        })
-        .where(eq(USER_TABLE.email, data.customer_details.email));
-
+    }
+    case "invoice.payment_failed": {
+      const email = data.object.customer_details?.email;
+      if (!email) { console.warn("[Stripe] invoice.payment_failed: no email found"); break; }
+      const r4 = await db.update(USER_TABLE).set({ isMember: false }).where(eq(USER_TABLE.email, email)).returning();
+      if (r4.length === 0) console.warn(`[Stripe] invoice.payment_failed: no user found for email ${email}`);
       break;
+    }
     default:
-    // Unhandled event type
+      console.log(`[Stripe] Unhandled event type: ${eventType}`);
   }
 
   return NextResponse.json({ result: "success" });

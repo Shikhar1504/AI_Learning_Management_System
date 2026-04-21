@@ -1,14 +1,114 @@
-import { courseOutlineAIModel, geminiWithFallback } from "@/configs/AiModel";
+import {
+  createCourseOutlineAIModel,
+  getModel,
+  geminiWithFallback,
+  HIGH_REASONING_CONFIG,
+  MODELS,
+} from "@/configs/AiModel";
 import { db } from "@/configs/db";
 import { STUDY_MATERIAL_TABLE, TOPIC_TABLE } from "@/configs/schema";
 import { inngest } from "@/inngest/client";
 import UserStatsService from "@/lib/userStatsService";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { currentUser } from "@clerk/nextjs/server";
+import { COURSE_OUTLINE_PROMPT } from "@/configs/prompts";
+import { z } from "zod";
+
+const courseOutlineSchema = z.object({
+  courseId: z.string().min(1),
+  topic: z.string().min(1),
+  courseType: z.string().min(1),
+  difficultyLevel: z.string().default("Easy"),
+});
+
+function normalizeCourseLayout(layout, topic, difficultyLevel) {
+  const rawChapters = Array.isArray(layout?.chapters) ? layout.chapters : [];
+
+  const chapters = rawChapters.map((chapter, chapterIndex) => {
+    const title =
+      chapter?.title ||
+      chapter?.chapterTitle ||
+      chapter?.chapter_title ||
+      `Chapter ${chapterIndex + 1}`;
+
+    const summary =
+      chapter?.summary ||
+      chapter?.chapterSummary ||
+      chapter?.chapter_summary ||
+      `Overview for ${title}`;
+
+    const emoji = chapter?.emoji || chapter?.emoji_icon || "📘";
+
+    const topics = Array.isArray(chapter?.topics)
+      ? chapter.topics
+          .map((t) => (typeof t === "string" ? t : t?.topicTitle || t?.title))
+          .filter(Boolean)
+      : [];
+
+    return {
+      title,
+      chapterTitle: title,
+      chapter_title: title,
+      summary,
+      chapterSummary: summary,
+      chapter_summary: summary,
+      emoji,
+      emoji_icon: emoji,
+      topics,
+    };
+  });
+
+  const courseTitle =
+    layout?.courseTitle || layout?.course_title || layout?.title || topic;
+  const summary =
+    layout?.summary || layout?.course_summary || `Course on ${topic}`;
+
+  return {
+    ...layout,
+    courseTitle,
+    course_title: courseTitle,
+    difficulty_level: layout?.difficulty_level || difficultyLevel,
+    summary,
+    course_summary: summary,
+    chapters,
+  };
+}
 
 export async function POST(req) {
-  const { courseId, topic, courseType, difficultyLevel, createdBy } =
-    await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch (e) {
+    return NextResponse.json(
+      { success: false, error: "Invalid JSON body" },
+      { status: 400 },
+    );
+  }
+
+  const validation = courseOutlineSchema.safeParse(body);
+  if (!validation.success) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Missing or invalid required fields",
+        details: validation.error.format(),
+      },
+      { status: 400 },
+    );
+  }
+
+  const { courseId, topic, courseType, difficultyLevel } = validation.data;
+
+  const user = await currentUser();
+  const createdBy = user?.primaryEmailAddress?.emailAddress;
+
+  if (!createdBy) {
+    return NextResponse.json(
+      { success: false, error: "Unauthorized" },
+      { status: 401 },
+    );
+  }
 
   // Check daily course limit before proceeding
   try {
@@ -16,35 +116,41 @@ export async function POST(req) {
   } catch (error) {
     console.error("Daily course limit exceeded:", error.message);
     return NextResponse.json(
-      { error: error.message },
-      { status: 429 } // Too Many Requests
+      { success: false, error: error.message },
+      { status: 429 }, // Too Many Requests
     );
   }
 
-  const PROMPT =
-    "Generate a study material for " +
-    topic +
-    " for " +
-    courseType +
-    " and level of difficulty  will be " +
-    difficultyLevel +
-    " with summary of course, List of Chapters (EXACTLY 3 chapters, no more, no less) along with summary and Emoji icon for each chapter, Topic list in each chapter, and all result in JSON format. IMPORTANT: Generate exactly 3 chapters only.";
+  const PROMPT = COURSE_OUTLINE_PROMPT(topic, courseType, difficultyLevel);
+
+  // Create a FRESH chat session per request (avoids shared history concurrency bug)
+  const courseOutlineAIModel = createCourseOutlineAIModel();
 
   // Generate Course Layout using AI with error handling
   let aiResult;
   try {
     const aiResp = await courseOutlineAIModel.sendMessage(PROMPT);
-    aiResult = JSON.parse(aiResp.response.text());
+    try {
+      aiResult = JSON.parse(aiResp.response.text());
+    } catch (parseError) {
+      console.log(
+        `[Course ${courseId}] JSON parse failed: ${parseError.message}`,
+      );
+      throw new Error("Failed to parse AI JSON response");
+    }
+
+    // Normalize key shapes from AI (course_title/chapter_title/etc) so UI + DB stay consistent.
+    aiResult = normalizeCourseLayout(aiResult, topic, difficultyLevel);
 
     // Validate and fix chapter count
     if (aiResult.chapters && aiResult.chapters.length > 3) {
       console.log(
-        `⚠️ AI generated ${aiResult.chapters.length} chapters, trimming to 3`
+        `⚠️ AI generated ${aiResult.chapters.length} chapters, trimming to 3`,
       );
       aiResult.chapters = aiResult.chapters.slice(0, 3);
     } else if (aiResult.chapters && aiResult.chapters.length < 3) {
       console.log(
-        `⚠️ AI generated ${aiResult.chapters.length} chapters, padding to 3`
+        `⚠️ AI generated ${aiResult.chapters.length} chapters, padding to 3`,
       );
       // Add generic chapters if needed
       while (aiResult.chapters.length < 3) {
@@ -62,11 +168,14 @@ export async function POST(req) {
       }
     }
 
+    // Ensure padded/trimmed result is also normalized.
+    aiResult = normalizeCourseLayout(aiResult, topic, difficultyLevel);
+
     console.log(
-      `✅ Course generated with ${aiResult.chapters.length} chapters`
+      `✅ Course generated with ${aiResult.chapters.length} chapters`,
     );
   } catch (error) {
-    console.error("AI Model Error:", error.message);
+    console.error(`[Course ${courseId}] AI Model Error:`, error.message);
 
     // Try fallback API key if available
     if (
@@ -79,21 +188,11 @@ export async function POST(req) {
       console.log("🔄 Primary API key overloaded, trying fallback...");
       if (geminiWithFallback.switchToFallback()) {
         try {
-          // Re-create the model configuration for fallback
-          const fallbackModel = geminiWithFallback.getGenerativeModel({
-            model: "gemini-2.5-flash",
-          });
-          
-          const generationConfig = {
-            temperature: 1,
-            topP: 0.95,
-            topK: 40,
-            maxOutputTokens: 8192,
-            responseMimeType: "application/json",
-          };
+          // Fallback fix: retry with the SAME model/config, only API key switches.
+          const fallbackModel = getModel(MODELS.SMART);
 
           const fallbackChat = fallbackModel.startChat({
-            generationConfig,
+            generationConfig: HIGH_REASONING_CONFIG,
             history: [
               {
                 role: "user",
@@ -116,13 +215,19 @@ export async function POST(req) {
 
           const aiResp = await fallbackChat.sendMessage(PROMPT);
           aiResult = JSON.parse(aiResp.response.text());
-          console.log("✅ Successfully used fallback API key for course outline");
-          
-          // Reset check 
-          geminiWithFallback.resetToPrimary();
+          aiResult = normalizeCourseLayout(aiResult, topic, difficultyLevel);
+          console.log(
+            "✅ Successfully used fallback API key for course outline",
+          );
         } catch (fallbackError) {
-           console.error("❌ Fallback API key also failed:", fallbackError.message);
-           // Fall through to manual fallback content
+          console.error(
+            `[Course ${courseId}] Fallback API key also failed:`,
+            fallbackError.message,
+          );
+          // Fall through to manual fallback content
+        } finally {
+          // Reset check
+          geminiWithFallback.resetToPrimary();
         }
       }
     }
@@ -158,43 +263,33 @@ export async function POST(req) {
           },
         ],
       };
+      aiResult = normalizeCourseLayout(aiResult, topic, difficultyLevel);
     }
   }
 
   // Save the result along with User Input
-  console.log("Inserting data into the database...");
-  const dbResult = await db
-    .insert(STUDY_MATERIAL_TABLE)
-    .values({
-      id: crypto.randomUUID(), // Generate unique ID
-      courseId: courseId,
-      courseType: courseType,
-      createdBy: createdBy,
-      topic: topic,
-      difficultyLevel: difficultyLevel, // Add missing difficulty level
-      courseLayout: aiResult,
-      status: "Ready", // Notes are now generated on-demand, so course is ready immediately
-    })
-    .returning({ resp: STUDY_MATERIAL_TABLE });
-  console.log("Database insertion successful:", dbResult);
+  console.log(`[Course ${courseId}] Inserting data into the database...`);
 
-  // Update user stats for daily activity and streak tracking
+  let dbResult;
+  let courseInserted = false;
   try {
-    await UserStatsService.updateUserStats(createdBy, {
-      dailyActivity: true, // This triggers streak update
-      courseCreated: true,
-    });
-    console.log("User stats updated for course creation activity");
-  } catch (error) {
-    console.error(
-      "Failed to update user stats for course creation:",
-      error.message
-    );
-    // Continue execution even if stats update fails
-  }
+    dbResult = await db
+      .insert(STUDY_MATERIAL_TABLE)
+      .values({
+        id: crypto.randomUUID(), // Generate unique ID
+        courseId: courseId,
+        courseType: courseType,
+        createdBy: createdBy,
+        topic: topic,
+        difficultyLevel: difficultyLevel, // Add missing difficulty level
+        courseLayout: aiResult,
+        status: "completed", // Standardized generic status
+      })
+      .returning({ resp: STUDY_MATERIAL_TABLE });
 
-  // Populate TOPIC_TABLE
-  try {
+    courseInserted = true;
+
+    // Populate TOPIC_TABLE
     const chapters = aiResult?.chapters || [];
     const topicsToInsert = [];
 
@@ -217,7 +312,9 @@ export async function POST(req) {
 
     if (topicsToInsert.length > 0) {
       await db.insert(TOPIC_TABLE).values(topicsToInsert);
-      console.log(`Inserted ${topicsToInsert.length} topics into TOPIC_TABLE`);
+      console.log(
+        `[Course ${courseId}] Inserted ${topicsToInsert.length} topics into TOPIC_TABLE`,
+      );
 
       // Initialize STUDY_MATERIAL_TABLE progress fields
       await db
@@ -229,11 +326,45 @@ export async function POST(req) {
         })
         .where(eq(STUDY_MATERIAL_TABLE.courseId, courseId));
     }
+
+    console.log(`[Course ${courseId}] Database insertion successful`);
   } catch (error) {
-    console.error("Error populating TOPIC_TABLE:", error);
-    // Log error but don't fail the request as course is created
+    console.error(`[Course ${courseId}] Database insertion failed:`, error);
+
+    if (courseInserted) {
+      try {
+        await db.delete(TOPIC_TABLE).where(eq(TOPIC_TABLE.courseId, courseId));
+        await db
+          .delete(STUDY_MATERIAL_TABLE)
+          .where(eq(STUDY_MATERIAL_TABLE.courseId, courseId));
+      } catch (cleanupError) {
+        console.error(
+          `[Course ${courseId}] Cleanup after failed insert also failed:`,
+          cleanupError,
+        );
+      }
+    }
+
+    return NextResponse.json(
+      { success: false, error: "Database insert failed" },
+      { status: 500 },
+    );
   }
 
+  // Update user stats for daily activity and streak tracking
+  try {
+    await UserStatsService.updateUserStats(createdBy, {
+      dailyActivity: true, // This triggers streak update
+      courseCreated: true,
+    });
+    console.log("User stats updated for course creation activity");
+  } catch (error) {
+    console.error(
+      `[Course ${courseId}] Failed to update user stats for course creation:`,
+      error.message,
+    );
+    // Continue execution even if stats update fails
+  }
 
-  return NextResponse.json({ result: dbResult[0] });
+  return NextResponse.json({ success: true, data: dbResult[0] });
 }

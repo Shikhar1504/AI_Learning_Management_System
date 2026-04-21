@@ -85,7 +85,7 @@ function Create() {
         toast({
           title: "Generation Failed ❌",
           description:
-            "Something went wrong. Please try again or contact support.",
+            error.response?.data?.error || "Something went wrong. Please try again or contact support.",
           variant: "destructive",
         });
       }

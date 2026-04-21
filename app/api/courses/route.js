@@ -6,6 +6,7 @@ import {
 } from "@/configs/schema";
 import { desc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { currentUser } from "@clerk/nextjs/server";
 
 // Helper function to retry database operations
 async function retryDbOperation(operation, maxRetries = 3, delay = 1000) {
@@ -15,7 +16,7 @@ async function retryDbOperation(operation, maxRetries = 3, delay = 1000) {
     } catch (error) {
       console.warn(
         `Database operation attempt ${attempt}/${maxRetries} failed:`,
-        error.message
+        error.message,
       );
 
       if (attempt === maxRetries) {
@@ -30,12 +31,13 @@ async function retryDbOperation(operation, maxRetries = 3, delay = 1000) {
 
 export async function POST(req) {
   try {
-    const { createdBy } = await req.json();
+    const user = await currentUser();
+    const createdBy = user?.primaryEmailAddress?.emailAddress;
 
     if (!createdBy) {
       return NextResponse.json(
-        { error: "createdBy is required" },
-        { status: 400 }
+        { success: false, error: "Unauthorized" },
+        { status: 401 },
       );
     }
 
@@ -47,18 +49,19 @@ export async function POST(req) {
         .orderBy(desc(STUDY_MATERIAL_TABLE.id));
     });
 
-    return NextResponse.json({ result: result });
+    return NextResponse.json({ success: true, data: result });
   } catch (error) {
     console.error("Error fetching user courses:", error);
 
     // Return empty result on database error
     return NextResponse.json(
       {
-        result: [],
+        success: false,
+        data: [],
         error: "Database temporarily unavailable",
         fallback: true,
       },
-      { status: 200 }
+      { status: 200 },
     ); // Return 200 to not break the UI
   }
 }
@@ -84,8 +87,8 @@ export async function GET(req) {
   try {
     if (!courseId) {
       return NextResponse.json(
-        { error: "courseId is required" },
-        { status: 400 }
+        { success: false, error: "courseId is required" },
+        { status: 400 },
       );
     }
 
@@ -97,54 +100,22 @@ export async function GET(req) {
     });
 
     if (!course || course.length === 0) {
-      return NextResponse.json({ error: "Course not found" }, { status: 404 });
+      return NextResponse.json(
+        { success: false, error: "Course not found" },
+        { status: 404 },
+      );
     }
 
-    return NextResponse.json({ result: course[0] });
+    return NextResponse.json({ success: true, data: course[0] });
   } catch (error) {
-    console.error("Error fetching course:", error);
-
-    // Return fallback course data
-    const fallbackCourse = {
-      courseId: courseId,
-      courseType: "Course",
-      topic: "Advanced Learning Course",
-      difficultyLevel: "Intermediate",
-      courseLayout: {
-        courseTitle: "Course Content Loading",
-        summary:
-          "This course is temporarily unavailable due to database connectivity issues. Please try refreshing the page or check back in a few minutes.",
-        chapters: [
-          {
-            title: "Introduction",
-            summary: "Getting started with the course basics",
-            topics: ["Course Overview", "Learning Objectives"],
-          },
-          {
-            title: "Core Concepts",
-            summary: "Understanding fundamental principles",
-            topics: ["Key Principles", "Best Practices"],
-          },
-          {
-            title: "Advanced Topics",
-            summary: "Deep dive into complex subjects",
-            topics: ["Advanced Techniques", "Case Studies"],
-          },
-        ],
-      },
-      status: "Ready",
-      createdBy: "system",
-      createdAt: new Date().toISOString(),
-      fallback: true,
-    };
-
+    console.error(`[Course ${courseId}] Error fetching course:`, error);
+    // Return a real error — never ship fake course data to the UI
     return NextResponse.json(
       {
-        result: fallbackCourse,
-        error: "Database temporarily unavailable",
-        fallback: true,
+        success: false,
+        error: "Database temporarily unavailable. Please try again.",
       },
-      { status: 200 }
+      { status: 503 },
     );
   }
 }
@@ -156,48 +127,41 @@ export async function DELETE(req) {
 
     if (!courseId) {
       return NextResponse.json(
-        { error: "courseId is required" },
-        { status: 400 }
+        { success: false, error: "courseId is required" },
+        { status: 400 },
       );
     }
 
-    // First, delete related content from other tables
-    await retryDbOperation(async () => {
-      // Note: Chapter notes deletion removed as the table is deprecated
+    await db
+      .delete(STUDY_TYPE_CONTENT_TABLE)
+      .where(eq(STUDY_TYPE_CONTENT_TABLE.courseId, courseId));
 
-      // Delete study type content (flashcards, quizzes)
-      await db
-        .delete(STUDY_TYPE_CONTENT_TABLE)
-        .where(eq(STUDY_TYPE_CONTENT_TABLE.courseId, courseId));
+    await db.delete(TOPIC_TABLE).where(eq(TOPIC_TABLE.courseId, courseId));
 
-      // Delete topics
-      await db
-        .delete(TOPIC_TABLE)
-        .where(eq(TOPIC_TABLE.courseId, courseId));
-
-      // Finally, delete the main course
-      const result = await db
-        .delete(STUDY_MATERIAL_TABLE)
-        .where(eq(STUDY_MATERIAL_TABLE.courseId, courseId))
-        .returning();
-
-      return result;
-    });
+    await db
+      .delete(STUDY_MATERIAL_TABLE)
+      .where(eq(STUDY_MATERIAL_TABLE.courseId, courseId));
 
     console.log(
-      `✅ Course ${courseId} and all related content deleted successfully`
+      `✅ Course ${courseId} and all related content deleted successfully`,
     );
 
     return NextResponse.json({
       success: true,
-      message: "Course and all related content deleted successfully",
-      courseId,
+      data: {
+        message: "Course and all related content deleted successfully",
+        courseId,
+      },
     });
   } catch (error) {
-    console.error("Error deleting course:", error);
+    console.error(`[Course ${courseId}] Error deleting course:`, error);
     return NextResponse.json(
-      { error: "Failed to delete course", details: error.message },
-      { status: 500 }
+      {
+        success: false,
+        error: "Failed to delete course",
+        details: error.message,
+      },
+      { status: 500 },
     );
   }
 }

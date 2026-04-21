@@ -24,7 +24,7 @@ function Course() {
     try {
       setLoading(true);
       const result = await axios.get("/api/courses?courseId=" + courseId);
-      setCourse(result.data.result);
+      setCourse(result.data.data);
       setError(null);
     } catch (error) {
       console.error("Error fetching course:", error);
@@ -52,7 +52,9 @@ function Course() {
           <div className="w-16 h-16 bg-red-500/20 rounded-2xl flex items-center justify-center mx-auto">
             <span className="text-2xl">⚠️</span>
           </div>
-          <h2 className="text-xl font-semibold text-foreground">Course Not Found</h2>
+          <h2 className="text-xl font-semibold text-foreground">
+            Course Not Found
+          </h2>
           <p className="text-muted-foreground">{error}</p>
           <Link href="/dashboard">
             <Button className="btn-primary">
@@ -71,25 +73,25 @@ function Course() {
       <section className="fade-in">
         <CourseIntroCard course={course} />
       </section>
-      
+
       {/* Divider */}
       <div className="w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
       {/* Study Materials */}
-      <section className="slide-up" style={{ animationDelay: '100ms' }}>
-        <StudyMaterialSection courseId={courseId} course={course} /> 
+      <section className="slide-up" style={{ animationDelay: "100ms" }}>
+        <StudyMaterialSection courseId={courseId} course={course} />
       </section>
 
       {/* Divider */}
       <div className="w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-      
+
       {/* Chapter List */}
-      <section className="slide-up" style={{ animationDelay: '200ms' }}>
+      <section className="slide-up" style={{ animationDelay: "200ms" }}>
         <ChapterList course={course} />
       </section>
 
       {/* Study Tips */}
-      <section className="slide-up" style={{ animationDelay: '300ms' }}>
+      <section className="slide-up" style={{ animationDelay: "300ms" }}>
         <StudyTips />
       </section>
     </div>
