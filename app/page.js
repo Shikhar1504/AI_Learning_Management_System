@@ -27,7 +27,7 @@ export default function Home() {
       // Log the priceId being sent
       console.log(
         "Requesting checkout with priceId:",
-        process.env.NEXT_PUBLIC_STRIPE_PRICE_ID
+        process.env.NEXT_PUBLIC_STRIPE_PRICE_ID,
       );
 
       const result = await axios.post("/api/payment/checkout", {
@@ -565,8 +565,8 @@ export default function Home() {
               Choose Your Plan
             </h2>
             <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto">
-              Start free and upgrade when you're ready. No hidden fees, cancel
-              anytime.
+              Start free and upgrade when you&apos;re ready. No hidden fees,
+              cancel anytime.
             </p>
           </div>
 

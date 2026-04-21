@@ -3,6 +3,7 @@ import { SignIn, useAuth } from "@clerk/nextjs";
 import { GraduationCap, Sparkles, BookOpen, Brain } from "lucide-react";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function Page() {
   const { isSignedIn } = useAuth();
@@ -50,7 +51,8 @@ export default function Page() {
                 Transform Your Learning Journey
               </h2>
               <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xs sm:max-w-md lg:max-w-lg mx-auto lg:mx-0 leading-relaxed">
-                Join thousands of professionals using AI-powered courses to accelerate their career growth and master new skills.
+                Join thousands of professionals using AI-powered courses to
+                accelerate their career growth and master new skills.
               </p>
             </div>
 
@@ -60,31 +62,46 @@ export default function Page() {
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center mx-auto lg:mx-0 mb-3">
                   <Brain className="h-5 w-5 sm:h-6 sm:w-6 text-purple-400" />
                 </div>
-                <h3 className="text-sm sm:text-base font-semibold text-foreground mb-1">AI-Powered</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">Smart content generation</p>
+                <h3 className="text-sm sm:text-base font-semibold text-foreground mb-1">
+                  AI-Powered
+                </h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Smart content generation
+                </p>
               </div>
-              
+
               <div className="text-center lg:text-left">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center mx-auto lg:mx-0 mb-3">
                   <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-blue-400" />
                 </div>
-                <h3 className="text-sm sm:text-base font-semibold text-foreground mb-1">Interactive</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">Engaging study materials</p>
+                <h3 className="text-sm sm:text-base font-semibold text-foreground mb-1">
+                  Interactive
+                </h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Engaging study materials
+                </p>
               </div>
-              
+
               <div className="text-center lg:text-left">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center mx-auto lg:mx-0 mb-3">
                   <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-green-400" />
                 </div>
-                <h3 className="text-sm sm:text-base font-semibold text-foreground mb-1">Personalized</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">Tailored learning paths</p>
+                <h3 className="text-sm sm:text-base font-semibold text-foreground mb-1">
+                  Personalized
+                </h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Tailored learning paths
+                </p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Right Side - Auth Form */}
-        <div className="w-full max-w-[350px] sm:max-w-[380px] md:max-w-[420px] lg:flex-shrink-0 scale-in order-1 lg:order-2 mx-auto" style={{ animationDelay: '300ms' }}>
+        <div
+          className="w-full max-w-[350px] sm:max-w-[380px] md:max-w-[420px] lg:flex-shrink-0 scale-in order-1 lg:order-2 mx-auto"
+          style={{ animationDelay: "300ms" }}
+        >
           <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl shadow-xl p-6 sm:p-7 w-full mx-auto flex flex-col items-center">
             <div className="text-center w-full mb-6">
               <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">
@@ -106,41 +123,51 @@ export default function Page() {
                 elements: {
                   card: "shadow-none border-0 bg-transparent p-0",
                   header: "hidden",
-                  socialButtonsBlockButton: "bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300 text-white font-medium h-10 px-4 rounded-lg w-full flex items-center justify-center text-sm",
+                  socialButtonsBlockButton:
+                    "bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300 text-white font-medium h-10 px-4 rounded-lg w-full flex items-center justify-center text-sm",
                   socialButtonsIconButton: "mr-2",
                   socialButtons: "w-full grid gap-3 mb-4",
-                  formButtonPrimary: "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold h-11 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5",
-                  formFieldInput: "bg-white/5 border border-white/20 focus:border-purple-500 focus:ring-purple-500 rounded-xl text-white placeholder:text-white/50 h-11",
+                  formButtonPrimary:
+                    "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold h-11 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5",
+                  formFieldInput:
+                    "bg-white/5 border border-white/20 focus:border-purple-500 focus:ring-purple-500 rounded-xl text-white placeholder:text-white/50 h-11",
                   formFieldLabel: "text-white font-medium",
-                  footerActionLink: "text-purple-400 hover:text-purple-300 transition-colors font-medium",
+                  footerActionLink:
+                    "text-purple-400 hover:text-purple-300 transition-colors font-medium",
                   dividerLine: "bg-white/20",
                   dividerText: "text-white/70",
-                  formFieldInputShowPasswordButton: "text-muted-foreground hover:text-foreground",
+                  formFieldInputShowPasswordButton:
+                    "text-muted-foreground hover:text-foreground",
                   formFieldAction: "text-purple-400 hover:text-purple-300",
-                  identityPreviewEditButton: "text-purple-400 hover:text-purple-300",
+                  identityPreviewEditButton:
+                    "text-purple-400 hover:text-purple-300",
                   formFieldSuccessText: "text-green-400",
                   formFieldErrorText: "text-red-400",
-                  alertClerkError: "bg-red-500/10 border border-red-500/20 text-red-400",
+                  alertClerkError:
+                    "bg-red-500/10 border border-red-500/20 text-red-400",
                   footer: "text-white mt-4",
                   footerAction: "hidden",
                   footerActionText: "text-white",
                   poweredByClerk: "text-white",
                   poweredByClerkText: "text-white/70",
-                  developmentModeWarning: "text-amber-700 bg-amber-500/10 border border-amber-500/20 rounded-lg p-2 mt-4",
+                  developmentModeWarning:
+                    "text-amber-700 bg-amber-500/10 border border-amber-500/20 rounded-lg p-2 mt-4",
                   developmentModeWarningText: "text-amber-700 text-xs",
                 },
               }}
-              
               signUpUrl="/sign-up"
             />
-            
+
             {/* Custom Sign Up Link */}
             <div className="mt-6 text-center border-t border-white/10 pt-6">
               <p className="text-sm text-white/70">
-                Don't have an account?{' '}
-                <a href="/sign-up" className="text-purple-400 hover:text-purple-300 transition-colors font-medium">
+                Don&apos;t have an account?{" "}
+                <Link
+                  href="/sign-up"
+                  className="text-purple-400 hover:text-purple-300 transition-colors font-medium"
+                >
                   Sign up
-                </a>
+                </Link>
               </p>
             </div>
           </div>

@@ -11,7 +11,7 @@ import { useUser } from "@clerk/nextjs";
 import axios from "axios";
 import { AlertCircle, ArrowLeft, RefreshCcw, Zap } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import FlashcardItem from "./_components/FlashcardItem";
 import { useToast } from "@/hooks/use-toast";
 import { useStudyStatus } from "@/hooks/useStudyStatus";
@@ -32,30 +32,7 @@ function Flashcards() {
   const [isAnimating, setIsAnimating] = useState(false);
   // const [isGenerating, setIsGenerating] = useState(false); // Removed local state
 
-  useEffect(() => {
-    GetFlashCards();
-  }, []);
-
-  // Listen for carousel "select" event to know when the user navigates to a new flashcard
-  useEffect(() => {
-    if (!api) return;
-
-    const handleSelect = () => {
-      setIsFlipped(false); // Reset flip state on new card
-      setCurrentCard(api.selectedScrollSnap());
-    };
-
-    api.on("select", handleSelect);
-
-    // Set initial card
-    setCurrentCard(api.selectedScrollSnap());
-
-    return () => {
-      api.off("select", handleSelect);
-    };
-  }, [api]);
-
-  const GetFlashCards = async () => {
+  const GetFlashCards = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -81,15 +58,38 @@ function Flashcards() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [courseId]);
+
+  useEffect(() => {
+    GetFlashCards();
+  }, [GetFlashCards]);
+
+  // Listen for carousel "select" event to know when the user navigates to a new flashcard
+  useEffect(() => {
+    if (!api) return;
+
+    const handleSelect = () => {
+      setIsFlipped(false); // Reset flip state on new card
+      setCurrentCard(api.selectedScrollSnap());
+    };
+
+    api.on("select", handleSelect);
+
+    // Set initial card
+    setCurrentCard(api.selectedScrollSnap());
+
+    return () => {
+      api.off("select", handleSelect);
+    };
+  }, [api]);
 
   // Use custom hook for status polling
-  const { 
-    status, 
-    isGenerating: isFlashcardGenerating, 
-    isCompleted: isFlashcardCompleted, 
-    isFailed: isFlashcardFailed, 
-    setStatus 
+  const {
+    status,
+    isGenerating: isFlashcardGenerating,
+    isCompleted: isFlashcardCompleted,
+    isFailed: isFlashcardFailed,
+    setStatus,
   } = useStudyStatus(courseId, "flashcard");
 
   // Effect to handle completion with race condition fix
@@ -107,18 +107,18 @@ function Flashcards() {
           setTimeout(GetFlashCards, 1000);
         }
       };
-      
+
       fetchAndVerify();
-      
+
       toast({
         title: "Success! 🎉",
         description: "Flashcards generated successfully!",
       });
     }
-    
+
     // Update ref with current status
     prevStatusRef.current = status;
-  }, [isFlashcardCompleted, status]);
+  }, [GetFlashCards, isFlashcardCompleted, status, toast]);
 
   // Effect to handle failure
   useEffect(() => {
@@ -129,7 +129,7 @@ function Flashcards() {
         variant: "destructive",
       });
     }
-  }, [isFlashcardFailed]);
+  }, [isFlashcardFailed, toast]);
 
   const GenerateFlashcards = async () => {
     // Block duplicate requests
@@ -137,19 +137,18 @@ function Flashcards() {
 
     // Manually set status to generating to trigger the hook's polling
     setStatus("generating");
-    
+
     try {
       // 1. Initial trigger
       await axios.post("/api/study-type-content", {
         courseId: courseId,
-        type: "flashcard", 
+        type: "flashcard",
       });
 
       toast({
         title: "Generation Started",
         description: "Creating your flashcards...",
       });
-      
     } catch (error) {
       console.error("Generation failed:", error);
       setStatus("failed"); // Reset status on immediate failure
@@ -200,7 +199,7 @@ function Flashcards() {
           dailyActivity: true,
           studyTimeHours: 0.25, // 15 minutes of flashcard study
           flashcardSessions: 1,
-        }
+        },
       );
       setStudySessionTracked(true);
       console.log("✅ Study activity tracked for streak");
@@ -239,8 +238,8 @@ function Flashcards() {
 
   // 2. Syncing State (Completed but content not yet verified/loaded)
   // or just general loading
-  if (loading || (status === 'completed' && flashCards.length === 0)) {
-     return (
+  if (loading || (status === "completed" && flashCards.length === 0)) {
+    return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
           <RefreshCcw className="h-8 w-8 animate-spin text-purple-500 mx-auto" />
@@ -295,7 +294,9 @@ function Flashcards() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-foreground">Flashcards</h1>
+                <h1 className="text-2xl font-bold text-foreground">
+                  Flashcards
+                </h1>
                 <p className="text-muted-foreground mt-1">
                   Master concepts with interactive flashcards
                 </p>
@@ -314,70 +315,70 @@ function Flashcards() {
 
         {/* Main Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {/* Flashcard Display */}
-            <div className="flex items-center justify-center mb-8">
-              <Carousel setApi={setApi} className="w-full max-w-4xl">
-                <CarouselContent>
-                  {flashCards.map((flashcard, index) => (
-                    <CarouselItem
-                      key={index}
-                      className="flex items-center justify-center"
-                    >
-                      <FlashcardItem
-                        handleClick={handleClick}
-                        isFlipped={isFlipped}
-                        flashcard={flashcard}
-                      />
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className="-left-6 sm:-left-12" />
-                <CarouselNext className="-right-6 sm:-right-12" />
-              </Carousel>
+          {/* Flashcard Display */}
+          <div className="flex items-center justify-center mb-8">
+            <Carousel setApi={setApi} className="w-full max-w-4xl">
+              <CarouselContent>
+                {flashCards.map((flashcard, index) => (
+                  <CarouselItem
+                    key={index}
+                    className="flex items-center justify-center"
+                  >
+                    <FlashcardItem
+                      handleClick={handleClick}
+                      isFlipped={isFlipped}
+                      flashcard={flashcard}
+                    />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="-left-6 sm:-left-12" />
+              <CarouselNext className="-right-6 sm:-right-12" />
+            </Carousel>
+          </div>
+
+          {/* Progress Indicator */}
+          <div className="text-center mb-6">
+            <p className="text-sm text-muted-foreground">
+              Card{" "}
+              <span className="font-medium text-foreground">
+                {currentCard + 1}
+              </span>{" "}
+              of{" "}
+              <span className="font-medium text-foreground">
+                {flashCards.length}
+              </span>
+            </p>
+
+            {/* Progress bar */}
+            <div className="w-full max-w-xs mx-auto mt-2 bg-white/10 rounded-full h-2">
+              <div
+                className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-300"
+                style={{
+                  width: `${((currentCard + 1) / flashCards.length) * 100}%`,
+                }}
+              />
             </div>
+          </div>
 
-            {/* Progress Indicator */}
-            <div className="text-center mb-6">
-              <p className="text-sm text-muted-foreground">
-                Card{" "}
-                <span className="font-medium text-foreground">
-                  {currentCard + 1}
-                </span>{" "}
-                of{" "}
-                <span className="font-medium text-foreground">
-                  {flashCards.length}
-                </span>
-              </p>
-
-              {/* Progress bar */}
-              <div className="w-full max-w-xs mx-auto mt-2 bg-white/10 rounded-full h-2">
-                <div
-                  className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-300"
-                  style={{
-                    width: `${((currentCard + 1) / flashCards.length) * 100}%`,
-                  }}
-                />
+          {/* Instructions */}
+          <div className="modern-card p-6 text-center space-y-4">
+            <h3 className="font-semibold text-foreground">How to Study</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-purple-500" />
+                <span>Click the card to flip</span>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-blue-500" />
+                <span>Use arrows to navigate</span>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-green-500" />
+                <span>Review and repeat</span>
               </div>
             </div>
-
-            {/* Instructions */}
-            <div className="modern-card p-6 text-center space-y-4">
-              <h3 className="font-semibold text-foreground">How to Study</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-purple-500" />
-                  <span>Click the card to flip</span>
-                </div>
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-blue-500" />
-                  <span>Use arrows to navigate</span>
-                </div>
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-green-500" />
-                  <span>Review and repeat</span>
-                </div>
-              </div>
-            </div>
+          </div>
         </div>
       </div>
     );
@@ -422,13 +423,13 @@ function Flashcards() {
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button 
-                onClick={GenerateFlashcards} 
-                className="btn-primary"
-                disabled={isFlashcardGenerating}
+            <Button
+              onClick={GenerateFlashcards}
+              className="btn-primary"
+              disabled={isFlashcardGenerating}
             >
-                <Zap className="h-4 w-4 mr-2" />
-                {isFlashcardGenerating ? "Generating..." : "Generate Flashcards"}
+              <Zap className="h-4 w-4 mr-2" />
+              {isFlashcardGenerating ? "Generating..." : "Generate Flashcards"}
             </Button>
             <Button onClick={handleGoBack} variant="outline">
               <ArrowLeft className="h-4 w-4 mr-2" />

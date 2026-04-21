@@ -330,6 +330,7 @@ Why this project is interesting: it is a practical example of event-driven backe
   - All DB updates in the webhook handler check the number of affected rows using `.returning()`.
   - If an update matches zero rows (user not found), a warning is logged so the gap is visible in monitoring.
   - Null safety is applied to all email and customer fields before the DB call.
+  - Unsafe system logs during checkout and billing flows are replaced with clean, user-facing toasts to prevent data leakage in production.
 
 - Retry logic
   - Inngest functions are retried automatically.
@@ -381,7 +382,7 @@ Why this project is interesting: it is a practical example of event-driven backe
 - Clerk and Stripe webhooks use signature verification.
 - Database connection string is stored as a server-only environment variable (no `NEXT_PUBLIC_` prefix) so it is never bundled into the browser.
 - Sensitive tokens remain server-side.
-- Billing and user provisioning are executed through trusted backend handlers.
+- Billing and user provisioning are executed exclusively through trusted backend handlers, completely eliminating direct client-side database access from upgrade flows.
 
 ## 🛠️ Tech Stack
 

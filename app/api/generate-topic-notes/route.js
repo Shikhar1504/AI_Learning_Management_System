@@ -5,9 +5,10 @@ import {
   HIGH_REASONING_TEXT_CONFIG,
   MODELS,
 } from "@/configs/AiModel";
+import { TOPIC_NOTES_PROMPT } from "@/configs/prompts";
 import { db } from "@/configs/db";
 import { STUDY_MATERIAL_TABLE, TOPIC_TABLE } from "@/configs/schema";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
@@ -42,7 +43,7 @@ export async function POST(req) {
     // Return early to prevent duplicate calls
     return NextResponse.json(
       { message: "Generation in progress" },
-      { status: 202 }
+      { status: 202 },
     );
   }
 
@@ -50,7 +51,7 @@ export async function POST(req) {
   if (topic.status !== "pending" && topic.status !== "failed") {
     return NextResponse.json(
       { message: `Cannot generate notes for topic in state: ${topic.status}` },
-      { status: 409 }
+      { status: 409 },
     );
   }
 
@@ -64,40 +65,18 @@ export async function POST(req) {
   if (!updateResult || updateResult.length === 0) {
     return NextResponse.json(
       { message: "Topic is not in pending state or does not exist" },
-      { status: 409 }
+      { status: 409 },
     );
   }
 
   try {
-    const PROMPT =
-      "Generate structured study notes for the topic: " +
-      topic.topicTitle +
-      " from chapter: " +
-      topic.chapterTitle +
-      "\n" +
-      "Rules:\n" +
-      "- Keep total output under 600 words.\n" +
-      "- Explanation max 150 words.\n" +
-      "- No repetition.\n" +
-      "- No flashcards.\n" +
-      "- No chapter summary.\n" +
-      "- Do not generate content for other topics.\n" +
-      "- Format strictly in markdown:\n" +
-      "## Explanation\n" +
-      "(120-150 words max)\n" +
-      "## Key Points\n" +
-      "- 3 to 5 concise concise bullet points\n" +
-      "## Code Example\n" +
-      "(One small example only if relevant, use markdown code block)\n" +
-      "## Interview Questions\n" +
-      "- Question 1\n" +
-      "- Question 2";
+    const PROMPT = TOPIC_NOTES_PROMPT(topic.topicTitle, topic.chapterTitle);
 
     // Call Gemini — create a fresh session per request to avoid shared history
     const generateNotesAiModel = createNotesAiModel();
     let aiResp;
     let notesContent;
-    
+
     try {
       aiResp = await generateNotesAiModel.sendMessage(PROMPT);
       notesContent = aiResp.response.text();
@@ -110,7 +89,9 @@ export async function POST(req) {
           error.message.includes("503") ||
           error.message.includes("Resource has been exhausted"))
       ) {
-        console.log("🔄 Primary API key overloaded for notes, trying fallback...");
+        console.log(
+          "🔄 Primary API key overloaded for notes, trying fallback...",
+        );
         if (geminiWithFallback.switchToFallback()) {
           try {
             // Fallback fix: retry with the SAME model/config, only API key switches.
@@ -147,10 +128,10 @@ export async function POST(req) {
             geminiWithFallback.resetToPrimary();
           }
         } else {
-            throw error;
+          throw error;
         }
       } else {
-         throw error;
+        throw error;
       }
     }
 
@@ -172,13 +153,11 @@ export async function POST(req) {
 
     const totalTopics = topics.length;
     const completedTopics = topics.filter(
-      (t) => t.status === "completed"
+      (t) => t.status === "completed",
     ).length;
 
     const progressPercentage =
-      totalTopics > 0
-        ? Math.round((completedTopics / totalTopics) * 100)
-        : 0;
+      totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
 
     await db
       .update(STUDY_MATERIAL_TABLE)
@@ -207,7 +186,7 @@ export async function POST(req) {
 
     return NextResponse.json(
       { error: error.message || "Failed to generate notes" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

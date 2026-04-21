@@ -21,8 +21,8 @@ function QuizCardItem({ quiz, selectedAnswer, isAnswered, onAnswerSelect }) {
           const isSelected = selectedAnswer === option;
           // Normalize to prevent AI whitespace/case hallucinations
           const normalize = (str) => String(str || "").trim().toLowerCase();
-          const isCorrect = isAnswered && normalize(option) === normalize(quiz.answer);
-          const isIncorrect = isAnswered && isSelected && normalize(option) !== normalize(quiz.answer);
+          const isCorrect = isAnswered && normalize(option) === normalize(quiz.answer || quiz.correctAnswer);
+          const isIncorrect = isAnswered && isSelected && normalize(option) !== normalize(quiz.answer || quiz.correctAnswer);
           
           return (
             <button

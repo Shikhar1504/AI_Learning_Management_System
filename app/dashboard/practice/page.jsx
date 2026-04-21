@@ -17,6 +17,11 @@ import {
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+const normalizeAnswer = (value) =>
+  String(value ?? "")
+    .trim()
+    .toLowerCase();
+
 function Practice() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -56,8 +61,15 @@ function Practice() {
     try {
       const response = await fetch("/api/quiz-stats");
       if (response.ok) {
-        const data = await response.json();
-        setStats(data);
+        const payload = await response.json();
+        const normalizedStats = payload?.data || payload;
+        setStats({
+          totalAttempts: normalizedStats?.totalAttempts || 0,
+          bestScore: normalizedStats?.bestScore || 0,
+          averageScore: normalizedStats?.averageScore || 0,
+          lastScore: normalizedStats?.lastScore || 0,
+          streak: normalizedStats?.streak || 0,
+        });
       }
     } catch (error) {
       console.error("Failed to fetch stats:", error);
@@ -101,7 +113,8 @@ function Practice() {
     setSelectedOption(option);
 
     const currentQuestion = questions[currentQuestionIndex];
-    const isAnswerCorrect = option === currentQuestion.answer; // Assuming 'answer' holds correct option
+    const isAnswerCorrect =
+      normalizeAnswer(option) === normalizeAnswer(currentQuestion.answer);
     setIsCorrect(isAnswerCorrect);
 
     if (isAnswerCorrect) {
@@ -225,7 +238,9 @@ function Practice() {
           <div className="grid gap-4">
             {currentQuestion?.options?.map((option, idx) => {
               const isSelected = selectedOption === option;
-              const isCorrectAnswer = option === currentQuestion.answer;
+              const isCorrectAnswer =
+                normalizeAnswer(option) ===
+                normalizeAnswer(currentQuestion.answer);
 
               let optionClass =
                 "p-4 rounded-xl border-2 text-left transition-all duration-200 font-medium ";

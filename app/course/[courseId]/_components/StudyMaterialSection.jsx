@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import MaterialCardItem from "./MaterialCardItem";
 import axios from "axios";
 import { Brain, FileText, HelpCircle, Layers, Sparkles } from "lucide-react";
@@ -6,7 +6,7 @@ import { Brain, FileText, HelpCircle, Layers, Sparkles } from "lucide-react";
 function StudyMaterialSection({ courseId, course }) {
   const [studyTypeContent, setStudyTypeContent] = useState(null);
   const [loading, setLoading] = useState(false);
-  
+
   const MaterialList = [
     {
       name: "Course Notes",
@@ -15,7 +15,7 @@ function StudyMaterialSection({ courseId, course }) {
       path: "/learn",
       type: "notes",
       gradient: "from-blue-500 to-cyan-500",
-      bgGradient: "from-blue-500/10 to-cyan-500/10"
+      bgGradient: "from-blue-500/10 to-cyan-500/10",
     },
     {
       name: "Smart Flashcards",
@@ -24,7 +24,7 @@ function StudyMaterialSection({ courseId, course }) {
       path: "/flashcards",
       type: "flashcard",
       gradient: "from-purple-500 to-pink-500",
-      bgGradient: "from-purple-500/10 to-pink-500/10"
+      bgGradient: "from-purple-500/10 to-pink-500/10",
     },
     {
       name: "Knowledge Quiz",
@@ -33,17 +33,11 @@ function StudyMaterialSection({ courseId, course }) {
       path: "/quiz",
       type: "quiz",
       gradient: "from-green-500 to-emerald-500",
-      bgGradient: "from-green-500/10 to-emerald-500/10"
-    }
+      bgGradient: "from-green-500/10 to-emerald-500/10",
+    },
   ];
 
-  useEffect(() => {
-    if (courseId) {
-      GetStudyMaterial();
-    }
-  }, [courseId]);
-
-  const GetStudyMaterial = async () => {
+  const GetStudyMaterial = useCallback(async () => {
     try {
       setLoading(true);
       const result = await axios.post("/api/study-type", {
@@ -56,7 +50,13 @@ function StudyMaterialSection({ courseId, course }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [courseId]);
+
+  useEffect(() => {
+    if (courseId) {
+      GetStudyMaterial();
+    }
+  }, [courseId, GetStudyMaterial]);
 
   return (
     <div className="space-y-8">
@@ -67,18 +67,21 @@ function StudyMaterialSection({ courseId, course }) {
             <Brain className="h-8 w-8 text-purple-400" />
           </div>
           <div>
-            <h2 className="text-3xl font-bold text-foreground font-display">Study Materials</h2>
+            <h2 className="text-3xl font-bold text-foreground font-display">
+              Study Materials
+            </h2>
           </div>
         </div>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Choose your preferred learning method to master the content. Each method is designed to help you learn effectively.
+          Choose your preferred learning method to master the content. Each
+          method is designed to help you learn effectively.
         </p>
       </div>
 
       {/* Material Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
         {MaterialList.map((item, index) => (
-          <div 
+          <div
             key={index}
             className="fade-in"
             style={{ animationDelay: `${index * 150}ms` }}
@@ -93,7 +96,6 @@ function StudyMaterialSection({ courseId, course }) {
           </div>
         ))}
       </div>
-
     </div>
   );
 }

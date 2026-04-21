@@ -14,6 +14,7 @@ import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { COURSE_OUTLINE_PROMPT } from "@/configs/prompts";
 import { z } from "zod";
+import { parseAiJson } from "@/lib/parseAiJson";
 
 const courseOutlineSchema = z.object({
   courseId: z.string().min(1),
@@ -131,7 +132,10 @@ export async function POST(req) {
   try {
     const aiResp = await courseOutlineAIModel.sendMessage(PROMPT);
     try {
-      aiResult = JSON.parse(aiResp.response.text());
+      aiResult = parseAiJson(
+        aiResp.response.text(),
+        "Course outline AI output",
+      );
     } catch (parseError) {
       console.log(
         `[Course ${courseId}] JSON parse failed: ${parseError.message}`,
@@ -214,7 +218,10 @@ export async function POST(req) {
           });
 
           const aiResp = await fallbackChat.sendMessage(PROMPT);
-          aiResult = JSON.parse(aiResp.response.text());
+          aiResult = parseAiJson(
+            aiResp.response.text(),
+            "Course outline AI output (fallback)",
+          );
           aiResult = normalizeCourseLayout(aiResult, topic, difficultyLevel);
           console.log(
             "✅ Successfully used fallback API key for course outline",

@@ -1,6 +1,6 @@
 "use client";
 import { useParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import CourseIntroCard from "./_components/CourseIntroCard";
 import StudyMaterialSection from "./_components/StudyMaterialSection";
 import ChapterList from "./_components/ChapterList";
@@ -16,11 +16,7 @@ function Course() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    if (courseId) GetCourse();
-  }, [courseId]);
-
-  const GetCourse = async () => {
+  const GetCourse = useCallback(async () => {
     try {
       setLoading(true);
       const result = await axios.get("/api/courses?courseId=" + courseId);
@@ -32,7 +28,11 @@ function Course() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [courseId]);
+
+  useEffect(() => {
+    if (courseId) GetCourse();
+  }, [courseId, GetCourse]);
 
   if (loading) {
     return (

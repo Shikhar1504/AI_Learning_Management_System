@@ -1,7 +1,7 @@
 "use client";
 import axios from "axios";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { ArrowLeft, Brain, CheckCircle, X, RotateCcw, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -26,133 +26,8 @@ function Quiz() {
   const [studySessionTracked, setStudySessionTracked] = useState(false);
   // const [isGenerating, setIsGenerating] = useState(false); // Removed local state
 
-  useEffect(() => {
-    if (courseId) {
-      GetQuiz();
-    }
-  }, [courseId]);
-
-  const GetQuiz = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const result = await axios.post("/api/study-type", {
-        courseId: courseId,
-        studyType: "Quiz",
-      });
-
-      // Extract questions from the response data structure
-      const responseData = result.data;
-      let quizQuestions = [];
-
-      if (responseData && typeof responseData === "object") {
-        // If response has questions property, use it
-        if (responseData.questions && Array.isArray(responseData.questions)) {
-          quizQuestions = responseData.questions;
-        }
-        // If response is directly an array, use it
-        else if (Array.isArray(responseData)) {
-          quizQuestions = responseData;
-        }
-      }
-
-      if (quizQuestions.length > 0) {
-        setQuiz(quizQuestions);
-        // Track study activity when quiz is first loaded
-        if (!studySessionTracked) {
-          trackStudyActivity();
-        }
-        return quizQuestions;
-      } else {
-        return [];
-      }
-    } catch (error) {
-      console.error("Error fetching quiz:", error);
-      setError("Failed to load quiz. Please try again.");
-      return [];
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Use custom hook for status polling
-  const {
-    status,
-    isGenerating: isQuizGenerating,
-    isCompleted: isQuizCompleted,
-    isFailed: isQuizFailed,
-    setStatus,
-  } = useStudyStatus(courseId, "quiz");
-
-  // Track previous status to prevent repeated toasts
-  const prevStatusRef = useRef(status);
-
-  // Effect to handle completion with race condition fix
-  useEffect(() => {
-    // Only trigger if transitioning from generating to completed
-    if (prevStatusRef.current === "generating" && isQuizCompleted) {
-      const fetchAndVerify = async () => {
-        const data = await GetQuiz();
-        // If DB propagation is slow, retry once after 1s
-        if (!data || data.length === 0) {
-          setTimeout(GetQuiz, 1000);
-        }
-      };
-
-      fetchAndVerify();
-
-      toast({
-        title: "Success! 🎉",
-        description: "Quiz generated successfully!",
-      });
-    }
-
-    // Update ref with current status
-    prevStatusRef.current = status;
-  }, [isQuizCompleted, status]);
-
-  // Effect to handle failure
-  useEffect(() => {
-    if (isQuizFailed) {
-      toast({
-        title: "Error",
-        description: "Failed to generate quiz.",
-        variant: "destructive",
-      });
-    }
-  }, [isQuizFailed]);
-
-  const GenerateQuiz = async () => {
-    // Block duplicate requests
-    if (isQuizGenerating) return;
-
-    // Manually set status to generating to trigger the hook's polling
-    setStatus("generating");
-
-    try {
-      // 1. Initial trigger
-      await axios.post("/api/study-type-content", {
-        courseId: courseId,
-        type: "quiz",
-      });
-
-      toast({
-        title: "Generation Started",
-        description: "Creating your quiz...",
-      });
-    } catch (error) {
-      console.error("Generation failed:", error);
-      setStatus("failed");
-      toast({
-        title: "Error",
-        description: "Failed to generate quiz.",
-        variant: "destructive",
-      });
-    }
-  };
-
   // Track study activity for streak
-  const trackStudyActivity = async () => {
+  const trackStudyActivity = useCallback(async () => {
     if (!user?.primaryEmailAddress?.emailAddress || studySessionTracked) return;
 
     try {
@@ -197,6 +72,131 @@ function Quiz() {
       console.error("❌ Failed to track study activity:", error);
       // Don't break the UI if tracking fails
     }
+  }, [studySessionTracked, user]);
+
+  const GetQuiz = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await axios.post("/api/study-type", {
+        courseId: courseId,
+        studyType: "Quiz",
+      });
+
+      // Extract questions from the response data structure
+      const responseData = result.data;
+      let quizQuestions = [];
+
+      if (responseData && typeof responseData === "object") {
+        // If response has questions property, use it
+        if (responseData.questions && Array.isArray(responseData.questions)) {
+          quizQuestions = responseData.questions;
+        }
+        // If response is directly an array, use it
+        else if (Array.isArray(responseData)) {
+          quizQuestions = responseData;
+        }
+      }
+
+      if (quizQuestions.length > 0) {
+        setQuiz(quizQuestions);
+        // Track study activity when quiz is first loaded
+        if (!studySessionTracked) {
+          trackStudyActivity();
+        }
+        return quizQuestions;
+      } else {
+        return [];
+      }
+    } catch (error) {
+      console.error("Error fetching quiz:", error);
+      setError("Failed to load quiz. Please try again.");
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }, [courseId, studySessionTracked, trackStudyActivity]);
+
+  useEffect(() => {
+    if (courseId) {
+      GetQuiz();
+    }
+  }, [courseId, GetQuiz]);
+
+  // Use custom hook for status polling
+  const {
+    status,
+    isGenerating: isQuizGenerating,
+    isCompleted: isQuizCompleted,
+    isFailed: isQuizFailed,
+    setStatus,
+  } = useStudyStatus(courseId, "quiz");
+
+  // Track previous status to prevent repeated toasts
+  const prevStatusRef = useRef(status);
+
+  // Effect to handle completion with race condition fix
+  useEffect(() => {
+    // Only trigger if transitioning from generating to completed
+    if (prevStatusRef.current === "generating" && isQuizCompleted) {
+      const fetchAndVerify = async () => {
+        const data = await GetQuiz();
+        // If DB propagation is slow, retry once after 1s
+        if (!data || data.length === 0) {
+          setTimeout(GetQuiz, 1000);
+        }
+      };
+
+      fetchAndVerify();
+
+      toast({
+        title: "Success! 🎉",
+        description: "Quiz generated successfully!",
+      });
+    }
+
+    // Update ref with current status
+    prevStatusRef.current = status;
+  }, [GetQuiz, isQuizCompleted, status, toast]);
+
+  // Effect to handle failure
+  useEffect(() => {
+    if (isQuizFailed) {
+      toast({
+        title: "Error",
+        description: "Failed to generate quiz.",
+        variant: "destructive",
+      });
+    }
+  }, [isQuizFailed, toast]);
+
+  const GenerateQuiz = async () => {
+    // Block duplicate requests
+    if (isQuizGenerating) return;
+
+    // Manually set status to generating to trigger the hook's polling
+    setStatus("generating");
+
+    try {
+      // 1. Initial trigger
+      await axios.post("/api/study-type-content", {
+        courseId: courseId,
+        type: "quiz",
+      });
+
+      toast({
+        title: "Generation Started",
+        description: "Creating your quiz...",
+      });
+    } catch (error) {
+      console.error("Generation failed:", error);
+      setStatus("failed");
+      toast({
+        title: "Error",
+        description: "Failed to generate quiz.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleAnswerSelect = (userAnswer) => {
@@ -211,7 +211,7 @@ function Quiz() {
         .trim()
         .toLowerCase();
     const correct =
-      normalize(userAnswer) === normalize(quiz[currentQuestion]?.answer);
+      normalize(userAnswer) === normalize(quiz[currentQuestion]?.answer || quiz[currentQuestion]?.correctAnswer);
 
     if (correct) {
       setScore(score + 1);
@@ -435,7 +435,7 @@ function Quiz() {
         .toLowerCase();
     const isSelectionCorrect =
       isAnswered && selectedAnswer
-        ? normalize(selectedAnswer) === normalize(currentQ?.answer)
+        ? normalize(selectedAnswer) === normalize(currentQ?.answer || currentQ?.correctAnswer)
         : false;
 
     return (
@@ -523,7 +523,7 @@ function Quiz() {
                         <p className="text-muted-foreground">
                           The correct answer is:{" "}
                           <span className="font-medium text-foreground">
-                            {currentQ?.answer}
+                            {currentQ?.answer || currentQ?.correctAnswer}
                           </span>
                         </p>
                       )}

@@ -10,6 +10,7 @@ import { db } from "@/configs/db";
 import { STUDY_TYPE_CONTENT_TABLE, USER_TABLE } from "@/configs/schema";
 import { eq, sql } from "drizzle-orm";
 import { inngest } from "./client";
+import { parseAiJson } from "@/lib/parseAiJson";
 
 /* 
 🚀 How This Works (Inngest Flow) 🚀
@@ -265,7 +266,7 @@ async function runAiWithFallback({
   }
 
   try {
-    return JSON.parse(finalResult);
+    return parseAiJson(finalResult, `AI ${studyType} response`);
   } catch (parseError) {
     console.error(
       `[Course ${courseId}] JSON parse failed: ${parseError.message}`,

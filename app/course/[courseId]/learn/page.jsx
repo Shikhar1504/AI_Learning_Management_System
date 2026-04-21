@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
 import Link from "next/link";
@@ -19,13 +19,7 @@ function TopicLearning() {
   const [generating, setGenerating] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  useEffect(() => {
-    if (courseId) {
-      GetCourseAndTopics();
-    }
-  }, [courseId]);
-
-  const GetCourseAndTopics = async () => {
+  const GetCourseAndTopics = useCallback(async () => {
     try {
       setLoading(true);
       // Fetch Course
@@ -60,20 +54,29 @@ function TopicLearning() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [courseId]);
+
+  useEffect(() => {
+    if (courseId) {
+      GetCourseAndTopics();
+    }
+  }, [courseId, GetCourseAndTopics]);
 
   // Fetch content when active topic changes
+  const activeTopicId = activeTopic?.id;
+  const activeTopicStatus = activeTopic?.status;
+  const activeTopicContent = activeTopic?.notesContent;
+
   useEffect(() => {
     const fetchContent = async () => {
-      if (!activeTopic || !activeTopic.id) return;
+      if (!activeTopicId) return;
 
       // If content is already present or status is not completed/generating, skip fetch
-      if (activeTopic.notesContent || activeTopic.status !== "completed")
-        return;
+      if (activeTopicContent || activeTopicStatus !== "completed") return;
 
       try {
         setLoading(true); // Re-use loading state for content fetch or create a new one if refined UI needed
-        const result = await axios.get(`/api/topics/${activeTopic.id}`);
+        const result = await axios.get(`/api/topics/${activeTopicId}`);
 
         // Update active topic with content
         setActiveTopic((prev) => ({
@@ -84,7 +87,7 @@ function TopicLearning() {
         // Also update in topics list to cache it
         setTopics((prevTopics) =>
           prevTopics.map((t) =>
-            t.id === activeTopic.id
+            t.id === activeTopicId
               ? { ...t, notesContent: result.data.content }
               : t,
           ),
@@ -98,7 +101,7 @@ function TopicLearning() {
     };
 
     fetchContent();
-  }, [activeTopic?.id]); // Only trigger when ID changes
+  }, [activeTopicContent, activeTopicId, activeTopicStatus]);
 
   const handleGenerateNotes = async (topicId) => {
     try {
@@ -135,7 +138,9 @@ function TopicLearning() {
       }
     } catch (error) {
       console.error("Error generating notes:", error);
-      const errorMessage = error.response?.data?.error || "Failed to generate notes. Please try again.";
+      const errorMessage =
+        error.response?.data?.error ||
+        "Failed to generate notes. Please try again.";
       toast.error(errorMessage);
     } finally {
       setGenerating(false);

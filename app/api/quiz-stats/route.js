@@ -6,18 +6,22 @@ import { currentUser } from "@clerk/nextjs/server";
 
 export async function GET() {
   try {
-    // 1️⃣ Authenticate user
     const user = await currentUser();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 },
+      );
     }
 
     const email = user.primaryEmailAddress?.emailAddress;
     if (!email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 },
+      );
     }
 
-    // 2️⃣ Fetch user stats directly from USER_TABLE (O(1))
     const userStats = await db
       .select({
         totalAttempts: USER_TABLE.quizTotalAttempts,
@@ -30,27 +34,37 @@ export async function GET() {
       .where(eq(USER_TABLE.email, email))
       .then((res) => res[0]);
 
+    const stats = userStats
+      ? {
+          totalAttempts: userStats.totalAttempts || 0,
+          bestScore: userStats.bestScore || 0,
+          averageScore: userStats.averageScore || 0,
+          lastScore: userStats.lastScore || 0,
+          streak: userStats.streak || 0,
+        }
+      : {
+          totalAttempts: 0,
+          bestScore: 0,
+          averageScore: 0,
+          lastScore: 0,
+          streak: 0,
+        };
+
     if (!userStats) {
       return NextResponse.json({
-        totalAttempts: 0,
-        bestScore: 0,
-        averageScore: 0,
-        lastScore: 0,
-        streak: 0,
+        success: true,
+        data: stats,
       });
     }
 
     return NextResponse.json({
-      totalAttempts: userStats.totalAttempts || 0,
-      bestScore: userStats.bestScore || 0,
-      averageScore: userStats.averageScore || 0,
-      lastScore: userStats.lastScore || 0,
-      streak: userStats.streak || 0,
+      success: true,
+      data: stats,
     });
   } catch (error) {
     console.error("Error fetching quiz stats:", error);
     return NextResponse.json(
-      { error: "Failed to fetch stats" },
+      { success: false, error: "Failed to fetch stats" },
       { status: 500 },
     );
   }
