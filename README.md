@@ -1,6 +1,10 @@
 # LearnForge
 
-Event-driven AI LMS with async content pipelines and reliability-focused backend design.
+## ⚡ TL;DR
+
+Event-driven AI LMS built with async pipelines (Inngest), PostgreSQL + Drizzle, and Gemini AI.  
+Implements retry-safe background jobs, idempotent APIs, DB transactions, and secure server-side auth.  
+Focus: reliability, non-blocking design, and real-world backend system patterns.
 
 ---
 
@@ -8,7 +12,7 @@ AI-powered LMS that generates structured courses, topic notes, flashcards, and q
 
 Designing a reliable AI pipeline required handling non-deterministic outputs, API failures, and long-running jobs without blocking user requests.
 
-Why this project is interesting: it is a practical example of event-driven backend design with asynchronous AI pipelines, status-driven workflows, retry/fallback behavior, quota enforcement, database transactions, atomic writes, and denormalized progress tracking.
+Why this project is interesting: it is a practical example of **event-driven backend design** with **asynchronous AI pipelines**, status-driven workflows, **retry/fallback behavior**, quota enforcement, **database transactions**, atomic writes, and denormalized progress tracking.
 
 ## 🚀 Project Overview
 
@@ -18,6 +22,20 @@ Why this project is interesting: it is a practical example of event-driven backe
 - The backend emphasizes reliability and lifecycle control rather than only content generation.
 
 ## 🧠 System Architecture
+
+```text
+Client
+  ↓
+API (Next.js)
+  ↓
+DB + Inngest
+  ↓
+AI (Gemini)
+  ↓
+DB
+  ↓
+Polling → UI
+```
 
 - **API layer**
   - Next.js route handlers expose course generation, notes generation, flashcards/quiz generation, status polling, dashboard reads, user stats, and billing.
