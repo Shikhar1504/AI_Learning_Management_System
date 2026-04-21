@@ -82,15 +82,27 @@ export async function GET() {
       }
 
       for (const q of questions) {
+        const answer = q.answer !== undefined ? q.answer : q.correctAnswer;
+        
         if (
           q &&
           typeof q.question === "string" &&
           Array.isArray(q.options) &&
           q.options.length >= 2 &&
-          q.answer !== undefined &&
-          q.options.includes(q.answer)
+          answer !== undefined
         ) {
-          allQuestions.push(q);
+          const normalizedOptions = q.options.map((o) =>
+            String(o).trim().toLowerCase(),
+          );
+          const normalizedAnswer = String(answer).trim().toLowerCase();
+
+          if (normalizedOptions.includes(normalizedAnswer)) {
+            // Standardize the output format for the frontend
+            allQuestions.push({
+              ...q,
+              answer: answer,
+            });
+          }
         }
       }
     }

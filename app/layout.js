@@ -1,4 +1,5 @@
 import { Toaster } from "@/components/ui/toaster";
+import { Toaster as SonnerToaster } from "sonner";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "next-themes";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
@@ -69,6 +70,7 @@ export default function RootLayout({ children }) {
                 {children}
               </main>
               <Toaster />
+              <SonnerToaster position="bottom-right" theme="dark" />
             </Provider>
           </ThemeProvider>
         </body>
