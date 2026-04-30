@@ -35,8 +35,12 @@ function SelectOption({ handleUserInput }) {
           <div
             key={index}
             className={`p-4 flex flex-col items-center justify-center 
-                border rounded-xl hover:border-primary cursor-pointer
-                ${option?.name == selectedOption && "border-primary"}`} //${condition && 'class-name'}
+                border rounded-xl cursor-pointer transition-all duration-300
+                ${
+                  option?.name == selectedOption
+                    ? "bg-cyan-500/10 border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.25)]"
+                    : "bg-white/[0.03] border-white/[0.08] hover:border-cyan-400/40 hover:bg-white/[0.06]"
+                }`}
             onClick={() => {
               setSelectedOption(option.name);
               handleUserInput("courseType", option.name);

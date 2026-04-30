@@ -183,9 +183,9 @@ function CourseCardItem({ course, onCourseUpdate }) {
   };
 
   return (
-    <div className="group relative h-full rounded-2xl bg-card border border-border/50 overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-primary/20 flex flex-col">
+    <div className="group relative h-full rounded-2xl bg-[#111623] border border-white/5 overflow-hidden transition-all duration-500 hover:shadow-[0_0_30px_rgba(20,184,166,0.15)] hover:-translate-y-1 hover:border-teal-500/30 flex flex-col">
       {/* Glow Effect */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
       <div className="p-5 flex-1 flex flex-col relative z-10">
         {/* Header: Icon + Badge + Menu */}
@@ -195,11 +195,11 @@ function CourseCardItem({ course, onCourseUpdate }) {
                className={`p-2.5 rounded-lg bg-gradient-to-br ${getStatusColor()}/10 group-hover:scale-110 transition-transform duration-300`}
              >
                {isCompleted ? (
-                 <CheckCircle className={`h-5 w-5 ${isCompleted ? 'text-green-500' : 'text-primary'}`} />
+                 <CheckCircle className={`h-5 w-5 ${isCompleted ? 'text-green-500' : 'text-teal-400'}`} />
                ) : isGenerating ? (
                  <RefreshCw className="h-5 w-5 text-orange-400 animate-spin" />
                ) : (
-                 <BookOpen className="h-5 w-5 text-primary" />
+                 <BookOpen className="h-5 w-5 text-teal-400" />
                )}
              </div>
              {/* Status Badge */}
@@ -208,7 +208,7 @@ function CourseCardItem({ course, onCourseUpdate }) {
                   ? "bg-green-500/10 text-green-500 border-green-500/20" 
                   : isGenerating
                   ? "bg-orange-500/10 text-orange-500 border-orange-500/20"
-                  : "bg-primary/5 text-primary border-primary/10"
+                  : "bg-teal-500/10 text-teal-400 border-teal-500/20"
              }`}>
                 {getStatusText()}
              </div>
@@ -220,7 +220,7 @@ function CourseCardItem({ course, onCourseUpdate }) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                className="h-8 w-8 text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                 onClick={(e) => {
                   e.preventDefault();
                   // For now, simpler direct delete conform, can upgrade to dropdown later
@@ -235,13 +235,13 @@ function CourseCardItem({ course, onCourseUpdate }) {
 
         {/* Title & Description */}
         <div className="space-y-2 mb-6">
-          <h3 className="font-bold text-lg text-foreground line-clamp-1 leading-tight group-hover:text-primary transition-colors">
+          <h3 className="font-bold text-lg text-white line-clamp-1 leading-tight group-hover:text-teal-400 transition-colors">
             {course?.courseLayout?.courseTitle ||
               course?.courseLayout?.course_title ||
               "Untitled Course"}
           </h3>
 
-          <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed min-h-[3em]">
+          <p className="text-sm text-slate-400 line-clamp-2 leading-relaxed min-h-[3em]">
             {course?.courseLayout?.summary || "No description available."}
           </p>
         </div>
@@ -250,11 +250,11 @@ function CourseCardItem({ course, onCourseUpdate }) {
         {!isGenerating && (
            <div className="mt-auto mb-4 space-y-2">
               <div className="flex justify-between text-xs font-semibold">
-                 <span className="text-muted-foreground">{Math.round(progressPercentage)}% Complete</span>
+                 <span className="text-slate-400">{Math.round(progressPercentage)}% Complete</span>
               </div>
-              <div className="h-2 w-full bg-secondary/50 rounded-full overflow-hidden">
+              <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
                  <div
-                    className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full transition-all duration-1000 ease-out"
+                    className="h-full bg-gradient-to-r from-teal-400 to-purple-500 rounded-full transition-all duration-1000 ease-out"
                     style={{ width: `${progressPercentage}%` }}
                  />
               </div>
@@ -262,9 +262,9 @@ function CourseCardItem({ course, onCourseUpdate }) {
         )}
 
         {/* Footer: Metadata + Action */}
-        <div className="pt-4 border-t border-border/50 flex items-center justify-between mt-auto">
+        <div className="pt-4 border-t border-white/5 flex items-center justify-between mt-auto">
             {/* Metadata */}
-            <div className="flex items-center gap-3 text-xs text-muted-foreground font-medium">
+            <div className="flex items-center gap-3 text-xs text-slate-400 font-medium">
                <div className="flex items-center gap-1.5" title="Chapters">
                   <BookOpen className="h-3.5 w-3.5" />
                   <span>{analytics.totalChapters || 0}</span>
@@ -283,7 +283,7 @@ function CourseCardItem({ course, onCourseUpdate }) {
                </div>
             ) : (
                <Link href={`/course/${course?.courseId}${isCompleted ? '' : '/learn'}`}>
-                  <button className="flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary/80 transition-all group/btn">
+                  <button className="flex items-center gap-1 text-sm font-semibold text-teal-400 hover:text-teal-300 transition-all group/btn">
                      {isCompleted ? 'Review' : 'Continue'}
                      <Play className="h-3 w-3 fill-current transform group-hover/btn:translate-x-1 transition-transform duration-200" />
                   </button>

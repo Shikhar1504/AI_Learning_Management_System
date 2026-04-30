@@ -4,7 +4,7 @@ function QuizCardItem({ quiz, selectedAnswer, isAnswered, onAnswerSelect }) {
   if (!quiz) return null;
 
   return (
-    <div className="modern-card p-8">
+    <div className="p-8 bg-white/[0.05] border border-white/[0.08] backdrop-blur-xl shadow-[0_0_40px_rgba(6,182,212,0.08)] rounded-2xl">
       {/* Question */}
       <div className="text-center mb-8">
         <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4 leading-tight">
@@ -32,13 +32,13 @@ function QuizCardItem({ quiz, selectedAnswer, isAnswered, onAnswerSelect }) {
               className={`p-4 rounded-xl border-2 text-left transition-all duration-300 group ${
                 isAnswered
                   ? isCorrect
-                    ? 'border-green-500/50 bg-green-500/10 text-green-400'
+                    ? 'border-green-500/50 bg-green-500/10 text-green-400 shadow-[0_0_20px_rgba(34,197,94,0.15)]'
                     : isIncorrect
-                    ? 'border-red-500/50 bg-red-500/10 text-red-400'
-                    : 'border-white/10 bg-white/5 text-muted-foreground'
+                    ? 'border-red-500/50 bg-red-500/10 text-red-400 shadow-[0_0_20px_rgba(239,68,68,0.15)]'
+                    : 'border-white/[0.08] bg-white/[0.03] text-muted-foreground'
                   : isSelected
-                  ? 'border-purple-500/50 bg-purple-500/10 text-purple-400 scale-[1.02]'
-                  : 'border-white/20 bg-white/5 text-foreground hover:border-purple-500/30 hover:bg-purple-500/5 hover:scale-[1.01]'
+                  ? 'border-cyan-400 bg-cyan-500/10 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.25)] scale-[1.02]'
+                  : 'border-white/[0.08] bg-white/[0.03] text-foreground hover:border-cyan-400/40 hover:bg-white/[0.06] hover:scale-[1.01]'
               } ${
                 !isAnswered ? 'cursor-pointer' : 'cursor-default'
               }`}
@@ -53,8 +53,8 @@ function QuizCardItem({ quiz, selectedAnswer, isAnswered, onAnswerSelect }) {
                       ? 'border-red-500 bg-red-500 text-white'
                       : 'border-current'
                     : isSelected
-                    ? 'border-purple-500 bg-purple-500 text-white'
-                    : 'border-current group-hover:border-purple-500'
+                    ? 'border-cyan-500 bg-cyan-500 text-white shadow-[0_0_10px_rgba(6,182,212,0.5)]'
+                    : 'border-current group-hover:border-cyan-500 group-hover:text-cyan-400'
                 }`}>
                   {String.fromCharCode(65 + index)}
                 </div>

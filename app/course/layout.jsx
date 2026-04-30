@@ -2,9 +2,11 @@ import DashboardHeader from "../dashboard/_components/DashboardHeader";
 
 function CourseViewLayout({ children }) {
   return (
-    <div>
-      <DashboardHeader />
-      <div className="mx-1 md:mx-16 lg:px-20 mt-10 mb-10">{children}</div>
+    <div className="min-h-screen bg-transparent relative text-slate-100">
+      <div className="relative z-10">
+        <DashboardHeader />
+        <div className="mx-1 md:mx-16 lg:px-20 mt-10 mb-10">{children}</div>
+      </div>
     </div>
   );
 }

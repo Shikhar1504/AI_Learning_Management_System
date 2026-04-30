@@ -86,15 +86,14 @@ function CourseIntroCard({ course }) {
         {/* Left Column: Course Info & Metadata (Span 2) */}
         <div className="lg:col-span-2 space-y-8">
           {/* Hero Section */}
-          <div className="modern-card relative overflow-hidden p-8 border border-white/10 bg-white/5 backdrop-blur-md">
+          <div className="modern-card relative overflow-hidden p-8 border border-white/[0.08] bg-white/[0.04] backdrop-blur-md rounded-2xl shadow-[0_0_30px_rgba(6,182,212,0.08)] hover:shadow-[0_0_40px_rgba(6,182,212,0.15)] transition-shadow duration-500">
              {/* Background Gradients */}
-            <div className="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl opacity-50" />
-            <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl opacity-50" />
+            <div className="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-gradient-to-br from-cyan-500/20 via-blue-500/10 to-transparent rounded-full blur-3xl opacity-50" />
 
             <div className="relative z-10 space-y-6">
               {/* Badge & Date Row */}
               <div className="flex items-center gap-4 text-sm">
-                 <div className={`px-4 py-1.5 rounded-full font-semibold text-xs uppercase tracking-wider bg-gradient-to-r ${getDifficultyColor(difficulty)} text-white shadow-lg shadow-purple-500/20`}>
+                 <div className={`px-4 py-1.5 rounded-full font-semibold text-xs uppercase tracking-wider bg-gradient-to-r ${getDifficultyColor(difficulty)} text-white shadow-lg shadow-cyan-500/20`}>
                     {difficulty}
                  </div>
                  <div className="flex items-center gap-2 text-white/60 font-medium">
@@ -105,10 +104,10 @@ function CourseIntroCard({ course }) {
 
               {/* Title & Description */}
               <div className="space-y-4">
-                <h1 className="text-4xl md:text-5xl font-extrabold font-display bg-gradient-to-r from-purple-200 via-white to-blue-200 bg-clip-text text-transparent leading-tight drop-shadow-sm">
+                <h1 className="text-4xl md:text-5xl font-extrabold font-display text-white leading-tight drop-shadow-sm">
                   {course?.courseLayout?.course_title || course?.courseLayout?.courseTitle || "Course Title"}
                 </h1>
-                <p className="text-white/70 leading-relaxed text-lg max-w-2xl font-light">
+                <p className="text-gray-400 leading-relaxed text-lg max-w-2xl font-light">
                    {course?.courseLayout?.summary || "Master this subject with our comprehensive guide."}
                 </p>
               </div>
@@ -126,7 +125,7 @@ function CourseIntroCard({ course }) {
                  </div>
                  
                  <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors cursor-default">
-                    <div className="p-2 rounded-lg bg-purple-500/20 text-purple-300">
+                    <div className="p-2 rounded-lg bg-cyan-500/20 text-cyan-300">
                        <Clock className="h-5 w-5" />
                     </div>
                     <div>
@@ -151,11 +150,11 @@ function CourseIntroCard({ course }) {
 
         {/* Right Column: Progress & Action (Span 1) */}
         <div className="lg:col-span-1 h-full">
-          <div className="modern-card p-8 h-full flex flex-col justify-between relative overflow-hidden ring-1 ring-white/10 bg-gradient-to-b from-white/5 to-transparent backdrop-blur-xl">
+          <div className="modern-card p-8 h-full flex flex-col justify-between relative overflow-hidden border border-white/[0.08] bg-white/[0.04] backdrop-blur-xl rounded-2xl shadow-[0_0_30px_rgba(6,182,212,0.08)] hover:shadow-[0_0_40px_rgba(6,182,212,0.15)] transition-shadow duration-500">
              
              {/* Progress Status Text */}
              <div className="text-center space-y-2 mb-6">
-                <p className="text-sm font-medium text-purple-300 uppercase tracking-widest">Current Status</p>
+                <p className="text-sm font-medium text-cyan-300 uppercase tracking-widest">Current Status</p>
                 <h3 className="text-xl font-bold text-white min-h-[3.5rem] flex items-center justify-center">
                   {overallProgress === 0 && "Just getting started 🚀"}
                   {overallProgress > 0 && overallProgress < 20 && "Good start! Keep going 🌱"}
@@ -169,7 +168,7 @@ function CourseIntroCard({ course }) {
              <div className="flex-1 flex flex-col items-center justify-center space-y-8">
                  <div className="relative w-48 h-48 group">
                    {/* Background Glow */}
-                   <div className="absolute inset-0 bg-purple-500/20 rounded-full blur-2xl group-hover:bg-purple-500/30 transition-all duration-700" />
+                   <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-2xl group-hover:bg-cyan-500/30 transition-all duration-700" />
                    
                    {/* Background circle */}
                    <svg className="w-full h-full transform -rotate-90 relative z-10" viewBox="0 0 100 100">
@@ -184,12 +183,12 @@ function CourseIntroCard({ course }) {
                         strokeWidth="4" 
                         strokeLinecap="round" 
                         strokeDasharray={`${loading ? 0 : overallProgress * 2.51} 251`} 
-                        className="transition-all duration-1000 ease-out drop-shadow-[0_0_10px_rgba(139,92,246,0.5)]" 
+                        className="transition-all duration-1000 ease-out drop-shadow-[0_0_10px_rgba(6,182,212,0.5)]" 
                      />
                      <defs>
                        <linearGradient id="gradient-progress" x1="0%" y1="0%" x2="100%" y2="0%">
-                         <stop offset="0%" stopColor="#c084fc" />
-                         <stop offset="100%" stopColor="#60a5fa" />
+                         <stop offset="0%" stopColor="#06b6d4" />
+                         <stop offset="100%" stopColor="#3b82f6" />
                        </linearGradient>
                      </defs>
                    </svg>
@@ -204,7 +203,7 @@ function CourseIntroCard({ course }) {
              <div className="mt-8">
                 <Button 
                    onClick={handleContinueLearning}
-                   className="w-full h-14 text-sm font-bold tracking-widest uppercase bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:via-indigo-500 hover:to-blue-500 hover:shadow-[0_0_30px_-5px_rgba(124,58,237,0.5)] hover:-translate-y-1 transition-all duration-300 border border-white/10 rounded-xl overflow-hidden group relative"
+                   className="w-full h-14 text-sm font-bold tracking-widest uppercase bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 hover:shadow-[0_0_30px_-5px_rgba(6,182,212,0.5)] hover:-translate-y-1 transition-all duration-300 border border-white/10 rounded-xl overflow-hidden group relative"
                 >
                    <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 skew-y-12" />
                    <span className="relative z-10 flex items-center justify-center gap-3">

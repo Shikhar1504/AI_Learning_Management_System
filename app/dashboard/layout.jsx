@@ -36,14 +36,22 @@ function DashboardLayout({ children }) {
 
   return (
     <CourseCountContext.Provider value={{ totalCourse, setTotalCourse }}>
-      <div className="flex h-screen bg-background">
+      <div className="flex h-screen bg-[#0B0F1A] text-slate-200 overflow-hidden font-sans selection:bg-purple-500/30">
+        {/* Dynamic Background Match Landing Page */}
+        <div className="fixed inset-0 z-0 pointer-events-none">
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-teal-600/20 rounded-full blur-[120px]" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/15 rounded-full blur-[120px]" />
+          <div className="absolute top-[40%] left-[60%] w-[30%] h-[30%] bg-blue-600/10 rounded-full blur-[100px]" />
+          <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-[0.03] mix-blend-overlay"></div>
+        </div>
+
         {/* Sidebar - Mobile handled in SideBar component, Desktop fixed */}
         <div className="hidden lg:flex lg:w-80 lg:flex-col lg:fixed lg:inset-y-0 z-30">
           <SideBar />
         </div>
         
         {/* Main Content Area */}
-        <div className="flex flex-col flex-1 lg:pl-80">
+        <div className="flex flex-col flex-1 lg:pl-80 relative z-10">
           <DashboardHeader />
           
           {/* Page Content */}

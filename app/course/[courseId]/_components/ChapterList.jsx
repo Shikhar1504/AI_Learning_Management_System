@@ -17,7 +17,7 @@ function ChapterList({ course }) {
          <span className="text-sm text-muted-foreground">{CHAPTERS?.length || 0} modules</span>
       </div>
 
-      <div className="modern-card p-6 border border-white/10 bg-white/5 backdrop-blur-sm">
+      <div className="modern-card p-6 border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm rounded-2xl shadow-[0_0_30px_rgba(6,182,212,0.08)]">
         <Accordion type="single" collapsible className="w-full space-y-4">
           {CHAPTERS?.map((chapter, index) => {
             // Mock progress for now - in real app, derive from topic completion status
@@ -31,7 +31,7 @@ function ChapterList({ course }) {
               <AccordionItem 
                  key={index} 
                  value={`item-${index}`} 
-                 className="border border-white/10 rounded-xl px-4 bg-black/20 hover:bg-white/5 transition-all duration-300 data-[state=open]:bg-white/5 data-[state=open]:border-purple-500/30"
+                 className="border border-white/[0.08] rounded-2xl px-4 bg-white/[0.04] hover:bg-white/[0.06] transition-all duration-300 data-[state=open]:bg-white/[0.06] data-[state=open]:border-cyan-500/30"
               >
                 <AccordionTrigger className="hover:no-underline py-5 group">
                    <div className="flex items-center gap-5 text-left w-full">
@@ -46,7 +46,7 @@ function ChapterList({ course }) {
                             </h3>
                          </div>
                          <div className="flex items-center gap-3 mt-1.5">
-                            <span className="text-xs font-medium text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">
+                            <span className="text-xs font-medium text-cyan-300 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">
                                {totalChapterTopics} Topics
                             </span>
                             {/* Mobile-only summary line */}
@@ -70,7 +70,7 @@ function ChapterList({ course }) {
                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 {chapter.topics.map((topic, i) => (
                                    <div key={i} className="px-3 py-2 rounded-lg bg-white/5 text-sm font-medium text-white/80 border border-white/5 flex items-center gap-2 hover:bg-white/10 transition-colors cursor-default">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
                                       {typeof topic === 'string' ? topic : topic?.topicTitle}
                                    </div>
                                 ))}

@@ -331,7 +331,7 @@ function Quiz() {
   // 1. Generating State
   if (isQuizGenerating) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-transparent flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center mx-auto">
             <Brain className="h-8 w-8 text-green-400 animate-pulse" />
@@ -350,7 +350,7 @@ function Quiz() {
   // 2. Syncing/Loading State
   if (loading || (status === "completed" && quiz.length === 0)) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-transparent flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center mx-auto">
             <Brain className="h-8 w-8 text-green-400 animate-pulse" />
@@ -367,7 +367,7 @@ function Quiz() {
   // 3. Error State
   if (error) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-transparent flex items-center justify-center">
         <div className="text-center space-y-6 max-w-md">
           <div className="w-16 h-16 bg-red-500/20 rounded-2xl flex items-center justify-center mx-auto">
             <X className="h-8 w-8 text-red-400" />
@@ -405,10 +405,11 @@ function Quiz() {
       const isGoodScore = percentage >= 70;
 
       return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-transparent">
           {/* Header */}
-          <div className="border-b border-white/10 bg-card/50 backdrop-blur-sm">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="border-b border-white/[0.08] bg-white/[0.02] backdrop-blur-md relative overflow-hidden">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[radial-gradient(circle_at_50%_0%,rgba(6,182,212,0.12),transparent_60%)] pointer-events-none" />
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-10">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="p-2 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20">
@@ -456,7 +457,7 @@ function Quiz() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button onClick={handleRestartQuiz} className="btn-primary">
+                <Button onClick={handleRestartQuiz} className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] transition-all border-0">
                   <RotateCcw className="h-4 w-4 mr-2" />
                   Retake Quiz
                 </Button>
@@ -491,10 +492,11 @@ function Quiz() {
         : false;
 
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-transparent">
         {/* Header */}
-        <div className="border-b border-white/10 bg-card/50 backdrop-blur-sm">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="border-b border-white/[0.08] bg-white/[0.02] backdrop-blur-md relative overflow-hidden">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[radial-gradient(circle_at_50%_0%,rgba(6,182,212,0.12),transparent_60%)] pointer-events-none" />
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="p-2 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20">
@@ -525,7 +527,12 @@ function Quiz() {
                 <span>Progress</span>
                 <span>{Math.round(progress)}%</span>
               </div>
-              <Progress value={progress} className="h-2" />
+              <div className="w-full bg-white/10 rounded-full h-2">
+                <div
+                  className="bg-gradient-to-r from-cyan-400 to-blue-500 h-2 rounded-full transition-all duration-300 shadow-[0_0_10px_rgba(6,182,212,0.5)]"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -545,10 +552,10 @@ function Quiz() {
             {isAnswered && (
               <div className="space-y-4">
                 <div
-                  className={`modern-card p-6 border ${
+                  className={`p-6 border rounded-2xl shadow-[0_0_30px_rgba(6,182,212,0.05)] backdrop-blur-xl ${
                     isSelectionCorrect
-                      ? "border-green-500/30 bg-green-500/10"
-                      : "border-red-500/30 bg-red-500/10"
+                      ? "border-green-500/30 bg-green-500/10 shadow-[0_0_30px_rgba(34,197,94,0.1)]"
+                      : "border-red-500/30 bg-red-500/10 shadow-[0_0_30px_rgba(239,68,68,0.1)]"
                   }`}
                 >
                   <div className="flex items-start gap-4">
@@ -587,7 +594,7 @@ function Quiz() {
                 <div className="flex justify-center">
                   <Button
                     onClick={handleNextQuestion}
-                    className="btn-primary px-8"
+                    className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] transition-all border-0 px-8"
                   >
                     {currentQuestion < quiz.length - 1
                       ? "Next Question"
@@ -604,7 +611,7 @@ function Quiz() {
 
   // 5. Empty/Generate State (Fallback)
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
+    <div className="min-h-screen bg-transparent flex items-center justify-center">
       <div className="text-center space-y-6 max-w-md">
         <div className="w-16 h-16 bg-green-500/20 rounded-2xl flex items-center justify-center mx-auto">
           <Brain className="h-8 w-8 text-green-400" />
@@ -620,7 +627,7 @@ function Quiz() {
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Button
             onClick={GenerateQuiz}
-            className="btn-primary"
+            className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] transition-all border-0"
             disabled={isQuizGenerating}
           >
             <Zap className="h-4 w-4 mr-2" />

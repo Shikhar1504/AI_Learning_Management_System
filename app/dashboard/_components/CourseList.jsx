@@ -47,7 +47,7 @@ function CourseList({ courses, loading, onRefresh }) {
 
   const EmptyState = () => (
     <div className="text-center py-8 md:py-16">
-      <div className="modern-card p-6 md:p-12 max-w-lg mx-auto">
+      <div className="bg-[#111623]/80 border border-white/5 rounded-2xl shadow-xl backdrop-blur-sm p-6 md:p-12 max-w-lg mx-auto">
         {/* Animated Icon */}
         <div className="relative mb-8">
           <div className="w-20 h-20 md:w-24 md:h-24 mx-auto rounded-2xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center">
@@ -68,7 +68,7 @@ function CourseList({ courses, loading, onRefresh }) {
         
         <div className="space-y-6">
           <Link href="/create" className="block w-full">
-            <Button className="btn-primary h-12 px-8 w-full sm:w-auto">
+            <Button className="bg-gradient-to-r from-teal-600 to-purple-600 hover:from-teal-500 hover:to-purple-500 text-white border-0 h-12 px-8 w-full sm:w-auto shadow-[0_0_15px_rgba(20,184,166,0.3)] transition-all">
               <Plus className="h-5 w-5 mr-2" />
               Create Your First Course
             </Button>
@@ -138,7 +138,7 @@ function CourseList({ courses, loading, onRefresh }) {
           onClick={onRefresh}
           variant="outline"
           size="sm"
-          className="btn-secondary h-10 px-4 border-white/20"
+          className="bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium rounded-xl h-10 px-4 transition-all backdrop-blur-sm"
           disabled={loading}
         >
           <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} /> 
@@ -160,8 +160,9 @@ function CourseList({ courses, loading, onRefresh }) {
         
         {/* Add Course Card */}
         <Link href="/create">
-          <div className="modern-card-interactive p-8 text-center h-full min-h-[300px] flex flex-col items-center justify-center group">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+          <div className="bg-[#111623] border border-teal-500/20 rounded-2xl shadow-[0_0_30px_rgba(20,184,166,0.05)] hover:border-teal-500/40 hover:-translate-y-1 transition-all p-8 text-center h-full min-h-[300px] flex flex-col items-center justify-center group relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative z-10 w-16 h-16 rounded-2xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-teal-500/20 transition-all duration-300 shadow-[0_0_15px_rgba(20,184,166,0.1)]">
               <div className="relative w-12 h-12 flex items-center justify-center">
                 <Image 
                   src="/content.png"
@@ -173,11 +174,11 @@ function CourseList({ courses, loading, onRefresh }) {
               </div>
             </div>
             
-            <h4 className="font-semibold text-foreground mb-2 group-hover:text-gradient-primary transition-all">
+            <h4 className="relative z-10 font-semibold text-white mb-2 group-hover:text-teal-400 transition-colors">
               Create New Course
             </h4>
             
-            <p className="text-sm text-muted-foreground">
+            <p className="relative z-10 text-sm text-slate-400">
               Generate AI-powered content
             </p>
           </div>
@@ -190,7 +191,7 @@ function CourseList({ courses, loading, onRefresh }) {
           <Button
             onClick={() => setShowAllCourses(!showAllCourses)}
             variant="outline"
-            className="btn-secondary h-10 px-6 border-white/20"
+            className="bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium rounded-xl h-10 px-6 transition-all backdrop-blur-sm"
           >
             {showAllCourses ? (
               <>

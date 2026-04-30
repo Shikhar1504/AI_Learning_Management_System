@@ -3,7 +3,7 @@ import { Sparkles, FileText, Layers, HelpCircle } from "lucide-react";
 
 function StudyTips() {
   return (
-    <div className="modern-card p-8 border border-white/10 bg-white/5 backdrop-blur-sm">
+    <div className="modern-card p-8 border border-white/[0.08] bg-white/[0.04] backdrop-blur-sm rounded-2xl shadow-[0_0_30px_rgba(6,182,212,0.08)]">
       <div className="text-center space-y-8">
         <div className="flex items-center justify-center gap-3">
           <div className="p-3 rounded-xl bg-orange-500/10">
@@ -29,8 +29,8 @@ function StudyTips() {
           </div>
 
           <div className="group p-6 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors border border-white/5">
-            <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-              <Layers className="h-6 w-6 text-purple-400" />
+            <div className="w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+              <Layers className="h-6 w-6 text-cyan-400" />
             </div>
             <h4 className="font-semibold text-white mb-2">2. Active Recall</h4>
             <p className="text-sm text-white/60 leading-relaxed">

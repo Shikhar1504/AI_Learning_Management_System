@@ -65,7 +65,7 @@ function DashboardHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-50 glass-card border-b border-white/10 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 bg-[#0B0F1A]/80 backdrop-blur-xl border-b border-white/5">
       <div className="flex items-center justify-between p-4 lg:px-6">
         {/* Mobile Menu Button & Logo */}
         <div className="flex items-center gap-4">
@@ -129,7 +129,7 @@ function DashboardHeader() {
         <div className="flex items-center gap-3">
           {/* Create Course Button - Primary Global CTA */}
           <Link href="/create">
-            <Button className="btn-primary h-9 px-4 text-sm font-semibold hidden sm:flex shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 transition-all">
+            <Button className="bg-gradient-to-r from-teal-600 to-purple-600 hover:from-teal-500 hover:to-purple-500 text-white border-0 h-9 px-4 text-sm font-semibold hidden sm:flex shadow-[0_0_15px_rgba(20,184,166,0.3)] transition-all">
               <Plus className="h-4 w-4 mr-2" />
               Create AI Course
             </Button>
@@ -139,7 +139,7 @@ function DashboardHeader() {
           <Link href="/create" className="sm:hidden">
             <Button
               size="sm"
-              className="btn-primary p-2 h-9 w-9 rounded-full shadow-lg"
+              className="bg-gradient-to-r from-teal-600 to-purple-600 hover:from-teal-500 hover:to-purple-500 text-white border-0 p-2 h-9 w-9 rounded-full shadow-[0_0_15px_rgba(20,184,166,0.3)] transition-all"
             >
               <Plus className="h-5 w-5" />
             </Button>
@@ -164,7 +164,7 @@ function DashboardHeader() {
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div className="md:hidden glass-card border-t border-white/10 p-4">
+        <div className="md:hidden bg-[#0B0F1A]/95 backdrop-blur-3xl border-t border-white/5 p-4">
           <div className="space-y-3">
             <Link href="/create" onClick={() => setIsMobileMenuOpen(false)}>
               <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition-all">

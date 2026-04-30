@@ -25,31 +25,31 @@ function SideBar() {
       name: "Dashboard",
       icon: LayoutDashboard,
       path: "/dashboard",
-      gradient: "from-blue-500 to-cyan-500",
+      gradient: "from-teal-500 to-blue-500",
     },
     {
       name: "Practice",
       icon: Dumbbell,
       path: "/dashboard/practice",
-      gradient: "from-pink-500 to-rose-500",
+      gradient: "from-blue-500 to-purple-500",
     },
     {
       name: "Weak Areas",
       icon: Target,
       path: "/weak-areas",
-      gradient: "from-red-500 to-orange-500",
+      gradient: "from-purple-500 to-pink-500",
     },
     {
       name: "Profile",
       icon: UserCircle,
       path: "/dashboard/profile",
-      gradient: "from-green-500 to-teal-500",
+      gradient: "from-teal-400 to-teal-600",
     },
     {
       name: "Upgrade",
       icon: Shield,
       path: "/dashboard/upgrade",
-      gradient: "from-purple-500 to-pink-500",
+      gradient: "from-purple-400 to-purple-600",
     },
   ];
   const { totalCourse, setTotalCourse } = useContext(CourseCountContext);
@@ -137,8 +137,8 @@ function SideBar() {
       {/* Brand Section */}
       <div className="mb-6">
         <div className="flex items-center gap-3 px-2 mb-3">
-          <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-blue-600 shadow-lg">
-            <GraduationCap className="h-6 w-6 text-white" />
+          <div className="p-2 rounded-xl bg-gradient-to-br from-teal-500/20 to-purple-500/20 border border-white/10 shadow-[0_0_15px_rgba(20,184,166,0.2)]">
+            <GraduationCap className="h-6 w-6 text-teal-400" />
           </div>
           <div className="flex-1">
             <h1 className="text-xl font-bold text-gradient-primary font-display">
@@ -161,16 +161,16 @@ function SideBar() {
           return (
             <Link href={menu.path} key={index}>
               <div
-                className={`group relative flex items-center gap-3 p-3 rounded-xl transition-all duration-300 hover:bg-white/10 active:scale-95 ${
+                className={`group relative flex items-center gap-3 p-3 rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-95 ${
                   isActive
-                    ? "bg-white/10 border border-white/20 shadow-lg"
-                    : "hover:border hover:border-white/10"
+                    ? "bg-white/10 border border-white/10 shadow-[0_0_20px_rgba(20,184,166,0.15)]"
+                    : "border border-transparent hover:bg-white/5"
                 }`}
               >
                 <div
                   className={`p-2 rounded-lg transition-all duration-300 ${
                     isActive
-                      ? `bg-gradient-to-r ${menu.gradient} shadow-lg`
+                      ? `bg-gradient-to-r ${menu.gradient} shadow-[0_0_15px_rgba(20,184,166,0.3)]`
                       : "bg-white/5 group-hover:bg-white/10"
                   }`}
                 >
@@ -202,7 +202,7 @@ function SideBar() {
 
       {/* Course Limit Progress */}
       <div className="mt-auto">
-        <div className="modern-card p-4 border border-white/10">
+        <div className="bg-[#111623] p-4 border border-white/5 rounded-2xl shadow-xl">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 rounded-lg bg-gradient-to-r from-purple-500/20 to-blue-500/20">
               <Zap className="h-4 w-4 text-purple-400" />
@@ -274,7 +274,7 @@ function SideBar() {
           {!userStats.isMember && (
             <Link href="/dashboard/upgrade">
               <Button
-                className="w-full mt-4 btn-accent h-10 text-sm font-semibold active:scale-95 transition-transform"
+                className="w-full mt-4 bg-gradient-to-r from-teal-600 to-purple-600 hover:from-teal-500 hover:to-purple-500 text-white border-0 h-10 text-sm font-semibold active:scale-95 transition-transform shadow-[0_0_15px_rgba(20,184,166,0.3)]"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 <TrendingUp className="h-4 w-4 mr-2" />
@@ -293,7 +293,7 @@ function SideBar() {
       <MobileMenuButton />
 
       {/* Desktop Sidebar */}
-      <div className="hidden lg:flex h-screen glass-card border-r border-white/10 p-6 flex-col relative w-80">
+      <div className="hidden lg:flex h-screen bg-[#0B0F1A]/80 backdrop-blur-xl border-r border-white/5 p-6 flex-col relative w-80 z-20">
         <SidebarContent />
       </div>
 
@@ -307,7 +307,7 @@ function SideBar() {
 
       {/* Mobile Sidebar */}
       <div
-        className={`lg:hidden fixed top-0 left-0 h-full w-80 max-w-[85vw] z-40 glass-card border-r border-white/10 p-6 transform transition-transform duration-300 ease-in-out ${
+        className={`lg:hidden fixed top-0 left-0 h-full w-80 max-w-[85vw] z-40 bg-[#0B0F1A]/95 backdrop-blur-3xl border-r border-white/5 p-6 transform transition-transform duration-300 ease-in-out ${
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >

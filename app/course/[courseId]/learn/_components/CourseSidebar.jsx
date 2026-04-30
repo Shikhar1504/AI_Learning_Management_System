@@ -30,12 +30,12 @@ function CourseSidebar({
   return (
     <div
       className={cn(
-        "h-full border-r border-border bg-card/30 backdrop-blur-sm overflow-y-auto w-80 flex-shrink-0",
+        "h-full border-r border-white/[0.08] bg-white/[0.03] backdrop-blur-sm overflow-y-auto w-80 flex-shrink-0",
         className,
       )}
     >
-      <div className="p-6 border-b border-border">
-        <h2 className="font-bold text-lg line-clamp-2">
+      <div className="p-6 border-b border-white/[0.08]">
+        <h2 className="font-bold text-lg line-clamp-2 text-white">
           {course?.courseLayout?.courseTitle || course?.topic}
         </h2>
         <p className="text-xs text-muted-foreground mt-1">Course Content</p>
@@ -56,7 +56,7 @@ function CourseSidebar({
                 value={`item-${index}`}
                 className="border-none"
               >
-                <AccordionTrigger className="hover:no-underline py-2 px-3 rounded-lg hover:bg-accent/50 group">
+                <AccordionTrigger className="hover:no-underline py-2 px-3 rounded-lg hover:bg-white/[0.06] transition-colors group">
                   <div className="flex items-start text-left gap-3">
                     <span className="text-2xl group-hover:scale-110 transition-transform">
                       {chapter.emoji || chapter.emoji_icon || "📘"}
@@ -75,7 +75,7 @@ function CourseSidebar({
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="pt-2 pb-0 pl-4">
-                  <div className="space-y-1 relative border-l-2 border-border ml-3 pl-3">
+                  <div className="space-y-1 relative border-l-2 border-white/[0.08] ml-3 pl-3">
                     {chapterTopics.map((topic) => (
                       <button
                         key={topic.id}
@@ -89,8 +89,8 @@ function CourseSidebar({
                         className={cn(
                           "flex items-center gap-3 w-full text-left p-2 rounded-md text-sm transition-all relative",
                           activeTopic?.id === topic.id
-                            ? "bg-primary/10 text-primary font-medium"
-                            : "text-muted-foreground hover:text-foreground hover:bg-accent/50",
+                            ? "bg-white/[0.06] text-white font-medium border border-cyan-500/30"
+                            : "text-slate-400 hover:text-white hover:bg-white/[0.06] border border-transparent",
                         )}
                       >
                         {topic.status === "completed" ? (
@@ -98,8 +98,8 @@ function CourseSidebar({
                             className={cn(
                               "h-4 w-4 flex-shrink-0",
                               activeTopic?.id === topic.id
-                                ? "text-primary"
-                                : "text-green-500/70",
+                                ? "text-cyan-400"
+                                : "text-emerald-400/70",
                             )}
                           />
                         ) : topic.status === "generating" ? (

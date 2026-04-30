@@ -222,7 +222,7 @@ function Flashcards() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
-          <RefreshCcw className="h-8 w-8 animate-spin text-purple-500 mx-auto" />
+          <RefreshCcw className="h-8 w-8 animate-spin text-cyan-400 mx-auto" />
           <div>
             <h2 className="text-xl font-semibold text-foreground mb-2">
               Generating Flashcards...
@@ -242,7 +242,7 @@ function Flashcards() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
-          <RefreshCcw className="h-8 w-8 animate-spin text-purple-500 mx-auto" />
+          <RefreshCcw className="h-8 w-8 animate-spin text-cyan-400 mx-auto" />
           <div>
             <h2 className="text-xl font-semibold text-foreground mb-2">
               Loading Flashcards...
@@ -288,9 +288,9 @@ function Flashcards() {
   // 4. Content State (Study UI)
   if (flashCards.length > 0) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-transparent">
         {/* Header */}
-        <div className="border-b border-white/10 bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+        <div className="border-b border-white/[0.08] bg-white/[0.02] backdrop-blur-md sticky top-0 z-10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <div>
@@ -332,8 +332,8 @@ function Flashcards() {
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious className="-left-6 sm:-left-12" />
-              <CarouselNext className="-right-6 sm:-right-12" />
+              <CarouselPrevious className="-left-6 sm:-left-12 bg-white/[0.05] border border-white/[0.1] hover:border-cyan-400/40 hover:shadow-[0_0_20px_rgba(6,182,212,0.2)] text-white hover:bg-white/[0.1] transition-all" />
+              <CarouselNext className="-right-6 sm:-right-12 bg-white/[0.05] border border-white/[0.1] hover:border-cyan-400/40 hover:shadow-[0_0_20px_rgba(6,182,212,0.2)] text-white hover:bg-white/[0.1] transition-all" />
             </Carousel>
           </div>
 
@@ -353,7 +353,7 @@ function Flashcards() {
             {/* Progress bar */}
             <div className="w-full max-w-xs mx-auto mt-2 bg-white/10 rounded-full h-2">
               <div
-                className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-300"
+                className="bg-gradient-to-r from-cyan-400 to-blue-500 h-2 rounded-full transition-all duration-300"
                 style={{
                   width: `${((currentCard + 1) / flashCards.length) * 100}%`,
                 }}
@@ -362,11 +362,11 @@ function Flashcards() {
           </div>
 
           {/* Instructions */}
-          <div className="modern-card p-6 text-center space-y-4">
+          <div className="p-6 text-center space-y-4 bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] shadow-[0_0_40px_rgba(6,182,212,0.08)] rounded-2xl">
             <h3 className="font-semibold text-foreground">How to Study</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
               <div className="flex items-center justify-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-purple-500" />
+                <div className="w-2 h-2 rounded-full bg-cyan-400" />
                 <span>Click the card to flip</span>
               </div>
               <div className="flex items-center justify-center gap-2">
@@ -386,9 +386,9 @@ function Flashcards() {
 
   // 5. Empty/Generate State (Fallback)
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-transparent">
       {/* Header */}
-      <div className="border-b border-white/10 bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+      <div className="border-b border-white/[0.08] bg-white/[0.02] backdrop-blur-md sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div>
@@ -411,8 +411,8 @@ function Flashcards() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center space-y-6 py-20">
-          <div className="w-16 h-16 bg-purple-500/20 rounded-2xl flex items-center justify-center mx-auto">
-            <AlertCircle className="h-8 w-8 text-purple-400" />
+          <div className="w-16 h-16 bg-cyan-500/20 rounded-2xl flex items-center justify-center mx-auto">
+            <AlertCircle className="h-8 w-8 text-cyan-400" />
           </div>
           <div>
             <h2 className="text-xl font-semibold text-foreground mb-2">
@@ -425,7 +425,7 @@ function Flashcards() {
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button
               onClick={GenerateFlashcards}
-              className="btn-primary"
+              className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] transition-all border-0"
               disabled={isFlashcardGenerating}
             >
               <Zap className="h-4 w-4 mr-2" />

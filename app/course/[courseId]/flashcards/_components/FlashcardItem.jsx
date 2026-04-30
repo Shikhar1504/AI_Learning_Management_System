@@ -26,29 +26,32 @@ function FlashcardItem({ handleClick, isFlipped, flashcard }) {
         >
           {/* Front side of the card */}
           <div
-            className="absolute inset-0 p-8 bg-gradient-to-br from-purple-500 via-purple-600 to-blue-600 text-white flex flex-col items-center justify-center rounded-3xl shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 border border-white/10"
+            className="absolute inset-0 bg-white/[0.04] backdrop-blur-xl bg-gradient-to-br from-cyan-500/10 via-blue-500/5 to-transparent rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] border border-white/[0.08] flex flex-col items-center justify-center p-8 overflow-hidden group"
             style={{
               backfaceVisibility: "hidden",
               WebkitBackfaceVisibility: "hidden",
             }}
           >
+            {/* Inner reflection */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.06] to-transparent pointer-events-none rounded-3xl" />
+            
             {/* Front indicator */}
-            <div className="absolute top-4 left-4 px-3 py-1 bg-white/20 rounded-full text-xs font-medium backdrop-blur-sm">
+            <div className="absolute top-4 left-4 px-3 py-1 bg-white/10 rounded-full text-xs font-medium backdrop-blur-sm border border-white/10 text-white/80">
               Question
             </div>
 
             {/* Flip hint */}
-            <div className="absolute top-4 right-4 p-2 bg-white/20 rounded-full backdrop-blur-sm">
+            <div className="absolute top-4 right-4 p-2 bg-white/5 rounded-full backdrop-blur-sm border border-white/10 text-white/60 group-hover:text-white/90 transition-colors">
               <RotateCcw className="h-4 w-4" />
             </div>
 
             {/* Content */}
-            <div className="text-center space-y-4">
-              <h2 className="text-xl md:text-2xl lg:text-3xl font-bold leading-tight">
+            <div className="text-center space-y-4 relative z-10">
+              <h2 className="text-xl md:text-2xl lg:text-3xl font-semibold leading-tight text-white">
                 {frontText}
               </h2>
 
-              <p className="text-white/80 text-sm md:text-base">
+              <p className="text-white/60 text-sm md:text-base">
                 Click to reveal answer
               </p>
             </div>
@@ -56,30 +59,33 @@ function FlashcardItem({ handleClick, isFlipped, flashcard }) {
 
           {/* Back side of the card */}
           <div
-            className="absolute inset-0 p-8 bg-gradient-to-br from-slate-50 to-white text-gray-900 flex flex-col items-center justify-center rounded-3xl shadow-2xl hover:shadow-slate-200 transition-all duration-300 border border-gray-200"
+            className="absolute inset-0 bg-white/[0.04] backdrop-blur-xl bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] border border-white/[0.08] flex flex-col items-center justify-center p-8 overflow-hidden group"
             style={{
               backfaceVisibility: "hidden",
               WebkitBackfaceVisibility: "hidden",
               transform: "rotateY(180deg)",
             }}
           >
+            {/* Inner reflection */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.06] to-transparent pointer-events-none rounded-3xl" />
+            
             {/* Back indicator */}
-            <div className="absolute top-4 left-4 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+            <div className="absolute top-4 left-4 px-3 py-1 bg-white/10 rounded-full text-xs font-medium backdrop-blur-sm border border-white/10 text-white/80">
               Answer
             </div>
 
             {/* Flip hint */}
-            <div className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full">
-              <RotateCcw className="h-4 w-4 text-gray-600" />
+            <div className="absolute top-4 right-4 p-2 bg-white/5 rounded-full backdrop-blur-sm border border-white/10 text-white/60 group-hover:text-white/90 transition-colors">
+              <RotateCcw className="h-4 w-4" />
             </div>
 
             {/* Content */}
-            <div className="text-center space-y-4">
-              <h2 className="text-lg md:text-xl lg:text-2xl font-semibold leading-tight text-gray-800">
+            <div className="text-center space-y-4 relative z-10">
+              <h2 className="text-lg md:text-xl lg:text-2xl font-semibold leading-tight text-white">
                 {backText}
               </h2>
 
-              <p className="text-gray-500 text-sm md:text-base">
+              <p className="text-white/60 text-sm md:text-base">
                 Click to see question again
               </p>
             </div>

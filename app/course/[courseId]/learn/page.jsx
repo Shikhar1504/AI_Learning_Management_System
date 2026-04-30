@@ -157,7 +157,7 @@ function TopicLearning() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden relative bg-transparent">
       {/* Sidebar */}
       {/* Sidebar (Desktop) */}
       <CourseSidebar
@@ -172,10 +172,10 @@ function TopicLearning() {
       {isSidebarOpen && (
         <div className="fixed inset-0 z-50 flex md:hidden">
           <div
-            className="fixed inset-0 bg-background/80 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setIsSidebarOpen(false)}
           />
-          <div className="relative flex-1 w-full max-w-xs bg-background h-full shadow-2xl animate-in slide-in-from-left duration-200 border-r border-border">
+          <div className="relative flex-1 w-full max-w-xs bg-transparent h-full shadow-2xl animate-in slide-in-from-left duration-200 border-r border-white/[0.08]">
             <div className="absolute top-3 right-3 z-50">
               <Button
                 variant="ghost"
@@ -200,9 +200,15 @@ function TopicLearning() {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
+      <div className="flex-1 flex flex-col h-full overflow-hidden relative z-10">
+        {/* Soft Background Glow specified by User */}
+        <div 
+          className="absolute inset-0 pointer-events-none" 
+          style={{ background: 'radial-gradient(circle at 60% 40%, rgba(6,182,212,0.12), transparent 50%)' }} 
+        />
+
         {/* Top Bar for Mobile/Navigation */}
-        <div className="p-4 border-b border-border flex items-center gap-3 bg-card/50 backdrop-blur-sm">
+        <div className="p-4 border-b border-white/[0.08] flex items-center gap-3 bg-white/[0.02] backdrop-blur-md relative z-20">
           {/* Mobile Menu Toggle */}
           <Button
             variant="ghost"

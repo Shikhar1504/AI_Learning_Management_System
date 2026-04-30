@@ -23,8 +23,8 @@ function StudyMaterialSection({ courseId, course }) {
       icon: Layers,
       path: "/flashcards",
       type: "flashcard",
-      gradient: "from-purple-500 to-pink-500",
-      bgGradient: "from-purple-500/10 to-pink-500/10",
+      gradient: "from-cyan-500 to-blue-500",
+      bgGradient: "from-cyan-500/10 to-blue-500/10",
     },
     {
       name: "Knowledge Quiz",
@@ -63,8 +63,8 @@ function StudyMaterialSection({ courseId, course }) {
       {/* Section Header */}
       <div className="text-center space-y-4">
         <div className="flex items-center justify-center gap-3">
-          <div className="p-3 rounded-2xl bg-gradient-to-br from-purple-500/20 to-blue-500/20">
-            <Brain className="h-8 w-8 text-purple-400" />
+          <div className="p-3 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20">
+            <Brain className="h-8 w-8 text-cyan-400" />
           </div>
           <div>
             <h2 className="text-3xl font-bold text-foreground font-display">

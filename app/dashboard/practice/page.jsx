@@ -240,8 +240,8 @@ function Practice() {
         <Progress value={progress} className="h-2" />
 
         {/* Question Card */}
-        <div className="glass-card p-6 md:p-8 rounded-2xl border border-white/10 shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <h2 className="text-xl md:text-2xl font-bold text-foreground mb-8 leading-relaxed">
+        <div className="bg-[#111623]/80 backdrop-blur-xl border border-white/5 p-6 md:p-8 rounded-3xl shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <h2 className="text-xl md:text-2xl font-bold text-white mb-8 leading-relaxed">
             {currentQuestion?.question}
           </h2>
 
@@ -299,7 +299,7 @@ function Practice() {
         {/* Footer Actions */}
         <div className="flex justify-end">
           <Button
-            className="btn-primary min-w-[140px]"
+            className="bg-gradient-to-r from-teal-600 to-purple-600 hover:from-teal-500 hover:to-purple-500 text-white border-0 shadow-[0_0_15px_rgba(20,184,166,0.3)] transition-all min-w-[140px]"
             disabled={selectedOption === null}
             onClick={nextQuestion}
           >
@@ -320,8 +320,8 @@ function Practice() {
 
     return (
       <div className="max-w-2xl mx-auto text-center space-y-8 py-10">
-        <div className="glass-card p-8 md:p-12 border border-white/10 rounded-3xl shadow-2xl animate-in zoom-in-95 duration-500">
-          <div className="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center mb-6 shadow-lg shadow-orange-500/20">
+        <div className="bg-[#111623]/80 backdrop-blur-xl p-8 md:p-12 border border-white/5 rounded-3xl shadow-2xl animate-in zoom-in-95 duration-500">
+          <div className="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-teal-400 to-purple-500 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(20,184,166,0.3)]">
             <Trophy className="h-12 w-12 text-white" />
           </div>
 
@@ -335,8 +335,8 @@ function Practice() {
           </p>
 
           <div className="grid grid-cols-3 gap-6 mb-10">
-            <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
-              <div className="text-3xl font-bold text-foreground mb-1">
+            <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+              <div className="text-3xl font-bold text-white mb-1">
                 {score}/{questions.length}
               </div>
               <div className="text-xs text-muted-foreground uppercase tracking-wider">
@@ -364,12 +364,12 @@ function Practice() {
           <div className="flex gap-4 justify-center">
             <Button
               variant="outline"
-              className="h-12 px-6"
+              className="h-12 px-6 bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-all backdrop-blur-sm"
               onClick={handleSafeBack}
             >
               Back to Dashboard
             </Button>
-            <Button className="btn-primary h-12 px-8" onClick={startQuiz}>
+            <Button className="bg-gradient-to-r from-teal-600 to-purple-600 hover:from-teal-500 hover:to-purple-500 text-white border-0 shadow-[0_0_15px_rgba(20,184,166,0.3)] transition-all h-12 px-8" onClick={startQuiz}>
               <RotateCcw className="h-4 w-4 mr-2" />
               Try Another
             </Button>
@@ -384,11 +384,11 @@ function Practice() {
     <div className="space-y-8 animate-in fade-in duration-500">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <div className="p-3 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 shadow-lg shadow-pink-500/20">
+        <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-[0_0_20px_rgba(59,130,246,0.3)]">
           <Dumbbell className="h-8 w-8 text-white" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold font-display text-foreground">
+          <h1 className="text-3xl font-bold font-display text-white">
             Practice Arena
           </h1>
           <p className="text-muted-foreground text-lg">
@@ -431,10 +431,10 @@ function Practice() {
         ].map((stat, idx) => (
           <Card
             key={idx}
-            className="glass-card border-white/10 hover:border-white/20 transition-all"
+            className="bg-[#111623]/80 backdrop-blur-xl border-white/5 hover:border-white/10 hover:-translate-y-1 hover:shadow-xl hover:shadow-[0_0_20px_rgba(20,184,166,0.05)] transition-all duration-300 rounded-2xl"
           >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardTitle className="text-sm font-medium text-slate-400">
                 {stat.label}
               </CardTitle>
               <div className={`p-2 rounded-lg ${stat.bg}`}>
@@ -442,7 +442,7 @@ function Practice() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground">
+              <div className="text-2xl font-bold text-white">
                 {stat.value}
               </div>
             </CardContent>
@@ -453,9 +453,9 @@ function Practice() {
       {/* Main Action Area */}
       <div className="grid md:grid-cols-3 gap-6">
         {/* Start Quiz Card */}
-        <div className="md:col-span-2 relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-900/50 to-purple-900/50 border border-white/10 p-8 md:p-10 shadow-2xl">
-          <div className="absolute top-0 right-0 p-32 bg-purple-500/20 blur-[100px] rounded-full pointer-events-none" />
-          <div className="absolute bottom-0 left-0 p-24 bg-blue-500/10 blur-[80px] rounded-full pointer-events-none" />
+        <div className="md:col-span-2 relative overflow-hidden rounded-3xl bg-[#111623] border border-teal-500/20 p-8 md:p-10 shadow-[0_0_30px_rgba(20,184,166,0.1)] group hover:border-teal-500/40 transition-all">
+          <div className="absolute top-0 right-0 p-32 bg-teal-500/10 blur-[100px] rounded-full pointer-events-none group-hover:bg-teal-500/20 transition-all duration-700" />
+          <div className="absolute bottom-0 left-0 p-24 bg-purple-500/10 blur-[80px] rounded-full pointer-events-none group-hover:bg-purple-500/20 transition-all duration-700" />
 
           <div className="relative z-10 flex flex-col items-start h-full justify-center">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-sm font-medium text-purple-200 mb-4">
@@ -472,7 +472,7 @@ function Practice() {
 
             <Button
               size="lg"
-              className="h-14 px-8 text-lg font-semibold bg-white text-purple-900 hover:bg-purple-50 hover:scale-105 transition-all shadow-xl shadow-purple-900/20"
+              className="h-14 px-8 text-lg font-semibold bg-gradient-to-r from-teal-600 to-purple-600 hover:from-teal-500 hover:to-purple-500 text-white border-0 hover:scale-105 transition-all shadow-[0_0_20px_rgba(20,184,166,0.3)]"
               onClick={startQuiz}
               disabled={quizLoading}
             >
@@ -492,15 +492,15 @@ function Practice() {
         </div>
 
         {/* Info/Tips Card */}
-        <div className="glass-card rounded-3xl border border-white/10 p-6 flex flex-col justify-between">
+        <div className="bg-[#111623]/80 backdrop-blur-xl rounded-3xl border border-white/5 p-6 flex flex-col justify-between shadow-xl">
           <div>
-            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-blue-400" />
+            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-teal-400" />
               Quick Tips
             </h3>
-            <ul className="space-y-3 text-sm text-muted-foreground">
+            <ul className="space-y-3 text-sm text-slate-400">
               <li className="flex gap-2">
-                <span className="text-blue-400">•</span>
+                <span className="text-teal-400">•</span>
                 <span>Quizzes are untimed but tracked for speed.</span>
               </li>
               <li className="flex gap-2">
@@ -515,11 +515,11 @@ function Practice() {
           </div>
 
           <div className="mt-6 pt-6 border-t border-white/10">
-            <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-2">
+            <div className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">
               Current Streak
             </div>
             <div className="flex items-end gap-2">
-              <span className="text-3xl font-bold text-foreground">
+              <span className="text-3xl font-bold text-white">
                 {stats.streak ?? 0}
               </span>
               <span className="text-sm text-muted-foreground mb-1">days</span>

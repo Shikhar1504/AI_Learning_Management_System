@@ -61,12 +61,18 @@ export default function RootLayout({ children }) {
           >
             <Provider>
               <main className="min-h-screen relative overflow-hidden">
-                {/* Background Elements */}
-                <div className="fixed inset-0 -z-10">
-                  <div className="absolute top-0 left-0 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl animate-pulse" />
-                  <div className="absolute top-1/2 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl animate-pulse delay-1000" />
-                  <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-pink-600/5 rounded-full blur-3xl animate-pulse delay-2000" />
-                </div>
+                {/* Unified Global Background System */}
+                <div 
+                  className="fixed inset-0 -z-10" 
+                  style={{
+                    background: `
+                      radial-gradient(circle at 20% 30%, rgba(56,189,248,0.12), transparent 40%),
+                      radial-gradient(circle at 80% 70%, rgba(20,184,166,0.10), transparent 40%),
+                      radial-gradient(circle at 60% 20%, rgba(168,85,247,0.05), transparent 35%),
+                      #0b0f1a
+                    `
+                  }} 
+                />
                 {children}
               </main>
               <Toaster />

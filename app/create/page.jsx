@@ -100,7 +100,19 @@ function Create() {
   };
 
   return (
-    <div className="min-h-screen p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen p-4 sm:p-6 lg:p-8 relative bg-transparent text-slate-100">
+      {/* Global Glow Background */}
+      <div 
+        className="absolute inset-0 pointer-events-none" 
+        style={{
+          background: `
+            radial-gradient(circle at 20% 30%, rgba(56,189,248,0.12), transparent 40%),
+            radial-gradient(circle at 80% 70%, rgba(20,184,166,0.10), transparent 40%),
+            radial-gradient(circle at 60% 20%, rgba(168,85,247,0.06), transparent 35%)
+          `
+        }} 
+      />
+      <div className="relative z-10 h-full w-full">
       {/* Mobile-first top navigation bar for smaller screens */}
       <div className="lg:hidden mb-6">
         <div className="flex items-center justify-between">
@@ -114,8 +126,8 @@ function Create() {
             Back
           </Button>
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500/20 to-blue-500/20">
-              <Sparkles className="h-5 w-5 text-purple-400" />
+            <div className="p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
+              <Sparkles className="h-5 w-5 text-cyan-400" />
             </div>
             <h1 className="text-lg font-bold text-gradient-primary font-display">
               Create Course
@@ -140,8 +152,8 @@ function Create() {
               Back to Dashboard
             </Button>
             <div className="flex items-center gap-3">
-              <div className="p-3 rounded-2xl bg-gradient-to-br from-purple-500/20 to-blue-500/20">
-                <Sparkles className="h-8 w-8 text-purple-400" />
+              <div className="p-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/20">
+                <Sparkles className="h-8 w-8 text-cyan-400" />
               </div>
               <h1 className="heading-1 text-gradient-primary font-display">
                 Create Your Course
@@ -175,7 +187,7 @@ function Create() {
                         isCompleted
                           ? "bg-gradient-to-br from-green-500 to-emerald-500 text-white"
                           : isActive
-                          ? "bg-gradient-to-br from-purple-500 to-blue-500 text-white"
+                          ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-[0_0_15px_rgba(6,182,212,0.3)]"
                           : "bg-white/10 text-muted-foreground"
                       }`}
                     >
@@ -224,8 +236,8 @@ function Create() {
                           isCompleted
                             ? "bg-gradient-to-br from-green-500 to-emerald-500 shadow-lg"
                             : isActive
-                            ? "bg-gradient-to-br from-purple-500 to-blue-500 shadow-lg scale-110"
-                            : "bg-white/5 border border-white/20"
+                            ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-[0_0_20px_rgba(6,182,212,0.3)] scale-110"
+                            : "bg-white/[0.05] border border-white/[0.08]"
                         }`}
                       >
                         {isCompleted ? (
@@ -268,7 +280,7 @@ function Create() {
 
         {/* Step Content */}
         <div
-          className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 sm:p-8 shadow-xl slide-up"
+          className="bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] shadow-[0_0_50px_rgba(6,182,212,0.08)] rounded-2xl p-6 sm:p-8 slide-up"
           style={{ animationDelay: "400ms" }}
         >
           {step === 0 ? (
@@ -303,7 +315,7 @@ function Create() {
               <Button
                 onClick={() => setStep(step + 1)}
                 disabled={!canProceed()}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold"
+                className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] transition-all border-0"
               >
                 Continue
                 <ChevronRight className="h-4 w-4 ml-2" />
@@ -312,7 +324,7 @@ function Create() {
               <Button
                 onClick={GenerateCourseOutline}
                 disabled={!canProceed() || loading}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold"
+                className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] transition-all border-0"
               >
                 {loading ? (
                   <>
@@ -330,8 +342,8 @@ function Create() {
           </div>
         </div>
       </div>
+      </div>
     </div>
   );
 }
-
 export default Create;

@@ -41,10 +41,10 @@ function WelcomeBanner({ userStats, loading }) {
   return (
     <div className="space-y-6">
       {/* Simplified Welcome Section */}
-      <div className="modern-card p-6 relative overflow-hidden">
+      <div className="bg-[#111623]/80 backdrop-blur-xl border border-white/10 rounded-3xl p-8 relative overflow-hidden shadow-2xl group">
         {/* Background Decorations */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-pink-500/10 to-purple-500/10 rounded-full blur-2xl" />
+        <div className="absolute -top-24 -right-24 w-64 h-64 bg-teal-500/20 rounded-full blur-[80px] pointer-events-none group-hover:bg-teal-500/30 transition-colors duration-700" />
+        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-purple-500/20 rounded-full blur-[80px] pointer-events-none group-hover:bg-purple-500/30 transition-colors duration-700" />
         
         <div className="relative z-10">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
@@ -62,7 +62,7 @@ function WelcomeBanner({ userStats, loading }) {
 
               <div className="flex flex-wrap items-center gap-4 pt-2">
                 <Link href="#courses">
-                   <Button className="h-11 px-6 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-all backdrop-blur-md">
+                   <Button className="h-11 px-8 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium rounded-xl transition-all backdrop-blur-sm">
                       View My Courses
                    </Button>
                 </Link>
@@ -73,25 +73,26 @@ function WelcomeBanner({ userStats, loading }) {
             {/* Right Content - Quick Stats */}
             {userStats && (
               <div className="w-full lg:w-80">
-                <div className="modern-card p-4 border border-white/20">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500/20 to-blue-500/20">
-                      <Target className="h-5 w-5 text-purple-400" />
+                <div className="bg-[#0B0F1A]/50 p-6 border border-white/5 rounded-2xl relative overflow-hidden group/stats hover:border-white/10 transition-colors">
+                  <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 to-purple-500/5 opacity-0 group-hover/stats:opacity-100 transition-opacity duration-500" />
+                  <div className="relative z-10 flex items-center gap-3 mb-6">
+                    <div className="p-2.5 rounded-xl bg-teal-500/10 border border-teal-500/20">
+                      <Target className="h-5 w-5 text-teal-400" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-foreground">Your Progress</h3>
-                      <p className="text-xs text-muted-foreground">Keep learning!</p>
+                      <h3 className="font-semibold text-white">Your Progress</h3>
+                      <p className="text-xs text-slate-400">Keep learning!</p>
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4 text-center">
-                    <div>
-                      <div className="text-2xl font-bold text-foreground">{userStats.courseCount}</div>
-                      <div className="text-xs text-muted-foreground">AI Courses</div>
+                  <div className="relative z-10 grid grid-cols-2 gap-4 text-center">
+                    <div className="p-3 bg-white/5 rounded-xl border border-white/5">
+                      <div className="text-2xl font-bold text-white mb-1">{userStats.courseCount}</div>
+                      <div className="text-xs text-slate-400 font-medium uppercase tracking-wider">AI Courses</div>
                     </div>
-                    <div>
-                      <div className="text-2xl font-bold text-foreground">{userStats.streak}</div>
-                      <div className="text-xs text-muted-foreground">Day Streak</div>
+                    <div className="p-3 bg-white/5 rounded-xl border border-white/5">
+                      <div className="text-2xl font-bold text-white mb-1">{userStats.streak}</div>
+                      <div className="text-xs text-slate-400 font-medium uppercase tracking-wider">Day Streak</div>
                     </div>
                   </div>
                 </div>
