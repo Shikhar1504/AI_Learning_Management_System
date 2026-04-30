@@ -40,8 +40,7 @@ The connection happens because the event name (`"user.create"`) in `inngest.send
 */
 
 export const CreateNewUser = inngest.createFunction(
-  { id: "create-user", retries: 1 },
-  { event: "user.create" },
+  { id: "create-user", retries: 1, triggers: [{ event: "user.create" }] },
   async ({ event, step }) => {
     const { user } = event.data;
     console.log("Received user data:", JSON.stringify(user, null, 2)); // Add logging to see what data we receive
@@ -90,9 +89,11 @@ export const CreateNewUser = inngest.createFunction(
 
 // Generate Study Type Content
 export const GenerateStudyTypeContent = inngest.createFunction(
-  { id: "Generate Study Type Content", retries: 1 },
-  { event: "studyType.content" }, // Event trigger
-
+  {
+    id: "Generate Study Type Content",
+    retries: 1,
+    triggers: [{ event: "studyType.content" }],
+  },
   async ({ event, step }) => {
     const { studyType, prompt, courseId, recordId } = event.data;
     let AiResult = null; // Initialize AI result
@@ -350,9 +351,11 @@ export const GenerateStudyTypeContent = inngest.createFunction(
 //   - Error captured in row, retryCount incremented on failure
 // ─────────────────────────────────────────────────────────────────────────────
 export const GenerateRemedialContent = inngest.createFunction(
-  { id: "Generate Remedial Content", retries: 2 },
-  { event: "adaptive.remediation" },
-
+  {
+    id: "Generate Remedial Content",
+    retries: 2,
+    triggers: [{ event: "adaptive.remediation" }],
+  },
   async ({ event, step }) => {
     const { userId, courseId, percentage, weakTopics, attemptId } = event.data;
 
