@@ -308,6 +308,8 @@ export default function Home() {
         </div>
       </section>
 
+
+
       {/* Stop Passive Learning - Psychology Section */}
       <section className="relative z-10 py-24 px-6 bg-[#0E1320]">
         <div className="container mx-auto max-w-5xl text-center">
@@ -448,8 +450,8 @@ export default function Home() {
       </section>
 
       {/* Adaptive Learning Loop */}
-      <section className="relative z-10 py-24 px-6 bg-[#0E1320] border-t border-white/5">
-        <div className="container mx-auto max-w-5xl">
+      <section className="relative z-10 py-24 px-6 bg-[#0E1320] border-t border-white/5 overflow-hidden">
+        <div className="container mx-auto max-w-7xl">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
               The Adaptive Learning Loop
@@ -459,103 +461,101 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="relative glass-card bg-[#0B0F1A]/60 backdrop-blur-3xl border border-white/10 rounded-3xl p-8 lg:p-12 shadow-2xl overflow-hidden flex flex-col items-center">
-            
-            <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 via-purple-500/5 to-blue-500/5" />
+          <div className="relative glass-card bg-[#0B0F1A]/60 backdrop-blur-3xl border border-white/10 rounded-3xl p-8 lg:p-12 shadow-2xl flex flex-col items-center">
+            <div className="absolute inset-0 bg-gradient-to-r from-teal-500/5 via-purple-500/5 to-blue-500/5" />
 
-            {/* Flow Container */}
-            <div className="relative w-full max-w-lg mx-auto space-y-4 text-center z-10">
+            {/* Horizontal Flow Container */}
+            <div className="relative w-full flex flex-col lg:flex-row items-center justify-between gap-4 lg:gap-2 z-10">
               
-              {/* Animated Connector Line Behind */}
-              <div className="absolute left-1/2 top-4 bottom-4 w-1 -translate-x-1/2 bg-gradient-to-b from-teal-500/30 via-purple-500/30 to-blue-500/30 rounded-full z-0">
-                 <div className="w-full h-1/4 bg-white/40 blur-sm rounded-full animate-pulse"></div>
+              {/* Animated Connector Line Behind (Desktop only) */}
+              <div className="hidden lg:block absolute top-1/2 left-8 right-8 h-1 -translate-y-1/2 bg-gradient-to-r from-teal-500/20 via-purple-500/20 to-blue-500/20 rounded-full z-0">
+                 <div className="h-full w-1/4 bg-white/30 blur-sm rounded-full animate-pulse mx-auto"></div>
               </div>
+
+              {/* Loop-back visual (Desktop only) */}
+              <svg className="hidden lg:block absolute top-1/2 left-[10%] right-[10%] w-[80%] h-32 -translate-y-[calc(50%+4rem)] pointer-events-none z-0" viewBox="0 0 100 50" preserveAspectRatio="none">
+                <path d="M 95 50 C 95 0, 5 0, 5 50" fill="none" stroke="url(#loopGradient)" strokeWidth="0.5" strokeDasharray="2,2" className="animate-pulse" />
+                <defs>
+                  <linearGradient id="loopGradient" x1="100%" y1="0%" x2="0%" y2="0%">
+                    <stop offset="0%" stopColor="#3b82f6" />
+                    <stop offset="50%" stopColor="#a855f7" />
+                    <stop offset="100%" stopColor="#14b8a6" />
+                  </linearGradient>
+                </defs>
+              </svg>
 
               {/* Node 1 */}
-              <div className="relative z-10 bg-[#111623] border border-white/10 rounded-xl p-4 flex items-center justify-between gap-4 shadow-lg hover:border-teal-500/50 transition-colors w-full group">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-teal-500/10 transition-colors">
-                    <Database className="w-5 h-5 text-teal-400" />
-                  </div>
-                  <div className="text-left">
-                    <div className="text-sm font-semibold text-white">User Input</div>
-                    <div className="text-xs text-slate-400">Topics, documents, or goals</div>
-                  </div>
+              <div className="relative z-10 bg-[#111623] border border-white/10 rounded-xl p-4 flex flex-col items-center text-center shadow-lg hover:border-teal-500/50 transition-colors flex-1 w-full lg:w-auto">
+                <div className="w-10 h-10 mb-3 rounded-lg bg-white/5 flex items-center justify-center">
+                  <Database className="w-5 h-5 text-teal-400" />
                 </div>
+                <div className="text-sm font-semibold text-white">Input</div>
+                <div className="text-[10px] text-slate-400 mt-1">Topic / Goals</div>
               </div>
+
+              <ArrowRight className="hidden lg:block w-4 h-4 text-slate-600 relative z-10 shrink-0" />
 
               {/* Node 2 */}
-              <div className="relative z-10 bg-[#111623] border border-white/10 rounded-xl p-4 flex items-center justify-between gap-4 shadow-lg hover:border-teal-500/50 transition-colors w-full group">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-teal-500/10 transition-colors">
-                    <Cpu className="w-5 h-5 text-teal-400" />
-                  </div>
-                  <div className="text-left">
-                    <div className="text-sm font-semibold text-white">Course Generation</div>
-                    <div className="text-xs text-slate-400">AI structures the syllabus</div>
-                  </div>
+              <div className="relative z-10 bg-[#111623] border border-white/10 rounded-xl p-4 flex flex-col items-center text-center shadow-lg hover:border-teal-500/50 transition-colors flex-1 w-full lg:w-auto">
+                <div className="w-10 h-10 mb-3 rounded-lg bg-white/5 flex items-center justify-center">
+                  <Cpu className="w-5 h-5 text-teal-400" />
                 </div>
+                <div className="text-sm font-semibold text-white">Generation</div>
+                <div className="text-[10px] text-slate-400 mt-1">AI Syllabus</div>
               </div>
+
+              <ArrowRight className="hidden lg:block w-4 h-4 text-slate-600 relative z-10 shrink-0" />
 
               {/* Node 3 */}
-              <div className="relative z-10 bg-[#111623] border border-purple-500/30 rounded-xl p-4 flex items-center justify-between gap-4 shadow-[0_0_15px_rgba(168,85,247,0.1)] w-full">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                    <BookOpen className="w-5 h-5 text-purple-400" />
-                  </div>
-                  <div className="text-left">
-                    <div className="text-sm font-semibold text-white">Learning + Quiz</div>
-                    <div className="text-xs text-purple-200/70">Active recall validation</div>
-                  </div>
+              <div className="relative z-10 bg-[#111623] border border-purple-500/30 rounded-xl p-4 flex flex-col items-center text-center shadow-[0_0_15px_rgba(168,85,247,0.1)] flex-1 w-full lg:w-auto">
+                <div className="w-10 h-10 mb-3 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                  <BookOpen className="w-5 h-5 text-purple-400" />
                 </div>
+                <div className="text-sm font-semibold text-white">Learning</div>
+                <div className="text-[10px] text-purple-200/70 mt-1">Active Recall</div>
               </div>
+
+              <ArrowRight className="hidden lg:block w-4 h-4 text-slate-600 relative z-10 shrink-0" />
 
               {/* Node 4 */}
-              <div className="relative z-10 bg-[#111623] border border-pink-500/30 rounded-xl p-4 flex items-center justify-between gap-4 shadow-[0_0_15px_rgba(236,72,153,0.1)] w-full">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-pink-500/10 flex items-center justify-center">
-                    <Activity className="w-5 h-5 text-pink-400" />
-                  </div>
-                  <div className="text-left">
-                    <div className="text-sm font-semibold text-white">Weak Area Detection</div>
-                    <div className="text-xs text-pink-200/70">Identifying concept gaps</div>
-                  </div>
+              <div className="relative z-10 bg-[#111623] border border-pink-500/30 rounded-xl p-4 flex flex-col items-center text-center shadow-[0_0_15px_rgba(236,72,153,0.1)] flex-1 w-full lg:w-auto">
+                <div className="w-10 h-10 mb-3 rounded-lg bg-pink-500/10 flex items-center justify-center">
+                  <Activity className="w-5 h-5 text-pink-400" />
                 </div>
+                <div className="text-sm font-semibold text-white">Detection</div>
+                <div className="text-[10px] text-pink-200/70 mt-1">Concept Gaps</div>
               </div>
+
+              <ArrowRight className="hidden lg:block w-4 h-4 text-slate-600 relative z-10 shrink-0" />
 
               {/* Node 5 */}
-              <div className="relative z-10 bg-[#111623] border border-blue-500/30 rounded-xl p-4 flex items-center justify-between gap-4 shadow-[0_0_15px_rgba(59,130,246,0.1)] w-full">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                    <Search className="w-5 h-5 text-blue-400" />
-                  </div>
-                  <div className="text-left">
-                    <div className="text-sm font-semibold text-white">RAG + Semantic Cache</div>
-                    <div className="text-xs text-blue-200/70">Retrieving exact context</div>
-                  </div>
+              <div className="relative z-10 bg-[#111623] border border-blue-500/30 rounded-xl p-4 flex flex-col items-center text-center shadow-[0_0_15px_rgba(59,130,246,0.1)] flex-1 w-full lg:w-auto">
+                <div className="w-10 h-10 mb-3 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                  <Search className="w-5 h-5 text-blue-400" />
                 </div>
+                <div className="text-sm font-semibold text-white">RAG Cache</div>
+                <div className="text-[10px] text-blue-200/70 mt-1">Exact Context</div>
               </div>
+
+              <ArrowRight className="hidden lg:block w-4 h-4 text-slate-600 relative z-10 shrink-0" />
 
               {/* Node 6 */}
-              <div className="relative z-10 bg-[#111623] border border-teal-500/50 rounded-xl p-4 flex items-center justify-between gap-4 shadow-[0_0_20px_rgba(20,184,166,0.15)] w-full overflow-hidden group">
-                <div className="flex items-center gap-4 relative z-10">
-                  <div className="w-10 h-10 rounded-lg bg-teal-500/20 flex items-center justify-center">
-                    <RefreshCw className="w-5 h-5 text-teal-400 animate-spin" style={{ animationDuration: '3s' }} />
-                  </div>
-                  <div className="text-left">
-                    <div className="text-sm font-semibold text-white">Remediation Generation</div>
-                    <div className="text-xs text-teal-200/70">Creating targeted study plans</div>
-                  </div>
+              <div className="relative z-10 bg-[#111623] border border-teal-500/50 rounded-xl p-4 flex flex-col items-center text-center shadow-[0_0_20px_rgba(20,184,166,0.15)] overflow-hidden group flex-1 w-full lg:w-auto">
+                <div className="w-10 h-10 mb-3 rounded-lg bg-teal-500/20 flex items-center justify-center">
+                  <RefreshCw className="w-5 h-5 text-teal-400 animate-spin" style={{ animationDuration: '4s' }} />
                 </div>
-              </div>
-
-              {/* Node 7 */}
-              <div className="relative z-10 bg-gradient-to-r from-teal-500/20 to-purple-500/20 border border-teal-500/40 rounded-xl p-4 flex items-center justify-center gap-4 shadow-lg backdrop-blur-md w-full mt-8">
-                <Network className="w-5 h-5 text-white" />
-                <span className="text-base font-bold text-white tracking-wide">Adaptive Learning Loop Completed</span>
+                <div className="text-sm font-semibold text-white">Remediation</div>
+                <div className="text-[10px] text-teal-200/70 mt-1">Study Plans</div>
               </div>
 
             </div>
+            
+            {/* Mobile Loop-back indication */}
+            <div className="mt-8 flex items-center justify-center gap-2 text-teal-400 text-sm font-medium lg:hidden">
+              <RefreshCw className="w-4 h-4 animate-spin" style={{ animationDuration: '3s' }} />
+              Loops continuously until mastery
+            </div>
+
           </div>
         </div>
       </section>
@@ -565,11 +565,10 @@ export default function Home() {
         <div className="container mx-auto max-w-7xl">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-5xl font-bold text-white mb-4">
-              A Complete Learning Platform
+              Inside the Learning Engine
             </h2>
             <p className="text-slate-400 max-w-2xl mx-auto">
-              Everything you need to master complex subjects, built into one
-              seamless experience.
+              Powered by adaptive algorithms and real-time feedback loops to personalize every step of your journey.
             </p>
           </div>
 
@@ -780,7 +779,7 @@ export default function Home() {
                   <Activity className="w-4 h-4 text-teal-400" />
                   Weak Area Detection
                 </h4>
-                <p className="text-slate-400 text-sm">Automatically identifies concept gaps you didn't know you had.</p>
+                <p className="text-slate-400 text-sm">Automatically identifies concept gaps you didn&apos;t know you had.</p>
               </div>
 
               <div className="bg-[#111623]/50 border border-white/5 p-6 rounded-2xl hover:bg-white/5 transition-colors">
@@ -907,18 +906,21 @@ export default function Home() {
             </div>
 
             {/* Premium Plan */}
-            <div className="relative bg-[#111623] border border-teal-500/30 rounded-3xl p-8 hover:shadow-[0_0_40px_rgba(20,184,166,0.15)] transition-all flex flex-col overflow-hidden">
-              <div className="absolute top-0 right-0 bg-teal-500 text-[#0B0F1A] text-xs font-bold px-4 py-1.5 rounded-bl-xl z-10">
-                PRO PLAN
+            <div className="relative bg-[#111623] border border-teal-500/50 rounded-3xl p-8 shadow-[0_0_30px_rgba(20,184,166,0.1)] hover:shadow-[0_0_40px_rgba(20,184,166,0.2)] transition-all flex flex-col overflow-hidden transform md:-translate-y-2">
+              <div className="absolute top-0 right-0 bg-gradient-to-r from-teal-500 to-teal-400 text-[#0B0F1A] text-xs font-bold px-4 py-1.5 rounded-bl-xl z-10 shadow-lg">
+                MOST POPULAR
               </div>
-              <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/10 blur-[60px] pointer-events-none" />
+              <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/20 blur-[60px] pointer-events-none" />
 
               <h3 className="text-xl font-semibold text-teal-400 mb-2 relative z-10">
                 Pro Learner
               </h3>
-              <div className="flex items-end gap-2 mb-6 relative z-10">
+              <div className="flex items-end gap-2 mb-1 relative z-10">
                 <span className="text-4xl font-bold text-white">$5</span>
                 <span className="text-slate-400 mb-1">/month</span>
+              </div>
+              <div className="text-xs text-teal-400/80 mb-6 font-medium relative z-10">
+                Less than a coffee ☕
               </div>
               <p className="text-slate-400 text-sm mb-8 pb-8 border-b border-white/5 relative z-10">
                 Unlimited access to all advanced AI remediation features.
