@@ -143,13 +143,7 @@ function MaterialCardItem({
     setLoading(true);
 
     try {
-      const chapters = course?.courseLayout?.chapters
-        ?.map(
-          (chapter) =>
-            chapter.chapter_title || chapter.chapterTitle || chapter.title,
-        )
-        .filter(Boolean)
-        .join(", ");
+      const chapters = course?.courseLayout?.chapters || [];
 
       await axios.post("/api/study-type-content", {
         courseId: course?.courseId,

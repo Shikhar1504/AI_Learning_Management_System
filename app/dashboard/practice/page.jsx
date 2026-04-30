@@ -15,6 +15,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 const normalizeAnswer = (value) =>
@@ -23,6 +24,7 @@ const normalizeAnswer = (value) =>
     .toLowerCase();
 
 function Practice() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalAttempts: 0,
@@ -193,6 +195,14 @@ function Practice() {
     };
   };
 
+  const handleSafeBack = () => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/dashboard/practice");
+    }
+  };
+
   // --- RENDER HELPERS ---
 
   if (quizActive && !quizCompleted) {
@@ -355,7 +365,7 @@ function Practice() {
             <Button
               variant="outline"
               className="h-12 px-6"
-              onClick={() => setQuizCompleted(false)}
+              onClick={handleSafeBack}
             >
               Back to Dashboard
             </Button>

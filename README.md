@@ -1,17 +1,8 @@
 # LearnForge
 
-## ⚡ TL;DR
+## 💼 Summary
 
-Event-driven AI LMS built with async pipelines (Inngest), PostgreSQL + Drizzle, and Gemini AI.  
-It uses retry-safe background jobs, idempotent APIs, DB transactions, and secure server-side auth.  
-Focus: reliability, non-blocking design, and real backend system patterns.
-
-AI-powered LMS that generates structured courses, topic notes, flashcards, and quizzes from a single prompt.  
-The backend uses Next.js route handlers, Drizzle/PostgreSQL, Inngest workers, Clerk auth, Stripe billing, and Gemini AI.
-
-Designing a reliable AI pipeline required handling non-deterministic outputs, API failures, and long-running jobs without blocking user requests.
-
-Why this project matters: practical event-driven backend design, async AI pipelines, status-driven workflows, retry/fallback behavior, quota enforcement, database transactions, atomic writes, and denormalized progress tracking.
+Built a production-grade AI learning platform with an event-driven architecture, integrating Retrieval-Augmented Generation (RAG), semantic caching, and adaptive learning loops. Designed a resilient backend using PostgreSQL transactions, atomic SQL operations, and retry-safe background jobs (Inngest). Implemented embedding-based semantic caching to reduce API cost and latency, and a feedback-driven remediation system that generates personalized study plans based on user performance. Ensured reliability through fallback API strategies, strict validation pipelines, and non-blocking async workflows.
 
 ---
 
@@ -181,6 +172,12 @@ Polling → UI
 - If prior attempt `failed`, reuse row and set back to `generating`.
 - If no row exists, insert new `studyTypeContent`.
 - On unique-constraint race, safely fetch existing row instead of throwing.
+- Before calling AI: system checks the embedding-based semantic cache for recent similar queries and returns cached content on a hit to avoid redundant generation.
+- If cache miss: a RAG retrieval step fetches top-K relevant content chunks which are injected into the prompt to ground generation and reduce hallucination.
+- API sends Inngest event with type, prompt, course ID, and record ID.
+- **Core pipeline:**
+  semantic cache → RAG retrieval → AI generation
+  ensuring minimal latency, reduced cost, and grounded outputs.
 - API sends Inngest event with type, prompt, course ID, and record ID.
 - Worker exits early if row is already `completed`.
 - Worker sets `generating` and clears prior error.
@@ -237,6 +234,79 @@ Polling → UI
 - Quota/rate-limit failures.
 - AI timeouts/overload.
 - Partial generation requiring retryability.
+
+---
+
+## 🧠 Retrieval-Augmented Generation (RAG)
+
+- Implemented a RAG pipeline for flashcards, quizzes, and adaptive remediation.
+- Course content is chunked and stored with embeddings in PostgreSQL (pgvector).
+- Queries are embedded and matched using cosine similarity.
+- Multi-step retrieval strategy:
+  - Same-course retrieval (strict threshold)
+  - Relaxed threshold retry
+  - Cross-course fallback
+
+- Top-K relevant chunks are injected into prompts for grounded generation.
+- Prevents hallucination and improves consistency across generated content.
+
+---
+
+## ⚡ Semantic Caching Layer
+
+- Implemented embedding-based semantic cache to avoid redundant AI calls.
+
+* Cache lookup flow:
+
+1. Embed incoming query
+2. Compare with stored embeddings
+3. Return cached result if similarity ≥ threshold
+
+- Supports:
+  - Exact hit → immediate response
+  - Near hit → fallback reuse when AI fails
+
+- Reduces latency and API cost significantly.
+- Cache stored in PostgreSQL with vector indexing.
+
+---
+
+## 🎯 Adaptive Learning System (Remediation Loop)
+
+- Built a feedback-driven learning loop based on quiz performance.
+
+Flow:
+
+1. User completes quiz
+2. Score is evaluated against threshold
+3. Weak topics are extracted from wrong answers
+4. Background job generates targeted remediation plan
+
+- Remediation content includes:
+  - topic-specific explanations
+  - key points
+  - practice questions
+  - correct answers
+
+- Stored separately and linked to quiz attempts for traceability.
+
+Transforms the system into a feedback-driven adaptive learning loop, where user mistakes directly influence future content generation and reinforcement strategy.
+
+---
+
+## 🔁 Learning UX Design (Active Recall)
+
+- Designed system for active learning, not passive reading:
+  - Users attempt answers before seeing solutions
+  - Explanation and key points revealed only after answer
+
+- Weak Areas dashboard:
+  - Tracks low-score attempts
+  - Surfaces targeted remediation plans
+
+- Encourages retention through recall-based practice.
+
+---
 
 ---
 
@@ -320,6 +390,11 @@ Polling → UI
 - API input normalization and validation
 - Pollable status endpoints
 
+- Retrieval-Augmented Generation (RAG)
+- Semantic caching with vector similarity
+- Adaptive learning systems
+- Feedback-driven content generation
+
 ---
 
 ## 🗃️ Data Model Overview
@@ -396,6 +471,10 @@ Payment identifiers and subscription state from Stripe webhooks.
 - Status polling keeps UI simple
 - Denormalized counters speed dashboard reads
 - Cached content avoids repeated AI calls
+- Semantic caching reduces redundant AI calls and API cost
+- RAG improves response accuracy and reduces hallucination in generated content
+- Adaptive remediation reduces repeated failure patterns by generating targeted study plans
+- Adaptive learning loop reduces repeated mistakes by reinforcing weak concepts through targeted practice.
 
 ---
 
@@ -442,13 +521,8 @@ Payment identifiers and subscription state from Stripe webhooks.
 
 ```bash
 npm install
+node scripts/enable-pgvector.js
 npx drizzle-kit push
 npm run dev
 npx inngest-cli dev
 ```
-
----
-
-## 💼 Resume-Level Summary
-
-Designed a scalable, event-driven AI content pipeline with lifecycle management, PostgreSQL transactions, and atomic SQL increments to eliminate race conditions. Implemented retry-safe background jobs with Inngest, per-request AI session isolation, and fallback API-key logic to handle unreliable external AI services. Secured the API layer against IDOR vulnerabilities with strict server-side identity validation.

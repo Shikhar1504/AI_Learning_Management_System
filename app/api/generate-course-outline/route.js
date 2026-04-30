@@ -23,21 +23,52 @@ const courseOutlineSchema = z.object({
   difficultyLevel: z.string().default("Easy"),
 });
 
+/**
+ * Generate a semantic fallback chapter title when the AI returns a generic label.
+ * Uses part-position descriptors so titles are always topic-specific and RAG-friendly.
+ *
+ * Examples (topic = "Python"):
+ *   index 0 → "Python Fundamentals and Core Principles"
+ *   index 1 → "Core Concepts and Techniques in Python"
+ *   index 2 → "Advanced Applications of Python"
+ */
+function _deriveFallbackChapterTitle(topic, index) {
+  const PART_LABELS = [
+    `${topic} Fundamentals and Core Principles`,
+    `Core Concepts and Techniques in ${topic}`,
+    `Advanced Applications of ${topic}`,
+    `${topic} Deep Dive and Best Practices`,
+    `Mastering ${topic} — Practical Skills`,
+  ];
+  return PART_LABELS[index] ?? `${topic} — Part ${index + 1}`;
+}
+
 function normalizeCourseLayout(layout, topic, difficultyLevel) {
   const rawChapters = Array.isArray(layout?.chapters) ? layout.chapters : [];
 
   const chapters = rawChapters.map((chapter, chapterIndex) => {
-    const title =
+    const rawTitle =
       chapter?.title ||
       chapter?.chapterTitle ||
       chapter?.chapter_title ||
-      `Chapter ${chapterIndex + 1}`;
+      "";
+
+    // Sanitize: detect generic/placeholder titles and replace with a topic-derived
+    // fallback that is still semantic and useful for embeddings + RAG retrieval.
+    // Patterns caught: "Chapter 1", "Introduction", "Overview", "Getting Started",
+    // "Basics", "Part 1", or a bare number.
+    const GENERIC_PATTERN =
+      /^(chapter\s*\d+|introduction|overview|getting\s*started|basics|part\s*\d+|\d+)$/i;
+    const title =
+      rawTitle && !GENERIC_PATTERN.test(rawTitle.trim())
+        ? rawTitle
+        : _deriveFallbackChapterTitle(topic, chapterIndex);
 
     const summary =
       chapter?.summary ||
       chapter?.chapterSummary ||
       chapter?.chapter_summary ||
-      `Overview for ${title}`;
+      `This chapter covers key concepts in ${title}.`;
 
     const emoji = chapter?.emoji || chapter?.emoji_icon || "📘";
 

@@ -4,6 +4,11 @@ import { eq, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import { currentUser } from "@clerk/nextjs/server";
+import { inngest } from "@/inngest/client";
+
+// Score threshold below which the adaptive learning loop is triggered.
+// User scored below this % → Inngest fires "adaptive.remediation" event.
+const ADAPTIVE_THRESHOLD = Number(process.env.ADAPTIVE_SCORE_THRESHOLD ?? 60);
 
 export async function POST(req) {
   try {
@@ -24,6 +29,9 @@ export async function POST(req) {
     const totalQuestions = Number(body.totalQuestions);
     const timeTaken = Number(body.timeTaken);
     const courseId = body.courseId || null;
+    // wrongAnswers: optional string[] of topic/question labels the user got wrong.
+    // Used by the adaptive loop to generate targeted remediation content.
+    const wrongAnswers = Array.isArray(body.wrongAnswers) ? body.wrongAnswers : [];
 
     if (
       isNaN(score) ||
@@ -85,9 +93,38 @@ export async function POST(req) {
       })
       .where(eq(USER_TABLE.id, userId));
 
+    // 6️⃣ Adaptive Learning — fire remediation event if score is below threshold
+    // Non-blocking: even if inngest.send() fails, we still return success to the client.
+    // The quiz attempt is already saved — we don't want to fail the whole request.
+    if (percentage < ADAPTIVE_THRESHOLD) {
+      try {
+        await inngest.send({
+          name: "adaptive.remediation",
+          data: {
+            userId,
+            courseId,
+            percentage,
+            // Derive weak topics from wrongAnswers labels; fall back to empty array.
+            weakTopics: wrongAnswers.length > 0 ? wrongAnswers : [],
+            attemptId: result[0].id,
+          },
+        });
+        console.log(
+          `[QuizAttempt] 🎯 Adaptive remediation triggered for userId=${userId}, score=${percentage}%`,
+        );
+      } catch (adaptiveError) {
+        // Log but never fail the request — quiz save is already successful
+        console.error(
+          "[QuizAttempt] Failed to trigger adaptive remediation:",
+          adaptiveError.message,
+        );
+      }
+    }
+
     return NextResponse.json({
       success: true,
       attempt: result[0],
+      adaptiveTriggered: percentage < ADAPTIVE_THRESHOLD,
     });
 
   } catch (error) {

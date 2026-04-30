@@ -18,6 +18,7 @@ function Quiz() {
   const [quiz, setQuiz] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [selectedAnswers, setSelectedAnswers] = useState([]);
   const [isAnswered, setIsAnswered] = useState(false);
   const [score, setScore] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -100,6 +101,8 @@ function Quiz() {
 
       if (quizQuestions.length > 0) {
         setQuiz(quizQuestions);
+        setSelectedAnswers(Array(quizQuestions.length).fill(null));
+        console.log("QUIZ SAMPLE:", quizQuestions[0]);
         // Track study activity when quiz is first loaded
         if (!studySessionTracked) {
           trackStudyActivity();
@@ -211,11 +214,20 @@ function Quiz() {
         .trim()
         .toLowerCase();
     const correct =
-      normalize(userAnswer) === normalize(quiz[currentQuestion]?.answer || quiz[currentQuestion]?.correctAnswer);
+      normalize(userAnswer) ===
+      normalize(
+        quiz[currentQuestion]?.answer || quiz[currentQuestion]?.correctAnswer,
+      );
 
     if (correct) {
       setScore(score + 1);
     }
+    // Persist the selected answer for this question
+    setSelectedAnswers((prev) => {
+      const next = Array.isArray(prev) ? [...prev] : [];
+      next[currentQuestion] = userAnswer;
+      return next;
+    });
   };
 
   const [startTime, setStartTime] = useState(null); // Track start time
@@ -233,11 +245,45 @@ function Quiz() {
       : 0;
 
     try {
+      console.log("SELECTED ANSWERS:", selectedAnswers);
+
+      const normalize = (str) =>
+        String(str || "")
+          .trim()
+          .toLowerCase();
+
+      const wrongAnswers = (quiz || [])
+        .filter((q, index) => {
+          const userAns = normalize(selectedAnswers[index] ?? "");
+          const correctAns = normalize(q.answer || q.correctAnswer);
+
+          const isWrong = userAns !== correctAns;
+
+          console.log("CHECK:", {
+            index,
+            topic: q.topic,
+            userAns,
+            correctAns,
+            isWrong,
+          });
+
+          return isWrong;
+        })
+        .map((q, index) => {
+          const topic = q.topic;
+          console.log("MAPPING TOPIC:", topic);
+          return topic;
+        })
+        .filter(Boolean);
+
+      console.log("FINAL WRONG TOPICS:", wrongAnswers);
+
       await axios.post("/api/quiz-attempt", {
         score: score,
         totalQuestions: quiz.length,
         timeTaken: timeTaken,
         courseId: courseId,
+        wrongAnswers,
       });
 
       toast({
@@ -271,10 +317,15 @@ function Quiz() {
     setIsAnswered(false);
     setScore(0);
     setIsCompleted(false);
+    setSelectedAnswers([]);
   };
 
   const handleGoBack = () => {
-    router.push(`/course/${courseId}`);
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push(`/course/${courseId}`);
+    }
   };
 
   // 1. Generating State
@@ -435,7 +486,8 @@ function Quiz() {
         .toLowerCase();
     const isSelectionCorrect =
       isAnswered && selectedAnswer
-        ? normalize(selectedAnswer) === normalize(currentQ?.answer || currentQ?.correctAnswer)
+        ? normalize(selectedAnswer) ===
+          normalize(currentQ?.answer || currentQ?.correctAnswer)
         : false;
 
     return (

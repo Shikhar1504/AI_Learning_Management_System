@@ -9,7 +9,32 @@ import {
   timestamp,
   index,
   unique,
+  customType,
+  real,
 } from "drizzle-orm/pg-core";
+
+// pgvector custom column type (768-dim for Gemini text-embedding-004)
+// Stored as vector(768) in PostgreSQL with pgvector extension
+const vector = customType({
+  dataType(config) {
+    return `vector(${config?.dimensions ?? 768})`;
+  },
+  toDriver(value) {
+    // Convert JS number[] → Postgres vector literal '[0.1,0.2,...]'
+    if (Array.isArray(value)) return `[${value.join(",")}]`;
+    return value;
+  },
+  fromDriver(value) {
+    // Parse Postgres vector literal back to number[]
+    if (typeof value === "string") {
+      return value
+        .replace(/^\[|\]$/g, "")
+        .split(",")
+        .map(Number);
+    }
+    return value;
+  },
+});
 
 export const USER_TABLE = pgTable("users", {
   id: varchar("id", { length: 256 }).primaryKey(),
@@ -86,6 +111,8 @@ export const TOPIC_TABLE = pgTable("topics", {
   error: text(),
   createdAt: timestamp().defaultNow(),
   updatedAt: timestamp().defaultNow(),
+  // RAG: embedding of the topic's notes for semantic search
+  embedding: vector("embedding", { dimensions: 768 }),
 }, (table) => {
   return {
     topicCourseIdIdx: index("topic_course_id_idx").on(table.courseId),
@@ -112,3 +139,56 @@ export const QUIZ_ATTEMPT_TABLE = pgTable("quizAttempt", {
     userIdx: index("quiz_attempt_user_idx").on(table.userId),
   };
 });
+
+// ─────────────────────────────────────────────────────────────────
+// RAG: Document chunks with pgvector embeddings
+// Populated by ragService.ingestChunks() after content generation
+// ─────────────────────────────────────────────────────────────────
+export const DOCUMENT_CHUNK_TABLE = pgTable("documentChunks", {
+  id: varchar("id", { length: 256 }).primaryKey(),
+  courseId: varchar().notNull(),          // which course this chunk belongs to
+  sourceType: varchar().notNull(),        // 'notes' | 'outline' | 'upload'
+  chunkIndex: integer().notNull(),        // position in the source document
+  content: text().notNull(),              // raw chunk text
+  embedding: vector("embedding", { dimensions: 768 }),
+  createdAt: timestamp().defaultNow(),
+}, (table) => ({
+  courseIdIdx: index("chunk_course_id_idx").on(table.courseId),
+  sourceTypeIdx: index("chunk_source_type_idx").on(table.sourceType),
+}));
+
+// ─────────────────────────────────────────────────────────────────
+// SEMANTIC CACHE: query → cached AI response
+// Checked BEFORE calling Gemini to avoid redundant LLM calls
+// ─────────────────────────────────────────────────────────────────
+export const SEMANTIC_CACHE_TABLE = pgTable("semanticCache", {
+  id: varchar("id", { length: 256 }).primaryKey(),
+  queryText: text().notNull(),            // the original prompt/query
+  queryEmbedding: vector("queryEmbedding", { dimensions: 768 }),
+  response: json().notNull(),             // cached AI response (parsed JSON)
+  studyType: varchar().notNull(),         // 'flashcard' | 'quiz' | 'notes' | etc.
+  hitCount: integer().default(0),         // how many times this cache entry was served
+  createdAt: timestamp().defaultNow(),
+  lastAccessedAt: timestamp().defaultNow(),
+});
+
+// ─────────────────────────────────────────────────────────────────
+// ADAPTIVE LEARNING: tracks remedial content generation jobs
+// Triggered when quiz score < ADAPTIVE_THRESHOLD (default 60%)
+// ─────────────────────────────────────────────────────────────────
+export const REMEDIAL_CONTENT_TABLE = pgTable("remedialContent", {
+  id: varchar("id", { length: 256 }).primaryKey(),
+  userId: varchar().notNull(),
+  courseId: varchar(),                    // null if from mixed/practice quiz
+  quizAttemptId: varchar().notNull(),     // links back to the quiz attempt
+  percentage: integer().notNull(),        // the score that triggered this
+  weakTopics: json(),                     // string[] of topic titles user struggled with
+  status: varchar().default("pending"),   // pending | generating | completed | failed
+  error: text(),
+  retryCount: integer().default(0),
+  createdAt: timestamp().defaultNow(),
+  updatedAt: timestamp().defaultNow(),
+}, (table) => ({
+  userIdx: index("remedial_user_idx").on(table.userId),
+  attemptIdx: index("remedial_attempt_idx").on(table.quizAttemptId),
+}));

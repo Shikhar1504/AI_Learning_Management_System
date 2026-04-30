@@ -1,6 +1,6 @@
 import { serve } from "inngest/next";
 import { inngest } from "../../../inngest/client";
-import { CreateNewUser, GenerateStudyTypeContent } from "@/inngest/functions";
+import { CreateNewUser, GenerateStudyTypeContent, GenerateRemedialContent } from "@/inngest/functions";
 import { NextRequest, NextResponse } from "next/server";
 
 // Use Node.js runtime for better compatibility
@@ -47,6 +47,7 @@ const handler = serve({
     functions: [
     CreateNewUser,
     GenerateStudyTypeContent,
+    GenerateRemedialContent, // Adaptive learning worker
   ],
   landingPage: false, // Disable landing page to reduce conflicts
 });

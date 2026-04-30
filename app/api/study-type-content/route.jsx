@@ -37,10 +37,57 @@ export async function POST(req) {
     );
   }
 
-  const PROMPT = // AI Prompt for flashcard and quiz generation
+  // Flatten chapters into a clean list of granular topic strings.
+  // The AI prompt expects specific topics (e.g. "Primitive Data Types"),
+  // NOT chapter titles (e.g. "Java Fundamentals and Syntax").
+  console.log("[StudyType] Raw chapters type:", typeof chapters, "| isArray:", Array.isArray(chapters));
+
+  let topics = [];
+
+  if (Array.isArray(chapters)) {
+    // Preferred path: frontend sends full chapter objects with nested topics
+    topics = chapters.flatMap((ch) => ch?.topics || []);
+  } else {
+    // Fallback: frontend sends a string (legacy/cached). Fetch topics from DB.
+    console.log("[StudyType] chapters is not an array — fetching topics from DB for courseId:", courseId);
+    try {
+      const { STUDY_MATERIAL_TABLE } = await import("@/configs/schema");
+      const courseInfo = await db
+        .select({ courseLayout: STUDY_MATERIAL_TABLE.courseLayout })
+        .from(STUDY_MATERIAL_TABLE)
+        .where(eq(STUDY_MATERIAL_TABLE.courseId, courseId))
+        .limit(1);
+
+      const dbChapters = courseInfo[0]?.courseLayout?.chapters || [];
+      topics = dbChapters.flatMap((ch) => {
+        const t = ch?.topics || [];
+        return Array.isArray(t)
+          ? t.map((item) => (typeof item === "string" ? item : item?.topicTitle)).filter(Boolean)
+          : [];
+      });
+    } catch (e) {
+      console.warn("[StudyType] DB fallback failed:", e.message);
+    }
+  }
+
+  topics = topics
+    .filter(Boolean)
+    .map((t) => String(t).trim())
+    .filter((t) => t.length > 0);
+
+  console.log("[StudyType] Extracted topics:", topics);
+
+  if (topics.length === 0) {
+    return NextResponse.json(
+      { success: false, error: "Topic extraction failed — no topics found for this course" },
+      { status: 400 },
+    );
+  }
+
+  const PROMPT =
     normalizedType === "flashcard"
-      ? FLASHCARD_PROMPT(chapters)
-      : QUIZ_PROMPT(chapters);
+      ? FLASHCARD_PROMPT(topics.join(", "))
+      : QUIZ_PROMPT(topics.join(", "));
 
   // Check if a record already exists for this (courseId, type)
   const existingRecord = await db

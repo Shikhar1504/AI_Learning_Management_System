@@ -1,17 +1,17 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { UserButton, useUser } from "@clerk/nextjs";
-import { 
-  GraduationCap, 
-  ArrowLeft, 
-  Plus, 
+import {
+  GraduationCap,
+  ArrowLeft,
+  Plus,
   Menu,
   X,
   Shield,
   LayoutDashboard,
   UserCircle,
   Zap,
-  Dumbbell
+  Dumbbell,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -25,38 +25,42 @@ function DashboardHeader() {
     isMember: false,
     dailyCoursesRemaining: 10,
     dailyCoursesCreated: 0,
-    canCreateCourse: true
+    canCreateCourse: true,
   });
-  
+
   // Fetch user data for credits display
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user?.primaryEmailAddress?.emailAddress) return;
-      
+
       try {
-        const response = await fetch(`/api/users/${user.primaryEmailAddress.emailAddress}/stats`);
+        const response = await fetch(
+          `/api/users/${user.primaryEmailAddress.emailAddress}/stats`,
+        );
         if (response.ok) {
           const data = await response.json();
           setUserStats({
             isMember: data.isMember || false,
             dailyCoursesRemaining: data.dailyCoursesRemaining || 10,
             dailyCoursesCreated: data.dailyCoursesCreated || 0,
-            canCreateCourse: data.canCreateCourse || true
+            canCreateCourse: data.canCreateCourse || true,
           });
         }
       } catch (error) {
         console.error("Failed to fetch user data:", error);
       }
     };
-    
+
     fetchUserData();
   }, [user?.primaryEmailAddress?.emailAddress]);
-  
+
   const getPageTitle = () => {
     if (path.includes("profile")) return "Profile Settings";
     if (path.includes("upgrade")) return "Upgrade Plan";
     if (path.includes("/course/")) return "Course Details";
     if (path.includes("/create")) return "Create AI Course";
+    if (path.includes("/practice")) return "Practice Arena";
+    if (path.includes("/weak-areas")) return "Your Weak Areas";
     return "Dashboard";
   };
 
@@ -77,7 +81,7 @@ function DashboardHeader() {
               <Menu className="h-5 w-5 text-foreground" />
             )}
           </Button>
-          
+
           {/* Mobile Logo */}
           <Link href="/dashboard" className="md:hidden">
             <div className="flex items-center gap-2">
@@ -96,28 +100,27 @@ function DashboardHeader() {
           {path !== "/dashboard" && (
             <>
               <Link href="/dashboard">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className="text-muted-foreground hover:text-foreground hover:bg-white/10 transition-all"
                 >
-                  <ArrowLeft className="h-4 w-4 mr-2" /> 
+                  <ArrowLeft className="h-4 w-4 mr-2" />
                   Back
                 </Button>
               </Link>
               <div className="h-6 w-px bg-white/20" />
             </>
           )}
-          
+
           <div className="flex-1">
             <h1 className="text-xl font-semibold text-foreground font-display">
               {getPageTitle()}
             </h1>
             <p className="text-sm text-muted-foreground mt-0.5">
-              {path === "/dashboard" 
-                ? "Manage your AI learning journey" 
-                : "Continue creating and learning"
-              }
+              {path === "/dashboard"
+                ? "Manage your AI learning journey"
+                : "Continue creating and learning"}
             </p>
           </div>
         </div>
@@ -127,34 +130,38 @@ function DashboardHeader() {
           {/* Create Course Button - Primary Global CTA */}
           <Link href="/create">
             <Button className="btn-primary h-9 px-4 text-sm font-semibold hidden sm:flex shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 transition-all">
-              <Plus className="h-4 w-4 mr-2" /> 
+              <Plus className="h-4 w-4 mr-2" />
               Create AI Course
             </Button>
           </Link>
-          
+
           {/* Mobile Create Button */}
           <Link href="/create" className="sm:hidden">
-            <Button size="sm" className="btn-primary p-2 h-9 w-9 rounded-full shadow-lg">
+            <Button
+              size="sm"
+              className="btn-primary p-2 h-9 w-9 rounded-full shadow-lg"
+            >
               <Plus className="h-5 w-5" />
             </Button>
           </Link>
-          
+
           {/* User Profile */}
           <div className="ml-2">
-            <UserButton 
+            <UserButton
               afterSignOutUrl="/"
               appearance={{
                 elements: {
-                  avatarBox: "h-9 w-9 rounded-xl border-2 border-purple-400/50 hover:border-purple-400 transition-all shadow-lg",
+                  avatarBox:
+                    "h-9 w-9 rounded-xl border-2 border-purple-400/50 hover:border-purple-400 transition-all shadow-lg",
                   userButtonPopoverCard: "glass-card border border-white/20",
-                  userButtonPopoverActionButton: "hover:bg-white/10"
-                }
+                  userButtonPopoverActionButton: "hover:bg-white/10",
+                },
               }}
             />
           </div>
         </div>
       </div>
-      
+
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div className="md:hidden glass-card border-t border-white/10 p-4">
@@ -171,25 +178,34 @@ function DashboardHeader() {
                 <span className="text-sm font-medium">Dashboard</span>
               </div>
             </Link>
-            <Link href="/dashboard/practice" onClick={() => setIsMobileMenuOpen(false)}>
+            <Link
+              href="/dashboard/practice"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
               <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition-all">
                 <Dumbbell className="h-4 w-4" />
                 <span className="text-sm font-medium">Practice</span>
               </div>
             </Link>
-            <Link href="/dashboard/profile" onClick={() => setIsMobileMenuOpen(false)}>
+            <Link
+              href="/dashboard/profile"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
               <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition-all">
                 <UserCircle className="h-4 w-4" />
                 <span className="text-sm font-medium">Profile</span>
               </div>
             </Link>
-            <Link href="/dashboard/upgrade" onClick={() => setIsMobileMenuOpen(false)}>
+            <Link
+              href="/dashboard/upgrade"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
               <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition-all">
                 <Shield className="h-4 w-4" />
                 <span className="text-sm font-medium">Upgrade</span>
               </div>
             </Link>
-            
+
             {/* Credits Section */}
             <div className="border-t border-white/10 pt-3 mt-3">
               <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5">
@@ -201,11 +217,14 @@ function DashboardHeader() {
                     {userStats.isMember ? "Unlimited Access" : "Daily Credits"}
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    {userStats.isMember ? "Premium Member" : `${userStats.dailyCoursesRemaining} remaining today`}
+                    {userStats.isMember
+                      ? "Premium Member"
+                      : `${userStats.dailyCoursesRemaining} remaining today`}
                   </div>
                 </div>
                 <div className="text-sm font-semibold text-foreground">
-                  {userStats.dailyCoursesCreated}/{userStats.isMember ? "∞" : "10"}
+                  {userStats.dailyCoursesCreated}/
+                  {userStats.isMember ? "∞" : "10"}
                 </div>
               </div>
             </div>
