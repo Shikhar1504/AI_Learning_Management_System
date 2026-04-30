@@ -2,25 +2,39 @@
 import { UserButton, useUser } from "@clerk/nextjs";
 import axios from "axios";
 import {
-  Award,
-  BookOpen,
   Brain,
-  Clock,
-  GraduationCap,
-  Menu,
-  Sparkles,
-  Star,
+  Cpu,
+  Database,
+  Layers,
+  Network,
+  RefreshCw,
+  Search,
   Target,
-  Users,
+  Menu,
   X,
+  Activity,
+  CheckCircle,
+  ArrowRight,
+  BookOpen,
+  BarChart,
+  Sparkles,
   Zap,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { isSignedIn, user } = useUser();
+  const [isScrolled, setIsScrolled] = useState(false);
+  const { isSignedIn } = useUser();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const OnCheckoutClick = async () => {
     try {
@@ -46,297 +60,247 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Background Elements */}
-      <div className="fixed inset-0 -z-10">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute top-1/2 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl animate-pulse delay-1000" />
-        <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-pink-600/5 rounded-full blur-3xl animate-pulse delay-2000" />
+    <div className="min-h-screen bg-[#0B0F1A] text-slate-200 selection:bg-purple-500/30 font-sans overflow-x-hidden">
+      {/* Dynamic Background */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-teal-600/20 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/15 rounded-full blur-[120px]" />
+        <div className="absolute top-[40%] left-[60%] w-[30%] h-[30%] bg-blue-600/10 rounded-full blur-[100px]" />
+        <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-[0.03] mix-blend-overlay"></div>
       </div>
 
       {/* Navigation */}
-      <nav className="glass-card border-b border-white/10 sticky top-0 z-50">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 lg:h-20">
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-blue-600 shadow-lg">
-                <GraduationCap className="h-6 w-6 lg:h-7 lg:w-7 text-white" />
-              </div>
-              <div>
-                <span className="text-xl lg:text-2xl font-bold text-gradient-primary font-display">
-                  LearnForge
-                </span>
-                <p className="text-xs text-muted-foreground font-medium hidden sm:block">
-                  AI Learning Platform
-                </p>
-              </div>
-            </Link>
-
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center space-x-8">
-              <Link
-                href="#features"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Features
-              </Link>
-              <Link
-                href="#how-it-works"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                How it Works
-              </Link>
-              <Link
-                href="#pricing"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Pricing
-              </Link>
+      <nav
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-[#0B0F1A]/80 backdrop-blur-xl border-b border-white/5 py-4" : "bg-transparent py-6"}`}
+      >
+        <div className="container mx-auto px-6 max-w-7xl flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-3 z-50">
+            <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500/20 to-purple-500/20 border border-white/10 shadow-[0_0_15px_rgba(20,184,166,0.2)]">
+              <Brain className="h-5 w-5 text-teal-400" />
             </div>
+            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400 tracking-tight">
+              LearnForge
+            </span>
+          </Link>
 
-            {/* Action Buttons */}
-            <div className="hidden lg:flex items-center justify-center gap-4">
-              {isSignedIn && (
+          {/* Desktop Nav */}
+          <div className="hidden md:flex items-center gap-8">
+            <Link
+              href="#how-it-works"
+              className="text-sm font-medium text-slate-400 hover:text-white transition-colors"
+            >
+              How it Works
+            </Link>
+            <Link
+              href="#features"
+              className="text-sm font-medium text-slate-400 hover:text-white transition-colors"
+            >
+              Features
+            </Link>
+            <Link
+              href="#pricing"
+              className="text-sm font-medium text-slate-400 hover:text-white transition-colors"
+            >
+              Pricing
+            </Link>
+          </div>
+
+          <div className="hidden md:flex items-center gap-4">
+            {isSignedIn ? (
+              <div className="flex items-center gap-4">
                 <Link
                   href="/dashboard"
-                  className="btn-secondary h-9 px-4 flex items-center justify-center"
+                  className="text-sm font-medium text-white bg-white/5 hover:bg-white/10 border border-white/10 px-5 py-2.5 rounded-lg transition-all backdrop-blur-sm"
                 >
                   Dashboard
                 </Link>
-              )}
-              {isSignedIn ? (
-                <div className="ml-2">
-                  <UserButton
-                    afterSignOutUrl="/"
-                    appearance={{
-                      elements: {
-                        avatarBox:
-                          "h-9 w-9 rounded-xl border-2 border-purple-400/50 hover:border-purple-400 transition-all shadow-lg",
-                        userButtonPopoverCard:
-                          "glass-card border border-white/20",
-                        userButtonPopoverActionButton: "hover:bg-white/10",
-                      },
-                    }}
-                  />
-                </div>
-              ) : (
+                <UserButton
+                  afterSignOutUrl="/"
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-10 h-10 rounded-lg border border-white/10",
+                    },
+                  }}
+                />
+              </div>
+            ) : (
+              <>
                 <Link
                   href="/sign-in"
-                  className="btn-primary h-9 px-4 flex items-center justify-center"
+                  className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
                 >
                   Sign In
                 </Link>
-              )}
-            </div>
-
-            {/* Mobile Menu Button */}
-            <div className="lg:hidden flex items-center gap-3">
-              {isSignedIn && (
-                <div className="ml-2">
-                  <UserButton
-                    afterSignOutUrl="/"
-                    appearance={{
-                      elements: {
-                        avatarBox:
-                          "h-8 w-8 rounded-xl border-2 border-purple-400/50 hover:border-purple-400 transition-all shadow-lg",
-                        userButtonPopoverCard:
-                          "glass-card border border-white/20",
-                        userButtonPopoverActionButton: "hover:bg-white/10",
-                      },
-                    }}
-                  />
-                </div>
-              )}
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 rounded-xl hover:bg-white/10 transition-colors"
-              >
-                {mobileMenuOpen ? (
-                  <X className="h-6 w-6 text-foreground" />
-                ) : (
-                  <Menu className="h-6 w-6 text-foreground" />
-                )}
-              </button>
-            </div>
+                <Link
+                  href="/sign-up"
+                  className="text-sm font-medium text-white bg-gradient-to-r from-teal-600 to-purple-600 hover:from-teal-500 hover:to-purple-500 px-5 py-2.5 rounded-lg shadow-[0_0_20px_rgba(20,184,166,0.3)] transition-all"
+                >
+                  Start Learning
+                </Link>
+              </>
+            )}
           </div>
 
-          {/* Mobile Menu */}
-          {mobileMenuOpen && (
-            <div className="lg:hidden glass-card border-t border-white/10 py-4 space-y-2">
-              <Link
-                href="#features"
-                className="block text-muted-foreground hover:text-foreground transition-colors py-3 px-4"
-              >
-                Features
-              </Link>
-              <Link
-                href="#how-it-works"
-                className="block text-muted-foreground hover:text-foreground transition-colors py-3 px-4"
-              >
-                How it Works
-              </Link>
-              <Link
-                href="#pricing"
-                className="block text-muted-foreground hover:text-foreground transition-colors py-3 px-4"
-              >
-                Pricing
-              </Link>
-              {isSignedIn && (
-                <Link
-                  href="/dashboard"
-                  className="block text-muted-foreground hover:text-foreground transition-colors py-3 px-4"
-                >
-                  Dashboard
-                </Link>
-              )}
-              {!isSignedIn && (
-                <div className="px-4 pt-2">
-                  <Link
-                    href="/sign-in"
-                    className="btn-primary px-6 text-center block"
-                  >
-                    Sign In
-                  </Link>
-                </div>
-              )}
-            </div>
-          )}
+          {/* Mobile Menu Toggle */}
+          <button
+            className="md:hidden relative z-50 text-slate-300"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
+          </button>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="fixed inset-0 bg-[#0B0F1A]/95 backdrop-blur-3xl z-40 flex flex-col items-center justify-center gap-8">
+            <Link
+              href="#how-it-works"
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-2xl font-medium text-slate-300"
+            >
+              How it Works
+            </Link>
+            <Link
+              href="#features"
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-2xl font-medium text-slate-300"
+            >
+              Features
+            </Link>
+            <Link
+              href="#pricing"
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-2xl font-medium text-slate-300"
+            >
+              Pricing
+            </Link>
+            {isSignedIn ? (
+              <Link
+                href="/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className="mt-4 px-8 py-3 bg-teal-500/20 text-teal-400 rounded-xl border border-teal-500/30"
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <Link
+                href="/sign-in"
+                onClick={() => setMobileMenuOpen(false)}
+                className="mt-4 px-8 py-3 bg-teal-500/20 text-teal-400 rounded-xl border border-teal-500/30"
+              >
+                Sign In
+              </Link>
+            )}
+          </div>
+        )}
       </nav>
 
       {/* Hero Section */}
-      <section className="relative py-5 lg:py-10 px-4 sm:px-6 lg:px-8">
+      <section className="relative z-10 pt-40 pb-20 px-6 overflow-hidden">
         <div className="container mx-auto max-w-7xl">
-          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
-            {/* Left Content */}
-            <div className="flex-1 text-center lg:text-left space-y-8 fade-in">
-              {/* Badge */}
-              <div className="inline-flex items-center px-4 py-2 rounded-full glass-card border border-purple-400/20">
-                <Sparkles className="h-4 w-4 text-purple-400 mr-2" />
-                <span className="text-sm font-medium text-purple-400">
-                  AI-Powered Learning
+          <div className="flex flex-col lg:flex-row items-center gap-16">
+            <div className="flex-1 space-y-8 text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-sm font-medium">
+                <Sparkles className="h-4 w-4 text-teal-400" />
+                Adaptive AI Platform
+              </div>
+
+              <h1 className="text-5xl lg:text-7xl font-bold tracking-tight text-white leading-[1.1]">
+                AI Learning That <br className="hidden lg:block" />
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-teal-400 via-blue-400 to-purple-400">
+                  Adapts to You
                 </span>
-              </div>
+              </h1>
 
-              {/* Main Heading */}
-              <div className="space-y-6">
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight">
-                  <span className="text-white">Transform Learning with</span>
-                  <span className="text-gradient-primary block mt-2">
-                    AI-Powered Education
-                  </span>
-                </h1>
-                <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-                  Experience the future of education with personalized AI
-                  courses, interactive study materials, and adaptive learning
-                  paths designed specifically for your success.
-                </p>
+              <p className="text-lg lg:text-xl text-slate-400 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+                Generate courses, practice actively, and improve faster with an
+                AI system that identifies and adapts to your weaknesses in
+                real-time.
+              </p>
 
-                {/* Key Benefits */}
-                <div className="flex flex-wrap gap-3 justify-center lg:justify-start pt-2">
-                  <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-sm font-medium text-white">
-                    <Sparkles className="h-4 w-4 mr-1.5 text-purple-400" />
-                    Smart Learning
-                  </div>
-                  <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-sm font-medium text-white">
-                    <Target className="h-4 w-4 mr-1.5 text-blue-400" />
-                    Adaptive Content
-                  </div>
-                  <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-sm font-medium text-white">
-                    <Award className="h-4 w-4 mr-1.5 text-green-400" />
-                    Proven Methods
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                {isSignedIn ? (
-                  <Link
-                    href="/dashboard"
-                    className="btn-primary  px-6 sm:px-8 text-base sm:text-lg font-semibold whitespace-nowrap hover:scale-105 transition-transform"
-                  >
-                    <span className="truncate">Start Learning Free</span>
-                  </Link>
-                ) : (
-                  <Link
-                    href="/sign-in"
-                    className="btn-primary  px-6 sm:px-8 text-base sm:text-lg font-semibold whitespace-nowrap hover:scale-105 transition-transform"
-                  >
-                    <span className="truncate">Sign In to Start</span>
-                  </Link>
-                )}
+              <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
+                <Link
+                  href={isSignedIn ? "/dashboard" : "/sign-up"}
+                  className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-teal-600 to-purple-600 hover:from-teal-500 hover:to-purple-500 text-white font-medium rounded-xl shadow-[0_0_30px_rgba(20,184,166,0.3)] transition-all flex items-center justify-center gap-2 group"
+                >
+                  Start Learning
+                  <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                </Link>
                 <Link
                   href="#how-it-works"
-                  className="btn-secondary  px-6 sm:px-8 text-base sm:text-lg font-semibold whitespace-nowrap hover:scale-105 transition-transform"
+                  className="w-full sm:w-auto px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium rounded-xl transition-all flex items-center justify-center backdrop-blur-sm"
                 >
-                  <span className="truncate">Working</span>
+                  See How It Works
                 </Link>
               </div>
             </div>
 
-            {/* Right Content */}
-            <div
-              className="flex-1 relative scale-in"
-              style={{ animationDelay: "300ms" }}
-            >
-              <div className="relative">
-                {/* Decorative Elements */}
-                <div className="absolute -inset-4 bg-gradient-to-r from-purple-600/20 to-blue-600/20 rounded-3xl blur-2xl animate-pulse" />
-                <div className="absolute top-10 -right-10 w-32 h-32 bg-purple-500/20 rounded-full blur-xl" />
-                <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-blue-500/20 rounded-full blur-xl" />
+            {/* Abstract AI Network Visualization */}
+            <div className="flex-1 relative w-full h-[400px] lg:h-[500px] mx-auto lg:ml-auto perspective-1000">
+              {/* Glows */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-teal-500/20 blur-[100px] rounded-full" />
+              <div className="absolute top-1/3 left-1/4 w-48 h-48 bg-purple-500/20 blur-[80px] rounded-full animate-pulse" />
+              <div className="absolute bottom-1/3 right-1/4 w-56 h-56 bg-blue-500/20 blur-[90px] rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
 
-                {/* Main Visual Container */}
-                <div className="relative modern-card p-6 sm:p-6 lg:p-8">
-                  <div className="aspect-video rounded-xl overflow-hidden bg-gradient-to-br from-purple-500/10 to-blue-500/10 relative min-h-[200px] sm:min-h-[320px]">
-                    {/* Floating Elements */}
-                    <div
-                      className="absolute top-3 left-3 sm:top-4 sm:left-4 bg-white/10 backdrop-blur-sm rounded-lg p-3 floating"
-                      style={{ animationDelay: "0s" }}
-                    >
-                      <BookOpen className="h-5 w-5 sm:h-5 sm:w-5 text-purple-400" />
-                    </div>
-                    <div
-                      className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-white/10 backdrop-blur-sm rounded-lg p-3 floating"
-                      style={{ animationDelay: "1s" }}
-                    >
-                      <Target className="h-5 w-5 sm:h-5 sm:w-5 text-blue-400" />
-                    </div>
-                    <div
-                      className="absolute bottom-3 left-4 sm:bottom-4 sm:left-6 bg-white/10 backdrop-blur-sm rounded-lg p-3 floating"
-                      style={{ animationDelay: "2s" }}
-                    >
-                      <Award className="h-5 w-5 sm:h-5 sm:w-5 text-green-400" />
-                    </div>
+              {/* Floating Container */}
+              <div className="absolute inset-0 flex items-center justify-center transform-style-3d animate-float">
+                
+                {/* Core Sphere */}
+                <div className="absolute z-30 w-24 h-24 rounded-full bg-[#111623]/80 backdrop-blur-xl border border-teal-500/40 shadow-[0_0_40px_rgba(20,184,166,0.3)] flex items-center justify-center">
+                  <Brain className="w-10 h-10 text-teal-400" />
+                  <div className="absolute inset-0 rounded-full border border-teal-400/20 animate-ping" style={{ animationDuration: '3s' }} />
+                </div>
 
-                    {/* Central Content */}
-                    <div className="flex items-center justify-center h-full p-6">
-                      <div className="text-center space-y-4 sm:space-y-4 w-full max-w-[420px] sm:max-w-sm">
-                        <div className="w-20 h-20 sm:w-20 sm:h-20 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center mx-auto shadow-2xl glow-pulse">
-                          <Brain className="h-10 w-10 sm:h-10 sm:w-10 text-white" />
-                        </div>
-                        <div className="space-y-3 sm:space-y-3">
-                          <h3 className="text-xl sm:text-xl font-semibold text-foreground">
-                            AI Learning Engine
-                          </h3>
-                          <p className="text-sm sm:text-sm text-muted-foreground px-2">
-                            Creating your personalized course...
-                          </p>
-                          <div className="w-40 sm:w-40 h-2 bg-white/10 rounded-full mx-auto overflow-hidden">
-                            <div
-                              className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full animate-[width_2s_ease-in-out_infinite]"
-                              style={{ width: "85%" }}
-                            />
-                          </div>
-                          <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                            <span className="text-xs">Processing with AI</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                {/* Orbit 1 */}
+                <div className="absolute z-20 w-48 h-48 rounded-full border border-white/5 animate-spin-slow">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-purple-500/20 border border-purple-500/40 backdrop-blur-md flex items-center justify-center shadow-[0_0_15px_rgba(168,85,247,0.3)]">
+                    <Database className="w-3 h-3 text-purple-300" />
                   </div>
+                  <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-blue-500/20 border border-blue-500/40 backdrop-blur-md flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.3)]">
+                    <Layers className="w-3 h-3 text-blue-300" />
+                  </div>
+                </div>
+
+                {/* Orbit 2 */}
+                <div className="absolute z-10 w-72 h-72 rounded-full border border-white/5 animate-spin-slow" style={{ animationDirection: 'reverse', animationDuration: '15s' }}>
+                  <div className="absolute top-1/4 -right-4 w-8 h-8 rounded-full bg-teal-500/20 border border-teal-500/40 backdrop-blur-md flex items-center justify-center shadow-[0_0_15px_rgba(20,184,166,0.3)]">
+                    <Zap className="w-4 h-4 text-teal-300" />
+                  </div>
+                  <div className="absolute bottom-1/4 -left-4 w-8 h-8 rounded-full bg-pink-500/20 border border-pink-500/40 backdrop-blur-md flex items-center justify-center shadow-[0_0_15px_rgba(236,72,153,0.3)]">
+                    <Activity className="w-4 h-4 text-pink-300" />
+                  </div>
+                </div>
+
+                {/* Connecting Lines / Paths */}
+                <svg className="absolute inset-0 w-full h-full opacity-30 z-0" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  <path d="M 50 50 Q 75 25 100 50" fill="transparent" stroke="url(#gradient1)" strokeWidth="0.5" className="animate-pulse" />
+                  <path d="M 50 50 Q 25 75 0 50" fill="transparent" stroke="url(#gradient2)" strokeWidth="0.5" className="animate-pulse" style={{ animationDelay: '1s' }} />
+                  <defs>
+                    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#14b8a6" />
+                      <stop offset="100%" stopColor="#a855f7" />
+                    </linearGradient>
+                    <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#a855f7" />
+                      <stop offset="100%" stopColor="#3b82f6" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+
+                {/* Glass Cards Floating */}
+                <div className="absolute z-40 -right-4 top-1/4 w-32 h-16 bg-[#111623]/60 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl flex flex-col justify-center px-3 animate-bounce" style={{ animationDuration: '4s' }}>
+                  <div className="w-3/4 h-2 bg-white/20 rounded-full mb-2" />
+                  <div className="w-1/2 h-2 bg-teal-500/40 rounded-full" />
+                </div>
+
+                <div className="absolute z-40 -left-8 bottom-1/4 w-28 h-20 bg-[#111623]/60 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl flex flex-col justify-center px-3 animate-bounce" style={{ animationDuration: '5s', animationDelay: '1s' }}>
+                   <div className="w-full h-2 bg-purple-500/40 rounded-full mb-2" />
+                   <div className="w-5/6 h-2 bg-white/20 rounded-full mb-2" />
+                   <div className="w-4/6 h-2 bg-white/10 rounded-full" />
                 </div>
               </div>
             </div>
@@ -344,634 +308,681 @@ export default function Home() {
         </div>
       </section>
 
-      {/* How It Works Section */}
+      {/* Stop Passive Learning - Psychology Section */}
+      <section className="relative z-10 py-24 px-6 bg-[#0E1320]">
+        <div className="container mx-auto max-w-5xl text-center">
+          <div className="inline-block p-[1px] bg-gradient-to-r from-red-500 to-orange-500 rounded-full mb-6">
+            <div className="bg-[#0E1320] px-4 py-1.5 rounded-full text-red-400 text-sm font-semibold tracking-wide uppercase">
+              The Problem
+            </div>
+          </div>
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-8 tracking-tight">
+            Stop{" "}
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-red-400 to-orange-400">
+              Passive
+            </span>{" "}
+            Learning.
+          </h2>
+          <p className="text-xl text-slate-400 max-w-3xl mx-auto mb-16">
+            Most platforms just hand you content and hope you remember it.
+            LearnForge forces active recall, evaluating your knowledge to fix
+            gaps instantly.
+          </p>
+
+          <div className="grid md:grid-cols-3 gap-6 text-left">
+            <div className="bg-[#111623] border border-white/5 p-8 rounded-2xl hover:border-white/10 transition-colors">
+              <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center mb-6">
+                <Target className="h-6 w-6 text-slate-300" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-3">
+                1. Attempt
+              </h3>
+              <p className="text-slate-400 text-sm leading-relaxed">
+                Test your knowledge first. Find out what you actually do not
+                know instead of passively reading.
+              </p>
+            </div>
+
+            <div className="bg-[#111623] border border-white/5 p-8 rounded-2xl hover:border-white/10 transition-colors">
+              <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center mb-6">
+                <Zap className="h-6 w-6 text-slate-300" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-3">
+                2. Feedback
+              </h3>
+              <p className="text-slate-400 text-sm leading-relaxed">
+                Get instant, AI-driven evaluation on your answers and concepts
+                to pinpoint exact misunderstandings.
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-b from-[#111623] to-teal-900/20 border border-teal-500/30 p-8 rounded-2xl relative shadow-[0_0_30px_rgba(20,184,166,0.1)] hover:border-teal-500/50 transition-colors group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/10 blur-[40px] rounded-full pointer-events-none" />
+              <div className="w-12 h-12 bg-teal-500/20 border border-teal-500/30 rounded-xl flex items-center justify-center mb-6 relative z-10 group-hover:scale-110 transition-transform">
+                <RefreshCw className="h-6 w-6 text-teal-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-teal-400 mb-3 relative z-10">
+                3. Improve
+              </h3>
+              <p className="text-teal-100/70 text-sm leading-relaxed relative z-10">
+                Dynamic course material and quizzes generated specifically to
+                rebuild your weak areas.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
       <section
         id="how-it-works"
-        className="py-20 lg:py-32 px-4 sm:px-6 lg:px-8 slide-up"
-        style={{ animationDelay: "200ms" }}
+        className="relative z-10 py-24 px-6 bg-[#0B0F1A] border-y border-white/5"
       >
-        <div className="container mx-auto max-w-7xl">
-          {/* Section Header */}
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6 font-display">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-20">
+            <h2 className="text-3xl lg:text-5xl font-bold text-white mb-4">
               How It Works
             </h2>
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto">
-              Three simple steps to transform your learning experience with
-              AI-powered education
+            <p className="text-slate-400 max-w-2xl mx-auto">
+              From idea to mastery in a continuous, AI-driven loop.
             </p>
           </div>
 
-          {/* Steps Grid */}
-          <div className="grid gap-8 lg:gap-12 md:grid-cols-3 relative">
-            {/* Connection lines for desktop */}
-            <div className="hidden md:block absolute top-24 left-[calc(16.67%+4rem)] right-[calc(16.67%+4rem)] h-0.5 bg-gradient-to-r from-purple-500 to-blue-500 opacity-50 z-0" />
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 relative">
+            {/* Connecting Line Desktop */}
+            <div className="hidden lg:block absolute top-12 left-[12.5%] right-[12.5%] h-px bg-gradient-to-r from-blue-500/30 via-purple-500/30 to-teal-500/30" />
 
             {/* Step 1 */}
-            <div
-              className="modern-card-interactive text-center relative z-10"
-              style={{ animationDelay: "300ms" }}
-            >
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-2xl flex items-center justify-center mb-6 mx-auto">
-                <Target className="h-8 w-8 text-purple-400" />
+            <div className="relative bg-[#111623] border border-white/5 p-8 rounded-2xl text-center group hover:border-blue-500/30 transition-all">
+              <div className="w-16 h-16 mx-auto bg-[#0B0F1A] border-2 border-blue-500/50 rounded-full flex items-center justify-center mb-6 relative z-10 group-hover:bg-blue-500/10 transition-colors">
+                <span className="text-xl font-bold text-blue-400">1</span>
               </div>
-              <div className="space-y-4">
-                <h3 className="text-xl font-semibold text-foreground">
-                  Enter A Topic
-                </h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Simply enter the topic you want to learn. Our AI analyzes your
-                  request to understand the scope and key concepts.
-                </p>
-              </div>
+              <h3 className="text-xl font-semibold text-white mb-3">
+                Generate Course
+              </h3>
+              <p className="text-slate-400 text-sm">
+                Enter any topic and instantly get a structured syllabus.
+              </p>
             </div>
 
             {/* Step 2 */}
-            <div
-              className="modern-card-interactive text-center relative z-10"
-              style={{ animationDelay: "400ms" }}
-            >
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-2xl flex items-center justify-center mb-6 mx-auto">
-                <Sparkles className="h-8 w-8 text-blue-400" />
+            <div className="relative bg-[#111623] border border-white/5 p-8 rounded-2xl text-center group hover:border-purple-500/30 transition-all">
+              <div className="w-16 h-16 mx-auto bg-[#0B0F1A] border-2 border-purple-500/50 rounded-full flex items-center justify-center mb-6 relative z-10 group-hover:bg-purple-500/10 transition-colors">
+                <span className="text-xl font-bold text-purple-400">2</span>
               </div>
-              <div className="space-y-4">
-                <h3 className="text-xl font-semibold text-foreground">
-                  Generate Outline
-                </h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  The AI creates a structured course outline with chapters and
-                  topics, ensuring a logical learning progression.
+              <h3 className="text-xl font-semibold text-white mb-3">
+                Learn with AI
+              </h3>
+              <p className="text-slate-400 text-sm">
+                Read contextual study material and interactive flashcards.
+              </p>
+            </div>
+
+            {/* Step 3 */}
+            <div className="relative bg-[#111623] border border-white/5 p-8 rounded-2xl text-center group hover:border-pink-500/30 transition-all">
+              <div className="w-16 h-16 mx-auto bg-[#0B0F1A] border-2 border-pink-500/50 rounded-full flex items-center justify-center mb-6 relative z-10 group-hover:bg-pink-500/10 transition-colors">
+                <span className="text-xl font-bold text-pink-400">3</span>
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-3">
+                Take Quizzes
+              </h3>
+              <p className="text-slate-400 text-sm">
+                Test your knowledge to expose your blind spots and weak areas.
+              </p>
+            </div>
+
+            {/* Step 4 */}
+            <div className="relative bg-[#111623] border border-teal-500/20 p-8 rounded-2xl text-center shadow-[0_0_30px_rgba(20,184,166,0.05)] group hover:border-teal-500/40 transition-all">
+              <div className="w-16 h-16 mx-auto bg-teal-500/20 border-2 border-teal-500 rounded-full flex items-center justify-center mb-6 relative z-10 shadow-[0_0_15px_rgba(20,184,166,0.3)]">
+                <span className="text-xl font-bold text-teal-400">4</span>
+              </div>
+              <h3 className="text-xl font-semibold text-teal-400 mb-3">
+                Improve Faster
+              </h3>
+              <p className="text-slate-300 text-sm">
+                The system generates targeted remediation to fix your gaps.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Adaptive Learning Loop */}
+      <section className="relative z-10 py-24 px-6 bg-[#0E1320] border-t border-white/5">
+        <div className="container mx-auto max-w-5xl">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
+              The Adaptive Learning Loop
+            </h2>
+            <p className="text-slate-400 max-w-2xl mx-auto">
+              How our system processes your inputs and continuously refines your learning path.
+            </p>
+          </div>
+
+          <div className="relative glass-card bg-[#0B0F1A]/60 backdrop-blur-3xl border border-white/10 rounded-3xl p-8 lg:p-12 shadow-2xl overflow-hidden flex flex-col items-center">
+            
+            <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 via-purple-500/5 to-blue-500/5" />
+
+            {/* Flow Container */}
+            <div className="relative w-full max-w-lg mx-auto space-y-4 text-center z-10">
+              
+              {/* Animated Connector Line Behind */}
+              <div className="absolute left-1/2 top-4 bottom-4 w-1 -translate-x-1/2 bg-gradient-to-b from-teal-500/30 via-purple-500/30 to-blue-500/30 rounded-full z-0">
+                 <div className="w-full h-1/4 bg-white/40 blur-sm rounded-full animate-pulse"></div>
+              </div>
+
+              {/* Node 1 */}
+              <div className="relative z-10 bg-[#111623] border border-white/10 rounded-xl p-4 flex items-center justify-between gap-4 shadow-lg hover:border-teal-500/50 transition-colors w-full group">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-teal-500/10 transition-colors">
+                    <Database className="w-5 h-5 text-teal-400" />
+                  </div>
+                  <div className="text-left">
+                    <div className="text-sm font-semibold text-white">User Input</div>
+                    <div className="text-xs text-slate-400">Topics, documents, or goals</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Node 2 */}
+              <div className="relative z-10 bg-[#111623] border border-white/10 rounded-xl p-4 flex items-center justify-between gap-4 shadow-lg hover:border-teal-500/50 transition-colors w-full group">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-teal-500/10 transition-colors">
+                    <Cpu className="w-5 h-5 text-teal-400" />
+                  </div>
+                  <div className="text-left">
+                    <div className="text-sm font-semibold text-white">Course Generation</div>
+                    <div className="text-xs text-slate-400">AI structures the syllabus</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Node 3 */}
+              <div className="relative z-10 bg-[#111623] border border-purple-500/30 rounded-xl p-4 flex items-center justify-between gap-4 shadow-[0_0_15px_rgba(168,85,247,0.1)] w-full">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                    <BookOpen className="w-5 h-5 text-purple-400" />
+                  </div>
+                  <div className="text-left">
+                    <div className="text-sm font-semibold text-white">Learning + Quiz</div>
+                    <div className="text-xs text-purple-200/70">Active recall validation</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Node 4 */}
+              <div className="relative z-10 bg-[#111623] border border-pink-500/30 rounded-xl p-4 flex items-center justify-between gap-4 shadow-[0_0_15px_rgba(236,72,153,0.1)] w-full">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-pink-500/10 flex items-center justify-center">
+                    <Activity className="w-5 h-5 text-pink-400" />
+                  </div>
+                  <div className="text-left">
+                    <div className="text-sm font-semibold text-white">Weak Area Detection</div>
+                    <div className="text-xs text-pink-200/70">Identifying concept gaps</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Node 5 */}
+              <div className="relative z-10 bg-[#111623] border border-blue-500/30 rounded-xl p-4 flex items-center justify-between gap-4 shadow-[0_0_15px_rgba(59,130,246,0.1)] w-full">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                    <Search className="w-5 h-5 text-blue-400" />
+                  </div>
+                  <div className="text-left">
+                    <div className="text-sm font-semibold text-white">RAG + Semantic Cache</div>
+                    <div className="text-xs text-blue-200/70">Retrieving exact context</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Node 6 */}
+              <div className="relative z-10 bg-[#111623] border border-teal-500/50 rounded-xl p-4 flex items-center justify-between gap-4 shadow-[0_0_20px_rgba(20,184,166,0.15)] w-full overflow-hidden group">
+                <div className="flex items-center gap-4 relative z-10">
+                  <div className="w-10 h-10 rounded-lg bg-teal-500/20 flex items-center justify-center">
+                    <RefreshCw className="w-5 h-5 text-teal-400 animate-spin" style={{ animationDuration: '3s' }} />
+                  </div>
+                  <div className="text-left">
+                    <div className="text-sm font-semibold text-white">Remediation Generation</div>
+                    <div className="text-xs text-teal-200/70">Creating targeted study plans</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Node 7 */}
+              <div className="relative z-10 bg-gradient-to-r from-teal-500/20 to-purple-500/20 border border-teal-500/40 rounded-xl p-4 flex items-center justify-center gap-4 shadow-lg backdrop-blur-md w-full mt-8">
+                <Network className="w-5 h-5 text-white" />
+                <span className="text-base font-bold text-white tracking-wide">Adaptive Learning Loop Completed</span>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Product Experience Section */}
+      <section id="features" className="relative z-10 py-24 px-6 bg-[#0B0F1A]">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl lg:text-5xl font-bold text-white mb-4">
+              A Complete Learning Platform
+            </h2>
+            <p className="text-slate-400 max-w-2xl mx-auto">
+              Everything you need to master complex subjects, built into one
+              seamless experience.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Exp 1 */}
+            <div className="bg-[#111623]/80 border border-white/5 rounded-2xl p-8 backdrop-blur-sm group hover:border-white/10 transition-colors flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-3 bg-blue-500/10 rounded-xl">
+                    <BookOpen className="h-6 w-6 text-blue-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-white">
+                    Dynamic Courses
+                  </h3>
+                </div>
+                <p className="text-slate-400 text-sm mb-8">
+                  Interactive, chapter-based navigation through AI-generated
+                  syllabus tailored precisely to your goals.
+                </p>
+              </div>
+              <div className="bg-[#0B0F1A] border border-white/5 rounded-xl p-5 h-32 flex flex-col justify-center gap-3">
+                <div className="h-2.5 w-3/4 bg-slate-800 rounded"></div>
+                <div className="h-2.5 w-full bg-slate-800 rounded"></div>
+                <div className="h-2.5 w-5/6 bg-slate-800 rounded"></div>
+              </div>
+            </div>
+
+            {/* Exp 2 */}
+            <div className="bg-[#111623]/80 border border-white/5 rounded-2xl p-8 backdrop-blur-sm group hover:border-white/10 transition-colors flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-3 bg-purple-500/10 rounded-xl">
+                    <Layers className="h-6 w-6 text-purple-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-white">
+                    Active Flashcards
+                  </h3>
+                </div>
+                <p className="text-slate-400 text-sm mb-8">
+                  Flip-card UI integrated with confidence scoring to help you
+                  remember concepts using spaced repetition.
+                </p>
+              </div>
+              <div className="bg-gradient-to-br from-purple-900/20 to-[#0B0F1A] border border-purple-500/20 rounded-xl p-5 h-32 flex items-center justify-center relative overflow-hidden group-hover:border-purple-500/40 transition-colors">
+                <p className="text-purple-300 font-medium">
+                  What is Spaced Repetition?
                 </p>
               </div>
             </div>
 
-            {/* Step 3 */}
-            <div
-              className="modern-card-interactive text-center relative z-10"
-              style={{ animationDelay: "500ms" }}
-            >
-              <div className="w-16 h-16 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-2xl flex items-center justify-center mb-6 mx-auto">
-                <Award className="h-8 w-8 text-green-400" />
-              </div>
-              <div className="space-y-4">
-                <h3 className="text-xl font-semibold text-foreground">
-                  Start Learning
-                </h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Dive into the content! Generate detailed notes, interactive
-                  flashcards, and quizzes for each topic as you progress.
+            {/* Exp 3 */}
+            <div className="bg-[#111623]/80 border border-white/5 rounded-2xl p-8 backdrop-blur-sm group hover:border-white/10 transition-colors flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-3 bg-pink-500/10 rounded-xl">
+                    <CheckCircle className="h-6 w-6 text-pink-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-white">
+                    Validation Quizzes
+                  </h3>
+                </div>
+                <p className="text-slate-400 text-sm mb-8">
+                  Multiple-choice and short-answer evaluations that feed
+                  directly into your personalized learning path.
                 </p>
+              </div>
+              <div className="space-y-3">
+                <div className="p-4 border border-pink-500/30 bg-pink-500/5 rounded-xl flex items-center gap-3">
+                  <div className="w-4 h-4 rounded-full border-2 border-pink-400"></div>
+                  <div className="h-2 w-1/2 bg-slate-700 rounded"></div>
+                </div>
+                <div className="p-4 border border-white/5 bg-white/5 rounded-xl flex items-center gap-3">
+                  <div className="w-4 h-4 rounded-full border-2 border-slate-600"></div>
+                  <div className="h-2 w-2/3 bg-slate-700 rounded"></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Exp 4 */}
+            <div className="bg-[#111623]/80 border border-white/5 rounded-2xl p-8 backdrop-blur-sm group hover:border-white/10 transition-colors flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-3 bg-teal-500/10 rounded-xl">
+                    <BarChart className="h-6 w-6 text-teal-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-white">
+                    Weak Areas Tracker
+                  </h3>
+                </div>
+                <p className="text-slate-400 text-sm mb-8">
+                  Visual breakdown of your knowledge gaps with instant 1-click
+                  actions to study and fix them.
+                </p>
+              </div>
+              <div className="flex items-end gap-2 h-20 px-4">
+                <div className="w-full bg-slate-800 rounded-t-sm h-[30%] hover:bg-slate-700 transition-colors"></div>
+                <div className="w-full bg-slate-800 rounded-t-sm h-[80%] hover:bg-slate-700 transition-colors"></div>
+                <div className="w-full bg-slate-800 rounded-t-sm h-[50%] hover:bg-slate-700 transition-colors"></div>
+                <div className="w-full bg-slate-800 rounded-t-sm h-[60%] hover:bg-slate-700 transition-colors"></div>
+                <div className="w-full bg-red-500/50 border-t-2 border-red-500 rounded-t-sm h-[20%] relative group-hover:h-[30%] transition-all"></div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section
-        id="features"
-        className="py-20 lg:py-32 px-4 sm:px-6 lg:px-8 relative"
-      >
-        {/* Background decorations */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-white/10 rounded-3xl backdrop-blur-sm" />
-        <div className="absolute top-10 right-10 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-10 left-10 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl" />
-
-        <div className="container mx-auto max-w-7xl relative">
-          {/* Section Header */}
-          <div className="text-center mb-16 fade-in">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6 font-display">
-              Powerful Features
+      {/* Built for Real Learning, Powered by AI */}
+      <section className="relative z-10 py-24 px-6 bg-[#0E1320] border-t border-white/5">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
+              Built for Real Learning, Powered by AI
             </h2>
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto">
-              Everything you need for an effective and engaging learning
-              experience
+            <p className="text-slate-400 max-w-2xl mx-auto">
+              Behind the simple interface is a robust architecture designed for
+              speed, accuracy, and true personalization.
             </p>
           </div>
 
-          {/* Features Grid */}
-          <div className="grid gap-6 lg:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            {/* Feature 1 */}
-            <div
-              className="modern-card-interactive h-full min-h-[280px] flex flex-col"
-              style={{ animationDelay: "100ms" }}
-            >
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-xl flex items-center justify-center mb-4">
-                <BookOpen className="h-6 w-6 text-purple-400" />
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Category 1: AI System */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 mb-8">
+                <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center border border-blue-500/30">
+                  <Brain className="w-5 h-5 text-blue-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-white">AI System</h3>
               </div>
-              <h3 className="text-xl font-semibold text-foreground mb-3">
-                Personalized Courses
-              </h3>
-              <p className="text-muted-foreground leading-relaxed flex-1">
-                Custom learning paths designed specifically for your goals and
-                learning style with AI-generated content.
-              </p>
+              
+              <div className="bg-[#111623]/50 border border-white/5 p-6 rounded-2xl hover:bg-white/5 transition-colors">
+                <h4 className="text-base font-semibold text-white mb-1 flex items-center gap-2">
+                  <Search className="w-4 h-4 text-blue-400" />
+                  Retrieval-Augmented Generation
+                </h4>
+                <p className="text-slate-400 text-sm">Context-aware, grounded responses that prevent hallucinations.</p>
+              </div>
+
+              <div className="bg-[#111623]/50 border border-white/5 p-6 rounded-2xl hover:bg-white/5 transition-colors">
+                <h4 className="text-base font-semibold text-white mb-1 flex items-center gap-2">
+                  <Database className="w-4 h-4 text-blue-400" />
+                  Semantic Caching
+                </h4>
+                <p className="text-slate-400 text-sm">Instant responses powered by intelligent embedding-based caching.</p>
+              </div>
+
+              <div className="bg-[#111623]/50 border border-white/5 p-6 rounded-2xl hover:bg-white/5 transition-colors">
+                <h4 className="text-base font-semibold text-white mb-1 flex items-center gap-2">
+                  <RefreshCw className="w-4 h-4 text-blue-400" />
+                  Adaptive Learning Loop
+                </h4>
+                <p className="text-slate-400 text-sm">System constantly evolves content based on your quiz performance.</p>
+              </div>
             </div>
 
-            {/* Feature 2 */}
-            <div
-              className="modern-card-interactive h-full min-h-[280px] flex flex-col"
-              style={{ animationDelay: "200ms" }}
-            >
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center mb-4">
-                <Zap className="h-6 w-6 text-blue-400" />
+            {/* Category 2: Backend Engineering */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 mb-8">
+                <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center border border-purple-500/30">
+                  <Cpu className="w-5 h-5 text-purple-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-white">Backend Engineering</h3>
               </div>
-              <h3 className="text-xl font-semibold text-foreground mb-3">
-                Interactive Flashcards
-              </h3>
-              <p className="text-muted-foreground leading-relaxed flex-1">
-                Memorize key concepts with smart flashcards that adapt to your
-                knowledge level and learning pace.
-              </p>
+              
+              <div className="bg-[#111623]/50 border border-white/5 p-6 rounded-2xl hover:bg-white/5 transition-colors">
+                <h4 className="text-base font-semibold text-white mb-1 flex items-center gap-2">
+                  <Network className="w-4 h-4 text-purple-400" />
+                  Async Processing (Inngest)
+                </h4>
+                <p className="text-slate-400 text-sm">Non-blocking background workflows for seamless course generation.</p>
+              </div>
+
+              <div className="bg-[#111623]/50 border border-white/5 p-6 rounded-2xl hover:bg-white/5 transition-colors">
+                <h4 className="text-base font-semibold text-white mb-1 flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-purple-400" />
+                  Reliable State Management
+                </h4>
+                <p className="text-slate-400 text-sm">Explicit lifecycles ensure data is never lost during processing.</p>
+              </div>
+
+              <div className="bg-[#111623]/50 border border-white/5 p-6 rounded-2xl hover:bg-white/5 transition-colors">
+                <h4 className="text-base font-semibold text-white mb-1 flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-purple-400" />
+                  Retry & Fallback Logic
+                </h4>
+                <p className="text-slate-400 text-sm">Handles external AI failures gracefully to keep you learning.</p>
+              </div>
             </div>
 
-            {/* Feature 3 */}
-            <div
-              className="modern-card-interactive h-full min-h-[280px] flex flex-col"
-              style={{ animationDelay: "300ms" }}
-            >
-              <div className="w-12 h-12 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl flex items-center justify-center mb-4">
-                <Target className="h-6 w-6 text-green-400" />
+            {/* Category 3: Learning Experience */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 mb-8">
+                <div className="w-10 h-10 rounded-lg bg-teal-500/20 flex items-center justify-center border border-teal-500/30">
+                  <Target className="w-5 h-5 text-teal-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-white">Learning Experience</h3>
               </div>
-              <h3 className="text-xl font-semibold text-foreground mb-3">
-                Adaptive Quizzes
-              </h3>
-              <p className="text-muted-foreground leading-relaxed flex-1">
-                Test your knowledge with quizzes that focus on your weak areas
-                and reinforce learning effectively.
-              </p>
+              
+              <div className="bg-[#111623]/50 border border-white/5 p-6 rounded-2xl hover:bg-white/5 transition-colors">
+                <h4 className="text-base font-semibold text-white mb-1 flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-teal-400" />
+                  Active Recall UX
+                </h4>
+                <p className="text-slate-400 text-sm">Answer first, then see explanation. Designed for true retention.</p>
+              </div>
+
+              <div className="bg-[#111623]/50 border border-white/5 p-6 rounded-2xl hover:bg-white/5 transition-colors">
+                <h4 className="text-base font-semibold text-white mb-1 flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-teal-400" />
+                  Weak Area Detection
+                </h4>
+                <p className="text-slate-400 text-sm">Automatically identifies concept gaps you didn't know you had.</p>
+              </div>
+
+              <div className="bg-[#111623]/50 border border-white/5 p-6 rounded-2xl hover:bg-white/5 transition-colors">
+                <h4 className="text-base font-semibold text-white mb-1 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-teal-400" />
+                  Personalized Remediation
+                </h4>
+                <p className="text-slate-400 text-sm">Generates targeted study plans instantly to fix your specific gaps.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Why LearnForge Actually Works */}
+      <section className="relative z-10 py-24 px-6 bg-[#0B0F1A]">
+        <div className="container mx-auto max-w-5xl text-center">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-8 tracking-tight">
+            Why LearnForge Actually Works
+          </h2>
+          
+          <div className="grid md:grid-cols-2 gap-8 lg:gap-16 items-center mt-16">
+            {/* Most platforms */}
+            <div className="bg-[#111623]/50 border border-white/5 p-8 rounded-3xl relative">
+              <div className="absolute top-0 right-0 p-4">
+                  <span className="bg-red-500/10 text-red-400 text-xs font-bold px-3 py-1 rounded-full border border-red-500/20">THE OLD WAY</span>
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-6 text-left">Most Platforms</h3>
+              <div className="flex flex-col gap-4">
+                  <div className="p-4 bg-[#0B0F1A] border border-white/5 rounded-xl text-slate-400 text-sm flex items-center gap-4">
+                    <BookOpen className="w-5 h-5 text-slate-500" />
+                    Give you a wall of text to read
+                  </div>
+                  <div className="w-px h-6 bg-white/10 mx-auto"></div>
+                  <div className="p-4 bg-[#0B0F1A] border border-white/5 rounded-xl text-slate-400 text-sm flex items-center gap-4">
+                    <Target className="w-5 h-5 text-slate-500" />
+                    Hope you remember it somehow
+                  </div>
+              </div>
             </div>
 
-            {/* Feature 4 */}
-            <div
-              className="modern-card-interactive h-full min-h-[280px] flex flex-col"
-              style={{ animationDelay: "400ms" }}
-            >
-              <div className="w-12 h-12 bg-gradient-to-br from-pink-500/20 to-purple-500/20 rounded-xl flex items-center justify-center mb-4">
-                <Clock className="h-6 w-6 text-pink-400" />
+            {/* LearnForge */}
+            <div className="bg-gradient-to-b from-teal-900/20 to-[#111623] border border-teal-500/30 p-8 rounded-3xl relative shadow-[0_0_30px_rgba(20,184,166,0.1)]">
+              <div className="absolute top-0 right-0 p-4">
+                  <span className="bg-teal-500/10 text-teal-400 text-xs font-bold px-3 py-1 rounded-full border border-teal-500/20">THE LEARNING LOOP</span>
               </div>
-              <h3 className="text-xl font-semibold text-foreground mb-3">
-                Progress Tracking
-              </h3>
-              <p className="text-muted-foreground leading-relaxed flex-1">
-                Monitor your learning journey with detailed analytics and
-                performance insights in real-time.
-              </p>
-            </div>
-
-            {/* Feature 5 */}
-            <div
-              className="modern-card-interactive h-full min-h-[280px] flex flex-col"
-              style={{ animationDelay: "500ms" }}
-            >
-              <div className="w-12 h-12 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-xl flex items-center justify-center mb-4">
-                <Brain className="h-6 w-6 text-orange-400" />
+              <h3 className="text-2xl font-bold text-white mb-6 text-left">LearnForge</h3>
+              <div className="flex flex-col gap-2 relative z-10">
+                  <div className="p-4 bg-[#0B0F1A]/80 backdrop-blur-sm border border-teal-500/20 rounded-xl text-white text-sm flex items-center gap-4">
+                    <Target className="w-5 h-5 text-teal-400" />
+                    <strong>1. Attempt</strong> — Active recall testing
+                  </div>
+                  <div className="w-px h-4 bg-teal-500/30 mx-auto"></div>
+                  <div className="p-4 bg-[#0B0F1A]/80 backdrop-blur-sm border border-blue-500/20 rounded-xl text-white text-sm flex items-center gap-4">
+                    <Activity className="w-5 h-5 text-blue-400" />
+                    <strong>2. Feedback</strong> — AI evaluates your gaps
+                  </div>
+                  <div className="w-px h-4 bg-purple-500/30 mx-auto"></div>
+                  <div className="p-4 bg-[#0B0F1A]/80 backdrop-blur-sm border border-purple-500/20 rounded-xl text-white text-sm flex items-center gap-4">
+                    <RefreshCw className="w-5 h-5 text-purple-400" />
+                    <strong>3. Remediation</strong> — Targeted study plans
+                  </div>
+                  <div className="w-px h-4 bg-pink-500/30 mx-auto"></div>
+                  <div className="p-4 bg-gradient-to-r from-teal-600 to-purple-600 rounded-xl text-white text-sm flex items-center justify-center font-bold shadow-lg">
+                    Loop until mastery
+                  </div>
               </div>
-              <h3 className="text-xl font-semibold text-foreground mb-3">
-                Smart Explanations
-              </h3>
-              <p className="text-muted-foreground leading-relaxed flex-1">
-                Get detailed, AI-generated explanations for every topic,
-                complete with examples and code snippets instantly.
-              </p>
-            </div>
-
-            {/* Feature 6 */}
-            <div
-              className="modern-card-interactive h-full min-h-[280px] flex flex-col"
-              style={{ animationDelay: "600ms" }}
-            >
-              <div className="w-12 h-12 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl flex items-center justify-center mb-4">
-                <Users className="h-6 w-6 text-cyan-400" />
-              </div>
-              <h3 className="text-xl font-semibold text-foreground mb-3">
-                Gamified Learning
-              </h3>
-              <p className="text-muted-foreground leading-relaxed flex-1">
-                Stay motivated with streaks, experience points (XP), and
-                achievement badges as you master new skills.
-              </p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-20 lg:py-32 px-4 sm:px-6 lg:px-8">
-        <div className="container mx-auto max-w-7xl">
-          {/* Section Header */}
+      <section
+        id="pricing"
+        className="relative z-10 py-24 px-6 bg-[#0B0F1A] border-t border-white/5"
+      >
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
+        <div className="container mx-auto max-w-5xl">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6 font-display">
-              Choose Your Plan
+            <h2 className="text-3xl lg:text-5xl font-bold text-white mb-4">
+              Simple, Transparent Pricing
             </h2>
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto">
-              Start free and upgrade when you&apos;re ready. No hidden fees,
-              cancel anytime.
+            <p className="text-slate-400 max-w-2xl mx-auto">
+              Start learning today. Upgrade when you need more power.
             </p>
           </div>
 
-          {/* Pricing Cards */}
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-8 lg:gap-12 max-w-4xl mx-auto">
             {/* Free Plan */}
-            <div className="rounded-3xl border border-purple-200 bg-white p-8 shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden">
-              <div className="absolute top-0 right-0 bg-purple-100 text-purple-800 text-xs font-bold px-3 py-1 rounded-bl-lg">
-                FREE FOREVER
+            <div className="bg-[#111623] border border-white/10 rounded-3xl p-8 hover:border-white/20 transition-all flex flex-col">
+              <h3 className="text-xl font-semibold text-white mb-2">
+                Free Plan
+              </h3>
+              <div className="flex items-end gap-2 mb-6">
+                <span className="text-4xl font-bold text-white">$0</span>
+                <span className="text-slate-400 mb-1">/month</span>
               </div>
+              <p className="text-slate-400 text-sm mb-8 pb-8 border-b border-white/5">
+                Perfect for trying out the core features and learning basics.
+              </p>
 
-              <div className="text-center mb-6">
-                <h2 className="text-xl font-bold text-gray-900 font-poppins">
-                  Free Plan
-                </h2>
-
-                <p className="mt-4 flex items-center justify-center">
-                  <strong className="text-4xl font-bold text-purple-800 font-poppins">
-                    $0
-                  </strong>
-                  <span className="text-sm font-medium text-gray-500 ml-2">
-                    /month
-                  </span>
-                </p>
-              </div>
-
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-2xl mb-6">
-                <p className="text-center text-sm text-purple-700">
-                  Perfect for getting started
-                </p>
-              </div>
-
-              <ul className="mt-6 space-y-4 mb-8">
-                <li className="flex items-center gap-3">
-                  <div className="bg-purple-100 p-1 rounded-full">
-                    <svg
-                      className="w-4 h-4 text-purple-700"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <span className="text-gray-700 font-inter">
-                    10 Courses Per Day
-                  </span>
+              <ul className="space-y-4 mb-8 flex-1">
+                <li className="flex items-center gap-3 text-slate-300">
+                  <CheckCircle className="h-5 w-5 text-slate-500" />
+                  <span>10 generations per day</span>
                 </li>
-
-                <li className="flex items-center gap-3">
-                  <div className="bg-purple-100 p-1 rounded-full">
-                    <svg
-                      className="w-4 h-4 text-purple-700"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <span className="text-gray-700 font-inter">
-                    Basic Support
-                  </span>
+                <li className="flex items-center gap-3 text-slate-300">
+                  <CheckCircle className="h-5 w-5 text-slate-500" />
+                  <span>Access to dynamic courses</span>
                 </li>
-
-                <li className="flex items-center gap-3">
-                  <div className="bg-purple-100 p-1 rounded-full">
-                    <svg
-                      className="w-4 h-4 text-purple-700"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <span className="text-gray-700 font-inter">
-                    Email Support
-                  </span>
-                </li>
-
-                <li className="flex items-center gap-3">
-                  <div className="bg-purple-100 p-1 rounded-full">
-                    <svg
-                      className="w-4 h-4 text-purple-700"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <span className="text-gray-700 font-inter">
-                    Help Center Access
-                  </span>
+                <li className="flex items-center gap-3 text-slate-300">
+                  <CheckCircle className="h-5 w-5 text-slate-500" />
+                  <span>Basic performance tracking</span>
                 </li>
               </ul>
 
-              <div className="text-center">
-                {isSignedIn ? (
-                  <Link
-                    href="/dashboard"
-                    className="w-full py-3 px-6 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 inline-block"
-                  >
-                    Get Started Free
-                  </Link>
-                ) : (
-                  <Link
-                    href="/sign-in"
-                    className="w-full py-3 px-6 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 inline-block"
-                  >
-                    Sign In to Start
-                  </Link>
-                )}
-              </div>
+              <Link
+                href={isSignedIn ? "/dashboard" : "/sign-up"}
+                className="w-full py-4 px-6 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium rounded-xl transition-all text-center"
+              >
+                Get Started Free
+              </Link>
             </div>
 
             {/* Premium Plan */}
-            <div className="rounded-3xl border border-purple-300 bg-gradient-to-b from-white to-purple-50 p-8 shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden">
-              <div className="absolute top-0 right-0 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
-                MOST POPULAR
+            <div className="relative bg-[#111623] border border-teal-500/30 rounded-3xl p-8 hover:shadow-[0_0_40px_rgba(20,184,166,0.15)] transition-all flex flex-col overflow-hidden">
+              <div className="absolute top-0 right-0 bg-teal-500 text-[#0B0F1A] text-xs font-bold px-4 py-1.5 rounded-bl-xl z-10">
+                PRO PLAN
               </div>
+              <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/10 blur-[60px] pointer-events-none" />
 
-              <div className="text-center mb-6">
-                <h2 className="text-xl font-bold text-gray-900 font-poppins">
-                  Premium Plan
-                </h2>
-
-                <p className="mt-4 flex items-center justify-center">
-                  <strong className="text-4xl font-bold text-purple-800 font-poppins">
-                    $5
-                  </strong>
-                  <span className="text-sm font-medium text-gray-500 ml-2">
-                    /month
-                  </span>
-                </p>
+              <h3 className="text-xl font-semibold text-teal-400 mb-2 relative z-10">
+                Pro Learner
+              </h3>
+              <div className="flex items-end gap-2 mb-6 relative z-10">
+                <span className="text-4xl font-bold text-white">$5</span>
+                <span className="text-slate-400 mb-1">/month</span>
               </div>
+              <p className="text-slate-400 text-sm mb-8 pb-8 border-b border-white/5 relative z-10">
+                Unlimited access to all advanced AI remediation features.
+              </p>
 
-              <div className="bg-gradient-to-r from-purple-100 to-pink-100 p-4 rounded-2xl mb-6">
-                <p className="text-center text-sm text-purple-800">
-                  Unlimited access to everything
-                </p>
-              </div>
-
-              <ul className="mt-6 space-y-4 mb-8">
-                <li className="flex items-center gap-3">
-                  <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-1 rounded-full">
-                    <svg
-                      className="w-4 h-4 text-white"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <span className="text-gray-700 font-inter font-medium">
-                    Unlimited Course Generation
-                  </span>
+              <ul className="space-y-4 mb-8 flex-1 relative z-10">
+                <li className="flex items-center gap-3 text-white">
+                  <CheckCircle className="h-5 w-5 text-teal-400" />
+                  <span>Unlimited generation capacity</span>
                 </li>
-
-                <li className="flex items-center gap-3">
-                  <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-1 rounded-full">
-                    <svg
-                      className="w-4 h-4 text-white"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <span className="text-gray-700 font-inter font-medium">
-                    Unlimited Flashcards & Quizzes
-                  </span>
+                <li className="flex items-center gap-3 text-white">
+                  <CheckCircle className="h-5 w-5 text-teal-400" />
+                  <span>Advanced adaptive remediation</span>
                 </li>
-
-                <li className="flex items-center gap-3">
-                  <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-1 rounded-full">
-                    <svg
-                      className="w-4 h-4 text-white"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <span className="text-gray-700 font-inter font-medium">
-                    Priority Email Support
-                  </span>
+                <li className="flex items-center gap-3 text-white">
+                  <CheckCircle className="h-5 w-5 text-teal-400" />
+                  <span>Deep dive weak areas analytics</span>
                 </li>
-
-                <li className="flex items-center gap-3">
-                  <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-1 rounded-full">
-                    <svg
-                      className="w-4 h-4 text-white"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <span className="text-gray-700 font-inter font-medium">
-                    Advanced Analytics
-                  </span>
+                <li className="flex items-center gap-3 text-white">
+                  <CheckCircle className="h-5 w-5 text-teal-400" />
+                  <span>Priority AI processing</span>
                 </li>
               </ul>
 
-              <div className="text-center">
-                {isSignedIn ? (
-                  <button
-                    onClick={OnCheckoutClick}
-                    className="w-full py-3 px-6 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-                  >
-                    Upgrade to Premium
-                  </button>
-                ) : (
-                  <Link
-                    href="/sign-in"
-                    className="w-full py-3 px-6 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 inline-block text-center"
-                  >
-                    Sign In to Upgrade
-                  </Link>
-                )}
-              </div>
+              <button
+                onClick={OnCheckoutClick}
+                className="w-full py-4 px-6 bg-gradient-to-r from-teal-600 to-purple-600 hover:from-teal-500 hover:to-purple-500 text-white font-medium rounded-xl shadow-lg transition-all text-center relative z-10"
+              >
+                Upgrade to Pro
+              </button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 lg:py-32 px-4 sm:px-6 lg:px-8">
-        <div className="container mx-auto max-w-5xl text-center">
-          <div className="modern-card p-8 lg:p-12 relative overflow-hidden">
-            {/* Background decorations */}
-            <div className="absolute -top-20 -right-20 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl" />
-            <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-blue-500/20 rounded-full blur-3xl" />
-
-            <div className="relative space-y-8 fade-in">
-              <div className="space-y-4">
-                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground font-display">
-                  Ready to Transform Your Learning?
-                </h2>
-                <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                  Join thousands of students who are already experiencing the
-                  future of education with our AI-powered learning platform.
-                </p>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                {isSignedIn ? (
-                  <Link
-                    href="/dashboard"
-                    className="btn-primary  px-6 sm:px-8 text-base sm:text-lg font-semibold whitespace-nowrap hover:scale-105 transition-all group"
-                  >
-                    <span>Start Learning Now</span>
-                  </Link>
-                ) : (
-                  <Link
-                    href="/sign-in"
-                    className="btn-primary  px-6 sm:px-8 text-base sm:text-lg font-semibold whitespace-nowrap hover:scale-105 transition-all group"
-                  >
-                    <span>Sign In to Start</span>
-                  </Link>
-                )}
-                <Link
-                  href="#pricing"
-                  className="btn-secondary  px-6 sm:px-8 text-base sm:text-lg font-semibold whitespace-nowrap hover:scale-105 transition-all group"
-                >
-                  <span>View Pricing</span>
-                </Link>
-              </div>
-
-              {/* Trust indicators */}
-              <div className="flex flex-wrap justify-center items-center gap-8 pt-8 opacity-60">
-                <div className="flex items-center gap-2">
-                  <Star className="h-5 w-5 text-yellow-400 fill-current" />
-                  <span className="text-sm font-medium">Trusted Platform</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-green-400" />
-                  <span className="text-sm font-medium">Growing Community</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Award className="h-5 w-5 text-purple-400" />
-                  <span className="text-sm font-medium">Quality Content</span>
-                </div>
-              </div>
-            </div>
-          </div>
+      {/* Final CTA */}
+      <section className="relative z-10 py-32 px-6 bg-[#0B0F1A] overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-t from-teal-900/20 to-transparent" />
+        <div className="container mx-auto max-w-4xl relative z-10 text-center">
+          <h2 className="text-4xl md:text-6xl font-bold text-white mb-8 tracking-tight">
+            Ready to learn{" "}
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-purple-400">
+              smarter?
+            </span>
+          </h2>
+          <p className="text-xl text-slate-400 mb-10 max-w-2xl mx-auto">
+            Join the platform that adapts to your unique learning style.
+          </p>
+          <Link
+            href={isSignedIn ? "/dashboard" : "/sign-up"}
+            className="inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-teal-600 to-purple-600 hover:from-teal-500 hover:to-purple-500 text-white text-lg font-medium rounded-xl shadow-[0_0_40px_rgba(20,184,166,0.4)] transition-all transform hover:scale-105"
+          >
+            Start Learning Free <ArrowRight className="h-5 w-5" />
+          </Link>
         </div>
       </section>
 
-      {/* Footer - CareMeet Style */}
-      <footer className="glass-card border-t border-white/10 py-8 px-4 sm:px-6 lg:px-8">
-        <div className="container mx-auto max-w-7xl">
-          <div className="flex flex-col items-center justify-center space-y-6">
-            {/* Made with love text */}
-            <div className="flex items-center gap-3 text-muted-foreground text-lg font-large min-h-[2rem] h-8">
-              <span className="flex items-center h-full">Made with</span>
-              <svg
-                className="w-6 h-6 text-red-400 flex-shrink-0"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span className="flex items-center h-full">by Shikhar</span>
-            </div>
-
-            {/* Social Icons */}
-            <div className="flex items-center gap-6 min-h-[2rem] h-8">
-              {/* GitHub */}
-              <a
-                href="#"
-                className="text-muted-foreground hover:text-white transition-colors flex items-center justify-center h-full"
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-                </svg>
-              </a>
-
-              {/* LinkedIn */}
-              <a
-                href="#"
-                className="text-muted-foreground hover:text-white transition-colors flex items-center justify-center h-full"
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-                </svg>
-              </a>
-
-              {/* Instagram */}
-              <a
-                href="#"
-                className="text-muted-foreground hover:text-white transition-colors flex items-center justify-center h-full"
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-                </svg>
-              </a>
-
-              {/* Website/Globe */}
-              <a
-                href="#"
-                className="text-muted-foreground hover:text-white transition-colors flex items-center justify-center h-full"
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
-                  />
-                </svg>
-              </a>
-            </div>
-          </div>
+      {/* Footer */}
+      <footer className="border-t border-white/10 bg-[#0B0F1A] py-8 text-center text-slate-500 text-sm">
+        <div className="container mx-auto">
+          <p>
+            © {new Date().getFullYear()} LearnForge Platform. All rights
+            reserved.
+          </p>
         </div>
       </footer>
     </div>
